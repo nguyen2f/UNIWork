@@ -18,6 +18,10 @@ public class ProjectService {
     @Autowired
     private AuthService authService;
 
+    public Project getProjectById(Long id) {
+        return projectRepository.findProjectById(id);
+    }
+
     public Project createProject(ProjectRequest projectRequest) {
         Long userId = authService.getUserIdFromToken(); // 👈 Gọi service
         Project project = new Project();
