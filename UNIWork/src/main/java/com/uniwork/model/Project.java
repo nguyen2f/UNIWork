@@ -1,14 +1,14 @@
 package com.uniwork.model;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Generated;
 
 import java.util.Date;
 
 @Data
+@Entity
+@Table(name = "projects")
 public class Project {
 
     @Id
