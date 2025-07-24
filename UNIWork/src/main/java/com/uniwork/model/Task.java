@@ -1,15 +1,14 @@
 package com.uniwork.model;
 
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.util.Date;
-import java.util.List;
 
 @Data
+@Entity
+@Table(name = "tasks")
 public class Task {
 
     @Id
@@ -17,6 +16,7 @@ public class Task {
     private Long id;
     private Long projectId; // Reference to the project this task belongs to
     private Long assignedTo;
+    private Long createdBy; // Reference to the user who created the task
     private Long parentId; // For sub-tasks, reference to the parent task
     private String title;
     private String description;
