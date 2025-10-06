@@ -13,7 +13,7 @@ public class Task {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long taskId;
     private Long projectId; // Reference to the project this task belongs to
     private Long assignedTo;
     private Long createdBy; // Reference to the user who created the task

@@ -12,7 +12,7 @@ public class FileAttachment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long fileId;
     private Long taskId; // ID of the task this file is attached to
     private Long uploaderId; // ID of the user who uploaded the file
     private String fileName; // Name of the file

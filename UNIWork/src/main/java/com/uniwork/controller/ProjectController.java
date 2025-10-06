@@ -2,18 +2,12 @@ package com.uniwork.controller;
 
 
 import com.uniwork.dto.ProjectRequest;
-import com.uniwork.model.Project;
+import com.uniwork.interceptors.Payload;
 import com.uniwork.service.ProjectService;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -21,12 +15,25 @@ import org.springframework.web.bind.annotation.RestController;
 public class ProjectController {
 
     @Autowired
-    private ProjectService ProjectService;
+    private ProjectService projectService;
+
+    @GetMapping("/get-all")
+    public ResponseEntity getAllProjects(@RequestAttribute Payload payload) {
+        log.info("Getting all projects for userId: {}", payload.getUserId());
+        return projectService.getAllProjectsByUserId(payload.getUserId());
+    }
+
+    @GetMapping("/get-detail/{projectId}")
+    public ResponseEntity getProjectDetail(@PathVariable Long projectId, @RequestAttribute Payload payload) {
+        log.info("Getting project detail for projectId: {} and userId: {}", projectId, payload.getUserId());
+        return projectService.getProjectDetail(projectId, payload.getUserId());
+    }
 
     @PostMapping("/create")
-    public ResponseEntity createProject(ProjectRequest projectRequest) {
+    public ResponseEntity createProject(@RequestBody ProjectRequest projectRequest, @RequestAttribute Payload payload) {
         log.info("Creating project with request: {}", projectRequest);
-        Project project = ProjectService.createProject(projectRequest);
-        return ResponseEntity.ok(project);
+        return projectService.createProject(projectRequest, payload.getUserId());
     }
+
+
 }

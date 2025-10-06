@@ -7,6 +7,7 @@ import java.util.Date;
 
 @Data
 public class TaskRequest {
+    private Long id;
     private Long projectId;
     private String title;
     private String description;

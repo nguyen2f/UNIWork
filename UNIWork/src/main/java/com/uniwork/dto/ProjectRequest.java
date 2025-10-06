@@ -6,6 +6,7 @@ import java.util.Date;
 
 @Data
 public class ProjectRequest {
+    private Long id;
     private String name;
     private String description;
     private String status; // e.g., "active", "completed", "archived"

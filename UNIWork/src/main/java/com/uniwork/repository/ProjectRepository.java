@@ -5,7 +5,9 @@ import com.uniwork.model.Project;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ProjectRepository extends JpaRepository<Project, Long> {
-    boolean existsById(Long id);
+    Project findProjectByProjectId(Long projectId);
 
-    Project findProjectById(Long id);
+    Project findByProjectId(Long projectId);
+
+
 }

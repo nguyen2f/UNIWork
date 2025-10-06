@@ -41,6 +41,6 @@ public class AuthService {
             throw new RuntimeException("Không tìm thấy userId trong token");
         }
 
-        return Long.valueOf(rawUserId.toString()); // an toàn nếu token encode là string/number
+        return Long.valueOf(rawUserId.toString());
     }
 }

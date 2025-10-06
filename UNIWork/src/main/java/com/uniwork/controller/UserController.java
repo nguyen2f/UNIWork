@@ -1,4 +1,5 @@
 package com.uniwork.controller;
+import com.uniwork.dto.LoginRequest;
 import com.uniwork.dto.UserDTO;
 import com.uniwork.model.User;
 import com.uniwork.service.UserService;
@@ -7,12 +8,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -26,7 +26,7 @@ public class UserController {
     private JwtUtil jwtUtil; // Giả sử bạn có một JwtUtil để tạo token
 
     @PostMapping("/register")
-    public ResponseEntity registerUser(UserDTO userDTO) {
+    public ResponseEntity registerUser(@RequestBody  UserDTO userDTO) {
         log.info("Registering user: {}", userDTO.getName());
         User user = userService.registerUser(userDTO);
         return ResponseEntity.ok(user);
@@ -34,11 +34,14 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity loginUser(
-            @RequestParam String email,
-            @RequestParam String password) {
-        log.info("Logining user: {}", email);
-        User user = userService.login(email, password);
-        String token = jwtUtil.generateToken(user); // Tạo token cho người dùng
-        return ResponseEntity.ok(Collections.singletonMap("token", token)); // Trả về token cho client
+            @RequestBody LoginRequest loginRequest) {
+        log.info("Logining user: {}", loginRequest.getEmail());
+        User user = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
+        String token = jwtUtil.generateToken(user);
+        Map<String, Object> response = new HashMap<>();
+        response.put("token", token);
+        response.put("userId", user.getUserId());
+        return ResponseEntity.ok(response);
+
     }
 }

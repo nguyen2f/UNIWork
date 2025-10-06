@@ -11,7 +11,7 @@ public class Report {
 
     @Id
     @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
-    private Long id;
+    private Long reportId;
     private Long projectId;
     private String title;
     private String type;

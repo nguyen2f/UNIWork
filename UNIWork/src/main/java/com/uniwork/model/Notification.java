@@ -13,7 +13,7 @@ public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long notiId;
     private Long recipientId;
     private Long senderId;
     private String entityType; // e.g., "Project", "Task"

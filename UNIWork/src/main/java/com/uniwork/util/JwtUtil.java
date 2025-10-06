@@ -21,7 +21,7 @@ public class JwtUtil {
     }
 
     public String extractEmail(String token) {
-        return extractClaim(token, Claims::getSubject); // subject là email (nếu bạn set như vậy)
+        return extractClaim(token, Claims::getSubject);
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -48,12 +48,17 @@ public class JwtUtil {
 
     public String generateToken(User user) {
         return Jwts.builder()
-                .setSubject(user.getEmail()) // sử dụng email làm subject
-                .claim("name", user.getName())
-                .claim("id", user.getId())
+                .claim("userId", user.getUserId())
+                .claim("email", user.getEmail())
+                .setSubject(user.getEmail())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 8640000)) // 1 ngày
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1 ngày
+                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
                 .compact();
+    }
+
+    public Long extractUserId(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("userId", Long.class);
     }
 }
