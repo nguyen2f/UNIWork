@@ -2,8 +2,9 @@
 FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copy toàn bộ source code
-COPY . .
+# Copy chỉ subfolder chứa Spring Boot
+COPY UNIWork/UNIWork ./
+
 
 # Build ứng dụng (bỏ qua test để giảm thời gian build)
 RUN mvn clean package -DskipTests
@@ -15,8 +16,8 @@ WORKDIR /app
 # Copy file jar đã build từ stage 1
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose port cho container
-EXPOSE 8297
+# Expose port để Render map (không bắt buộc nhưng tốt)
+EXPOSE 8080
 
-# Chạy ứng dụng
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Chạy ứng dụng và dùng biến PORT
+ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT}"]
