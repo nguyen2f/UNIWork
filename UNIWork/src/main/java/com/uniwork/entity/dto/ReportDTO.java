@@ -14,4 +14,5 @@ public class ReportDTO {
     private Long completedTasks;
     private Long pendingTasks;
     private Long doingTasks;
+    private Double completedPercent;
 }

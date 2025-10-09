@@ -48,7 +48,8 @@ public class ReportService {
                         Long completed = completedTask.get();
                         Long pending = pendingTask.get();
                         Long doing = doingTask.get();
-                        return new ReportDTO(project, total, completed, pending, doing);
+                        Double completedPercent = total == 0 ? 0.0 : (completed * 100) / total;
+                        return new ReportDTO(project, total, completed, pending, doing, completedPercent);
                     } catch (Exception e) {
                         throw new RuntimeException("Error while generating report for projectId=" + projectId, e);
                     }
