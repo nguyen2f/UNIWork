@@ -3,7 +3,7 @@ FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # Copy chỉ subfolder chứa Spring Boot
-COPY UNIWork/UNIWork ./
+COPY ..
 
 
 # Build ứng dụng (bỏ qua test để giảm thời gian build)
