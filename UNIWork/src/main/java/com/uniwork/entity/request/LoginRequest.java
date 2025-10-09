@@ -1,4 +1,4 @@
-package com.uniwork.dto;
+package com.uniwork.entity.request;
 
 import lombok.Data;
 
