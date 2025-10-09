@@ -1,14 +1,16 @@
-package com.uniwork.dto;
+package com.uniwork.entity.request;
 
 
 import lombok.Data;
 
 import java.util.Date;
+import java.util.List;
 
 @Data
 public class TaskRequest {
-    private Long id;
+    private Long taskId;
     private Long projectId;
+    private List<Long> assignedTo;
     private String title;
     private String description;
     private String priority; // e.g., Low, Medium, High
@@ -16,4 +18,5 @@ public class TaskRequest {
     private Date dueDate;
     private Date createdDate;
     private Date updatedDate;
+    private String tags; // Comma-separated tags
 }

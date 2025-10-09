@@ -1,6 +1,6 @@
 package com.uniwork.controller;
 
-import com.uniwork.dto.TaskRequest;
+import com.uniwork.entity.request.TaskRequest;
 import com.uniwork.interceptors.Payload;
 import com.uniwork.service.TaskService;
 import lombok.extern.slf4j.Slf4j;
@@ -16,33 +16,33 @@ public class TaskController {
     @Autowired
     private TaskService taskService;
 
-    @GetMapping("/{projectId}/tasks")
+    @GetMapping("/{projectId}/get-all")
     public ResponseEntity getTasksByProjectId(@PathVariable Long projectId, @RequestAttribute Payload payload) {
         log.info("Fetching tasks for project ID: {}", projectId);
         return taskService.getAllTasksByProjectId(projectId);
     }
 
-    @GetMapping("/{projectId}/task/{taskId}")
+    @GetMapping("/{projectId}/get-detail/{taskId}")
     public ResponseEntity getTaskById(@PathVariable Long taskId, @RequestAttribute Payload payload) {
         log.info("Fetching task with ID: {}", taskId);
-        return taskService.getTaskById(taskId);
+        return taskService.getTaskById(payload.getUserId(), taskId);
     }
 
-    @PostMapping("/{projectId}/create")
+    @PostMapping("/{projectId}/create-task")
     public ResponseEntity createTask(@RequestBody TaskRequest taskRequest, @PathVariable Long projectId, @RequestAttribute Payload payload) {
         log.info("Creating task with request: {} for project ID: {}", taskRequest, projectId);
-        return taskService.createTask(taskRequest);
+        return taskService.createTask(payload.getUserId(), taskRequest);
     }
 
-    @PostMapping("/{projectId}/update")
+    @PostMapping("/{projectId}/update-task")
     public ResponseEntity updateTask(@RequestBody TaskRequest taskRequest, @PathVariable Long projectId, @RequestAttribute Payload payload) {
         log.info("Updating task with request: {} for project ID: {}", taskRequest, projectId);
-        return taskService.updateTask(taskRequest);
+        return taskService.updateTask(payload.getUserId(), taskRequest);
     }
 
-    @DeleteMapping("/{projectId}/delete/{taskId}")
+    @DeleteMapping("/{projectId}/delete-task/{taskId}")
     public ResponseEntity deleteTask(@PathVariable Long taskId, @PathVariable Long projectId, @RequestAttribute Payload payload) {
         log.info("Deleting task with ID: {} for project ID: {}", taskId, projectId);
-        return taskService.deleteTask(taskId);
+        return taskService.deleteTask(payload.getUserId(), taskId);
     }
 }

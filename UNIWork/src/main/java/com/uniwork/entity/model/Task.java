@@ -1,4 +1,4 @@
-package com.uniwork.model;
+package com.uniwork.entity.model;
 
 
 import jakarta.persistence.*;
@@ -25,6 +25,9 @@ public class Task {
     private Date dueDate;
     private Date createdDate;
     private Date updatedDate;
+    private Long updateBy;
+    private Boolean completed;
+    private String tags; // List of tags associated with the task
 
     // Additional fields can be added as needed
 }
