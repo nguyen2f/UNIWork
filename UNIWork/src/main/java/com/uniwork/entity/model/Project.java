@@ -1,4 +1,4 @@
-package com.uniwork.model;
+package com.uniwork.entity.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -16,6 +16,11 @@ public class Project {
     private Long projectId;
     private String name;
     private String description;
+    private String priority;
+    private String category;
+    private String client;
+    private String department;
+    private String riskLevel;
     private Long ownerId;
     private Date startDate;
     private Date endDate;

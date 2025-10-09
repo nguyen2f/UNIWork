@@ -1,9 +1,8 @@
 package com.uniwork.repository;
 
-import com.uniwork.model.ProjectMember;
+import com.uniwork.entity.model.ProjectMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 
@@ -15,4 +14,7 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
     ProjectMember findByProjectIdAndUserId(Long projectId, Long userId);
 
     List<ProjectMember> findAllByUserId(Long userId);
+
+    @Query("SELECT pm.projectId FROM ProjectMember pm WHERE pm.userId = :userId")
+    List<Long> findProjectIdsByUserId(Long userId);
 }

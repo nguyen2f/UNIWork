@@ -1,7 +1,7 @@
 package com.uniwork.controller;
 
 
-import com.uniwork.dto.ProjectRequest;
+import com.uniwork.entity.request.ProjectRequest;
 import com.uniwork.interceptors.Payload;
 import com.uniwork.service.ProjectService;
 import lombok.extern.slf4j.Slf4j;
@@ -29,11 +29,15 @@ public class ProjectController {
         return projectService.getProjectDetail(projectId, payload.getUserId());
     }
 
-    @PostMapping("/create")
+    @PostMapping("/create-project")
     public ResponseEntity createProject(@RequestBody ProjectRequest projectRequest, @RequestAttribute Payload payload) {
         log.info("Creating project with request: {}", projectRequest);
         return projectService.createProject(projectRequest, payload.getUserId());
     }
 
-
+    @PostMapping("/update-project/{projectId}")
+    public ResponseEntity updateProject(@PathVariable Long projectId, @RequestBody ProjectRequest projectRequest, @RequestAttribute Payload payload) {
+        log.info("Updating project with ID: {} and request: {}", projectId, projectRequest);
+        return projectService.updateProject(projectId, projectRequest, payload.getUserId());
+    }
 }

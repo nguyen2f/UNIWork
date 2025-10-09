@@ -1,4 +1,4 @@
-package com.uniwork.model;
+package com.uniwork.entity.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
