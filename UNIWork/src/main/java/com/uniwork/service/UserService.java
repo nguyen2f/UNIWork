@@ -1,11 +1,15 @@
 package com.uniwork.service;
 
-import com.uniwork.dto.UserDTO;
-import com.uniwork.model.ProjectMember;
-import com.uniwork.model.User;
+import com.uniwork.entity.request.AssignMemberRequest;
+import com.uniwork.entity.request.RegisterRequest;
+import com.uniwork.entity.dto.UserDTO;
+import com.uniwork.entity.model.ProjectMember;
+import com.uniwork.entity.model.User;
+import com.uniwork.entity.request.UpdateProfileRequest;
 import com.uniwork.repository.ProjectMemberRepository;
 import com.uniwork.repository.ProjectRepository;
 import com.uniwork.repository.UserRepository;
+import com.uniwork.util.BeanCopyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -23,14 +27,14 @@ public class UserService {
     @Autowired
     private ProjectMemberRepository projectMemberRepository;
 
-    public User registerUser(UserDTO userDTO) {
-        if (userRepository.existsByEmail(userDTO.getEmail())) {
+    public User registerUser(RegisterRequest registerRequest) {
+        if (userRepository.existsByEmail(registerRequest.getEmail())) {
             throw new RuntimeException("User already exists");
         }
         User user = new User();
-        user.setName(userDTO.getName());
-        user.setPassword(userDTO.getPassword());
-        user.setEmail(userDTO.getEmail());
+        user.setName(registerRequest.getName());
+        user.setPassword(registerRequest.getPassword());
+        user.setEmail(registerRequest.getEmail());
         user.setCreatedDate(new Date());
         return userRepository.save(user);
     }
@@ -48,11 +52,12 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-    public ResponseEntity assignMemberToProject(Long userId, Long projectId, String role) {
-//        Project project = projectRepository.findByProjectId(projectId);
-//        User user = userRepository.findByUserId(userId);
+    public ResponseEntity assignMemberToProject(AssignMemberRequest assignMemberRequest) {
+        Long userId = assignMemberRequest.getUserId();
+        Long projectId = assignMemberRequest.getProjectId();
+        String role = assignMemberRequest.getRole();
 
-        ProjectMember projectMember = projectMemberRepository.findByProjectId(projectId);
+        ProjectMember projectMember = new ProjectMember();
         projectMember.setProjectId(projectId);
         projectMember.setUserId(userId);
         projectMember.setRole(role);
@@ -76,6 +81,20 @@ public class UserService {
 
         List<ProjectMember> members = projectMemberRepository.findAllByProjectId(projectId);
         return ResponseEntity.ok(members);
+    }
+
+    public ResponseEntity updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {
+        User user = userRepository.findByUserId(userId);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        user.setUpdatedDate(new Date());
+
+        if (updateProfileRequest.getPassword() != null && !updateProfileRequest.getPassword().isEmpty()) {
+            user.setPassword(updateProfileRequest.getPassword());
+        }
+        BeanCopyUtils.copyNonNullProperties(updateProfileRequest, user);
+        return ResponseEntity.ok(userRepository.save(user));
     }
 
 }

@@ -1,4 +1,4 @@
-package com.uniwork.model;
+package com.uniwork.entity.model;
 
 
 import jakarta.persistence.*;
@@ -20,5 +20,7 @@ public class User {
     private String password;
     private Date createdDate;
     private Date updatedDate;
-
+    private String address;
+    private String phone;
+    private String department;
 }

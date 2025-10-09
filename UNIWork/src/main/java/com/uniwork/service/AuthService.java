@@ -1,6 +1,6 @@
 package com.uniwork.service;
 
-import com.uniwork.model.User;
+import com.uniwork.entity.model.User;
 import com.uniwork.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,7 +33,7 @@ public class AuthService {
             throw new RuntimeException("Token không hợp lệ hoặc thiếu");
         }
 
-        String token = authHeader.substring(7); // Bỏ "Bearer "
+        String token = authHeader.substring(7);
         Claims claims = jwtUtil.extractAllClaims(token);
 
         Object rawUserId = claims.get("id");
