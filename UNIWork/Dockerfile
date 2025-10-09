@@ -20,4 +20,4 @@ COPY --from=build /app/target/*.jar app.jar
 EXPOSE 8080
 
 # Chạy ứng dụng và dùng biến PORT
-ENTRYPOINT ["sh", "-c", "java -jar app.jar --server.port=${PORT}"]
+ENTRYPOINT ["java","-jar","app.jar"]
