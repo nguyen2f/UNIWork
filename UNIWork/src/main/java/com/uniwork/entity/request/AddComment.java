@@ -1,18 +1,11 @@
-package com.uniwork.entity.model;
+package com.uniwork.entity.request;
 
-import jakarta.persistence.*;
 import lombok.Data;
 
 import java.util.Date;
 
 @Data
-@Entity
-@Table(name = "comments")
-public class Comment {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long commentId;
+public class AddComment {
     private Long taskId;
     private Long posterId;
     private Long authorId;

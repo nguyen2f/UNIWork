@@ -19,4 +19,10 @@ public class ReportController {
     public ResponseEntity getProjectReport(@RequestAttribute Payload payload, @RequestParam Long begin, @RequestParam Long end) {
         return reportService.getProjectReport(payload.getUserId(), begin, end);
     }
+
+    @GetMapping("/task-report")
+    public ResponseEntity getTaskReport(@RequestAttribute Payload payload, @RequestParam Long begin, @RequestParam Long end) {
+        return reportService.getTaskReport(payload.getUserId(), begin, end);
+    }
+
 }

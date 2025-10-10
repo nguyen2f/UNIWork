@@ -1,8 +1,5 @@
 package com.uniwork.controller;
-import com.uniwork.entity.request.AssignMemberRequest;
-import com.uniwork.entity.request.LoginRequest;
-import com.uniwork.entity.request.RegisterRequest;
-import com.uniwork.entity.request.UpdateProfileRequest;
+import com.uniwork.entity.request.*;
 import com.uniwork.interceptors.Payload;
 import com.uniwork.entity.model.User;
 import com.uniwork.service.UserService;
@@ -55,5 +52,10 @@ public class UserController {
     public ResponseEntity assignMemberToProject(@RequestAttribute Payload payload, @RequestBody AssignMemberRequest assignMemberRequest) {
         return ResponseEntity.ok(userService.assignMemberToProject(assignMemberRequest));
 
+    }
+
+    @PostMapping("/remove-member")
+    public ResponseEntity removeMemberFromProject(@RequestAttribute Payload payload, @RequestBody RemoveMemberRequest removeMemberRequest) {
+        return ResponseEntity.ok(userService.removeMemberFromProject(removeMemberRequest));
     }
 }

@@ -1,13 +1,13 @@
 package com.uniwork.service;
 
-import com.uniwork.entity.request.AssignMemberRequest;
-import com.uniwork.entity.request.RegisterRequest;
+import com.uniwork.entity.model.Task;
+import com.uniwork.entity.request.*;
 import com.uniwork.entity.dto.UserDTO;
 import com.uniwork.entity.model.ProjectMember;
 import com.uniwork.entity.model.User;
-import com.uniwork.entity.request.UpdateProfileRequest;
 import com.uniwork.repository.ProjectMemberRepository;
 import com.uniwork.repository.ProjectRepository;
+import com.uniwork.repository.TaskRepository;
 import com.uniwork.repository.UserRepository;
 import com.uniwork.util.BeanCopyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +26,8 @@ public class UserService {
     private ProjectRepository projectRepository;
     @Autowired
     private ProjectMemberRepository projectMemberRepository;
+    @Autowired
+    private TaskRepository taskRepository;
 
     public User registerUser(RegisterRequest registerRequest) {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
@@ -71,7 +73,15 @@ public class UserService {
         return ResponseEntity.ok(projectMemberRepository.save(projectMember));
     }
 
-    public ResponseEntity removeMemberFromProject(Long userId, Long projectId) {
+    public ResponseEntity removeMemberFromProject(RemoveMemberRequest removeMemberRequest) {
+        Long memberId = removeMemberRequest.getMemberId();
+        Long projectId = removeMemberRequest.getProjectId();
+
+        List<Task> tasks = taskRepository.findAllByProjectIdAndAssignedTo(projectId, memberId);
+        if (!tasks.isEmpty()) {
+            taskRepository.deleteAll(tasks);
+        }
+
         ProjectMember projectMember = projectMemberRepository.findByProjectId(projectId);
         projectMemberRepository.delete(projectMember);
         return ResponseEntity.ok("Member removed from project");

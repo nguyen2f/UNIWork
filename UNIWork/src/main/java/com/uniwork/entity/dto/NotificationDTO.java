@@ -1,18 +1,16 @@
-package com.uniwork.entity.model;
+package com.uniwork.entity.dto;
 
-
-import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
-@Entity
-@Table(name = "notifications")
 @Data
-public class Notification {
+@NoArgsConstructor
+@AllArgsConstructor
+public class NotificationDTO {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long notiId;
 
     private Long recipientId;
@@ -24,8 +22,6 @@ public class Notification {
     private String type;
     private String title;
     private String message;
-
-    @Column(name = "is_read")
-    private boolean isRead = false; // Indicates if the notification has been read
     private Date createdDate; // Timestamp when the notification was created
+
 }

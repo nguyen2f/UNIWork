@@ -1,6 +1,8 @@
 package com.uniwork.service;
 
 
+import com.uniwork.entity.dto.TaskDetailDTO;
+import com.uniwork.entity.model.Comment;
 import com.uniwork.entity.request.TaskRequest;
 import com.uniwork.entity.model.Project;
 import com.uniwork.entity.model.Task;
@@ -22,6 +24,8 @@ public class TaskService {
 
     @Autowired
     private TaskRepository taskRepository;
+    @Autowired
+    private CommentService commentService;
 
     public ResponseEntity getAllTasksByProjectId(Long projectId) {
         Project project = projectService.getProjectById(projectId);
@@ -39,7 +43,10 @@ public class TaskService {
         if (task == null) {
             return ResponseEntity.status(404).body("Task not found");
         }
-        return ResponseEntity.ok(task);
+
+        List<Comment> comments = commentService.getAllComment(taskId);
+        TaskDetailDTO taskDetailDTO = new TaskDetailDTO(task, comments);
+        return ResponseEntity.ok(taskDetailDTO);
     }
 
     public ResponseEntity<List<Task>> createTask(Long userId, TaskRequest taskRequest) {

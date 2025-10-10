@@ -15,4 +15,12 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     Long countAllByProjectIdAndStatusEqualsIgnoreCase(Long projectId, String status);
 
     Long countAllByProjectIdAndCreatedDateAfter(Long projectId, Date createdDate);
+
+    List<Task> findAllByProjectIdAndAssignedTo(Long projectId, Long userId);
+
+    List<Task> findByAssignedToAndStatusIn(Long userId, List<String> statuses);
+
+    Long countAllByAssignedTo(Long userId);
+
+    Long countAllByAssignedToAndStatusEqualsIgnoreCase(Long userId, String status);
 }
