@@ -1,6 +1,8 @@
 package com.uniwork.entity.model;
 
 
+import com.uniwork.entity.enumuration.Priority;
+import com.uniwork.entity.enumuration.TaskStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -20,8 +22,10 @@ public class Task {
     private Long parentId; // For sub-tasks, reference to the parent task
     private String title;
     private String description;
-    private String priority; // e.g., Low, Medium, High
-    private String status; // e.g., Not Started, In Progress, Completed
+    @Column(name = "priority")
+    private Priority priority; // e.g., Low, Medium, High
+    @Column(name = "status")
+    private TaskStatus status;
     private Date dueDate;
     private Date createdDate;
     private Date updatedDate;

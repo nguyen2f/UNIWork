@@ -1,7 +1,11 @@
 package com.uniwork.repository;
 
+import com.uniwork.entity.enumuration.Priority;
+import com.uniwork.entity.enumuration.TaskStatus;
 import com.uniwork.entity.model.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Date;
 import java.util.List;
@@ -12,7 +16,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     Long countAllByProjectId(Long projectId);
 
-    Long countAllByProjectIdAndStatusEqualsIgnoreCase(Long projectId, String status);
+    Long countAllByProjectIdAndStatus(Long projectId, TaskStatus status);
 
     Long countAllByProjectIdAndCreatedDateAfter(Long projectId, Date createdDate);
 
@@ -22,5 +26,18 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     Long countAllByAssignedTo(Long userId);
 
-    Long countAllByAssignedToAndStatusEqualsIgnoreCase(Long userId, String status);
+    Long countAllByAssignedToAndStatus(Long userId, TaskStatus status);
+
+    @Query("""
+                SELECT t FROM Task t
+                WHERE t.assignedTo = :assignedTo
+                  AND (:priority IS NULL OR t.priority = :priority)
+                  AND (:status IS NULL OR t.status = :status)
+            """)
+    List<Task> findAllByAssignedToAndFilter(
+            @Param("assignedTo") Long assignedTo,
+            @Param("priority") Priority priority,
+            @Param("status") TaskStatus status
+    );
+
 }

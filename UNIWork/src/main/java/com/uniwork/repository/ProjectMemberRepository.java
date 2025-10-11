@@ -17,4 +17,6 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
 
     @Query("SELECT pm.projectId FROM ProjectMember pm WHERE pm.userId = :userId")
     List<Long> findProjectIdsByUserId(Long userId);
+
+    Long countUserIdByProjectId(Long projectId);
 }

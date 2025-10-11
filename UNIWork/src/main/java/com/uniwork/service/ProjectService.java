@@ -1,6 +1,8 @@
 package com.uniwork.service;
 
 import com.uniwork.entity.dto.UserDTO;
+import com.uniwork.entity.enumuration.Priority;
+import com.uniwork.entity.enumuration.ProjectStatus;
 import com.uniwork.entity.request.ProjectRequest;
 import com.uniwork.entity.model.Project;
 import com.uniwork.entity.model.ProjectMember;
@@ -49,18 +51,14 @@ public class ProjectService {
         return ResponseEntity.ok(projectRepository.findAll());
     }
 
-    public ResponseEntity getAllProjectsByUserId(Long userId) {
+    public ResponseEntity getAllProjectsByUserId(Long userId, Integer priority, Integer status) {
         List<Project> projects = new ArrayList<>();
         List<ProjectMember> projectMembers = projectMemberRepository.findAllByUserId(userId);
         for (ProjectMember pm : projectMembers) {
             Long projectId = pm.getProjectId();
-            Project project = projectRepository.findProjectByProjectId(projectId);
-//            List<UserDTO> members = findAllMembersByProjectId(projectId);
-//            projects.add(members);
+            Project project = projectRepository.findProjectByProjectIdAndFilter(projectId, Priority.fromCode(priority), ProjectStatus.fromCode(status));
             projects.add(project);
-
         }
-
         return ResponseEntity.ok(projects);
     }
 
@@ -72,12 +70,12 @@ public class ProjectService {
         project.setEndDate(projectRequest.getEndDate());
         project.setOwnerId(userId);
         project.setCreatedDate(new Date());
-        project.setStatus("PENDING");
+        project.setStatus(ProjectStatus.PLANNING);
         project.setClient(projectRequest.getClient());
         project.setDepartment(projectRequest.getDepartment());
         project.setRiskLevel(projectRequest.getRiskLevel());
         project.setCategory(projectRequest.getCategory());
-        project.setPriority(projectRequest.getPriority());
+        project.setPriority(Priority.fromCode(projectRequest.getPriority()));
         projectRepository.save(project);
 
         ProjectMember projectMember = new ProjectMember();

@@ -1,5 +1,7 @@
 package com.uniwork.entity.model;
 
+import com.uniwork.entity.enumuration.Priority;
+import com.uniwork.entity.enumuration.ProjectStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Generated;
@@ -16,7 +18,8 @@ public class Project {
     private Long projectId;
     private String name;
     private String description;
-    private String priority;
+    @Column(name = "priority")
+    private Priority priority;
     private String category;
     private String client;
     private String department;
@@ -24,7 +27,8 @@ public class Project {
     private Long ownerId;
     private Date startDate;
     private Date endDate;
-    private String status;
+    @Column(name = "status")
+    private ProjectStatus status;
     private Date createdDate;
     private Date updatedDate;
 }

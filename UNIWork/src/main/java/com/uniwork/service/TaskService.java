@@ -2,6 +2,8 @@ package com.uniwork.service;
 
 
 import com.uniwork.entity.dto.TaskDetailDTO;
+import com.uniwork.entity.enumuration.Priority;
+import com.uniwork.entity.enumuration.TaskStatus;
 import com.uniwork.entity.model.Comment;
 import com.uniwork.entity.request.TaskRequest;
 import com.uniwork.entity.model.Project;
@@ -62,9 +64,9 @@ public class TaskService {
             task.setCreatedBy(userId);
             task.setProjectId(project.getProjectId());
             task.setCreatedDate(new Date());
-            task.setStatus(taskRequest.getStatus() != null ? taskRequest.getStatus() : "NEW");
+            task.setStatus(TaskStatus.fromCode(taskRequest.getStatus()));
             task.setDueDate(taskRequest.getDueDate());
-            task.setPriority(taskRequest.getPriority());
+            task.setPriority(Priority.fromCode(taskRequest.getPriority()));
             task.setTags(taskRequest.getTags());
 
             tasks.add(task);
@@ -101,6 +103,11 @@ public class TaskService {
         }
         taskRepository.delete(task);
         return ResponseEntity.ok("Task deleted successfully");
+    }
+
+    public ResponseEntity getAllTasksByAssignedTo(Long assignedTo, Integer priority, Integer status) {
+        List<Task> tasks = taskRepository.findAllByAssignedToAndFilter(assignedTo, Priority.fromCode(priority), TaskStatus.fromCode(status));
+        return ResponseEntity.ok(tasks);
     }
 
 }

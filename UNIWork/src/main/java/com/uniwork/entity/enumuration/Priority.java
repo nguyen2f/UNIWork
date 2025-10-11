@@ -1,25 +1,22 @@
 package com.uniwork.entity.enumuration;
 
-public enum TaskStatus {
-    PENDING(0),
-    DOING(1),
-    REVIEWING(2),
-    COMPLETED(3),
-    CANCELLED(4);
+public enum Priority {
+    LOW(0),
+    MEDIUM(1),
+    HIGH(2);
     private final Integer code;
-    TaskStatus(Integer code) {
+    Priority(Integer code) {
         this.code = code;
     }
     public Integer getCode() {
         return code;
     }
-    public static TaskStatus fromCode(Integer code) {
-        for (TaskStatus status : TaskStatus.values()) {
+    public static Priority fromCode(Integer code) {
+        for (Priority status : Priority.values()) {
             if (status.code.equals(code)) {
                 return status;
             }
         }
         return null;
     }
-
 }

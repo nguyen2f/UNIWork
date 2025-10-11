@@ -45,4 +45,12 @@ public class TaskController {
         log.info("Deleting task with ID: {} for project ID: {}", taskId, projectId);
         return taskService.deleteTask(payload.getUserId(), taskId);
     }
+
+    @GetMapping("/get-all-tasks")
+    public ResponseEntity getAllTasksByAssignedTo(@RequestAttribute Payload payload,
+                                                  @RequestParam(required = false) Integer priority,
+                                                  @RequestParam(required = false) Integer status) {
+        log.info("Fetching all tasks for assigned user: {}", payload.getUserId());
+        return taskService.getAllTasksByAssignedTo(payload.getUserId(), priority, status);
+    }
 }

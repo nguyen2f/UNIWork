@@ -13,8 +13,8 @@ public class TaskRequest {
     private List<Long> assignedTo;
     private String title;
     private String description;
-    private String priority; // e.g., Low, Medium, High
-    private String status; // e.g., Not Started, In Progress, Completed
+    private Integer priority; // e.g., Low, Medium, High
+    private Integer status; // e.g., Not Started, In Progress, Completed
     private Date dueDate;
     private Date createdDate;
     private Date updatedDate;

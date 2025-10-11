@@ -2,8 +2,8 @@ package com.uniwork.service;
 
 import com.uniwork.entity.dto.ProjectReportDTO;
 import com.uniwork.entity.dto.TaskReportDTO;
+import com.uniwork.entity.enumuration.TaskStatus;
 import com.uniwork.entity.model.Project;
-import com.uniwork.entity.model.Task;
 import com.uniwork.repository.ProjectMemberRepository;
 import com.uniwork.repository.ProjectRepository;
 import com.uniwork.repository.TaskRepository;
@@ -37,13 +37,15 @@ public class ReportService {
                     CompletableFuture<Long> totalTask =
                             CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectId(projectId));
                     CompletableFuture<Long> completedTask =
-                            CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectIdAndStatusEqualsIgnoreCase(projectId, "COMPLETED"));
+                            CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectIdAndStatus(projectId, TaskStatus.COMPLETED));
                     CompletableFuture<Long> pendingTask =
-                            CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectIdAndStatusEqualsIgnoreCase(projectId, "PENDING"));
+                            CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectIdAndStatus(projectId, TaskStatus.PENDING));
                     CompletableFuture<Long> doingTask =
-                            CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectIdAndStatusEqualsIgnoreCase(projectId, "DOING"));
+                            CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectIdAndStatus(projectId, TaskStatus.DOING));
+                    CompletableFuture<Long> countMember =
+                            CompletableFuture.supplyAsync(() -> projectMemberRepository.countUserIdByProjectId(projectId));
 
-                    CompletableFuture.allOf(totalTask, completedTask, pendingTask, doingTask).join();
+                    CompletableFuture.allOf(totalTask, completedTask, pendingTask, doingTask, countMember).join();
 
                     try {
                         Long total = totalTask.get();
@@ -51,7 +53,8 @@ public class ReportService {
                         Long pending = pendingTask.get();
                         Long doing = doingTask.get();
                         Double completedPercent = total == 0 ? 0.0 : (completed * 100) / total;
-                        return new ProjectReportDTO(project, total, completed, pending, doing, completedPercent);
+                        Long count = countMember.get();
+                        return new ProjectReportDTO(project, total, completed, pending, doing, completedPercent, count);
                     } catch (Exception e) {
                         throw new RuntimeException("Error while generating report for projectId=" + projectId, e);
                     }
@@ -70,11 +73,11 @@ public class ReportService {
         CompletableFuture<Long> totalTask =
                 CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedTo(userId));
         CompletableFuture<Long> completedTask =
-                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatusEqualsIgnoreCase(userId, "COMPLETED"));
+                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatus(userId, TaskStatus.COMPLETED));
         CompletableFuture<Long> pendingTask =
-                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatusEqualsIgnoreCase(userId, "PENDING"));
+                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatus(userId, TaskStatus.PENDING));
         CompletableFuture<Long> doingTask =
-                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatusEqualsIgnoreCase(userId, "DOING"));
+                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatus(userId, TaskStatus.DOING));
         CompletableFuture.allOf(totalTask, completedTask, pendingTask, doingTask).join();
 
         try {

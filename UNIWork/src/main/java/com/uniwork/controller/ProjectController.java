@@ -18,9 +18,11 @@ public class ProjectController {
     private ProjectService projectService;
 
     @GetMapping("/get-all")
-    public ResponseEntity getAllProjects(@RequestAttribute Payload payload) {
+    public ResponseEntity getAllProjects(@RequestAttribute Payload payload,
+                                         @RequestParam(required = false) Integer priority,
+                                         @RequestParam(required = false) Integer status) {
         log.info("Getting all projects for userId: {}", payload.getUserId());
-        return projectService.getAllProjectsByUserId(payload.getUserId());
+        return projectService.getAllProjectsByUserId(payload.getUserId(), priority, status);
     }
 
     @GetMapping("/get-detail/{projectId}")

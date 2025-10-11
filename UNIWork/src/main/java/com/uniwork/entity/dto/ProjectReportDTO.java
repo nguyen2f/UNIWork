@@ -15,4 +15,5 @@ public class ProjectReportDTO {
     private Long pendingTasks;
     private Long doingTasks;
     private Double completedPercent;
+    private Long countMember;
 }
