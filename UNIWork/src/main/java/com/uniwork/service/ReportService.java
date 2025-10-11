@@ -1,9 +1,13 @@
 package com.uniwork.service;
 
 import com.uniwork.entity.dto.ProjectReportDTO;
+import com.uniwork.entity.dto.TaskPerformanceDTO;
 import com.uniwork.entity.dto.TaskReportDTO;
 import com.uniwork.entity.enumuration.TaskStatus;
+import com.uniwork.entity.model.Event;
 import com.uniwork.entity.model.Project;
+import com.uniwork.entity.model.Task;
+import com.uniwork.repository.EventRepository;
 import com.uniwork.repository.ProjectMemberRepository;
 import com.uniwork.repository.ProjectRepository;
 import com.uniwork.repository.TaskRepository;
@@ -20,11 +24,13 @@ public class ReportService {
     private final TaskRepository taskRepository;
     private final ProjectMemberRepository projectMemberRepository;
     private final ProjectRepository projectRepository;
+    private final EventRepository eventRepository;
 
-    public ReportService(TaskRepository taskRepository, ProjectMemberRepository projectMemberRepository, ProjectRepository projectRepository) {
+    public ReportService(TaskRepository taskRepository, ProjectMemberRepository projectMemberRepository, ProjectRepository projectRepository, EventRepository eventRepository) {
         this.taskRepository = taskRepository;
         this.projectMemberRepository = projectMemberRepository;
         this.projectRepository = projectRepository;
+        this.eventRepository = eventRepository;
     }
 
     public ResponseEntity<List<ProjectReportDTO>> getProjectReport(Long userId, Long begin, Long end) {
@@ -91,5 +97,35 @@ public class ReportService {
         } catch (Exception e) {
             throw new RuntimeException("Error while generating task report for userId=" + userId, e);
         }
+    }
+
+    public ResponseEntity getPendingTask(Long userId, Long begin, Long end) {
+        CompletableFuture<List<Task>> pendingTask =
+                CompletableFuture.supplyAsync(() -> taskRepository.findAllByAssignedToAndStatus(userId, TaskStatus.PENDING));
+        return ResponseEntity.ok(pendingTask.join());
+    }
+
+    public ResponseEntity getTasksPerformance(Long userId, Long begin, Long end) {
+        CompletableFuture<Long> totalTasks =
+                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedTo(userId));
+        CompletableFuture<Long> completedTask =
+                CompletableFuture.supplyAsync(() -> taskRepository.countTasksCompletedBeforeDeadline(userId, TaskStatus.COMPLETED));
+
+        CompletableFuture.allOf(totalTasks, completedTask).join();
+        try {
+            Long total = totalTasks.get();
+            Long completed = completedTask.get();
+            Double performancePercent = total == 0 ? 0.0 : (completed * 100) / total;
+            TaskPerformanceDTO taskPerformanceDTO = new TaskPerformanceDTO(userId, total, completed, performancePercent);
+            return ResponseEntity.ok(taskPerformanceDTO);
+        }catch (Exception e) {
+            throw new RuntimeException("Error while generating report for userId=" + userId, e);
+        }
+    }
+
+    public ResponseEntity getUpcomingEvents(Long userId, Long begin, Long end) {
+        CompletableFuture<List<Event>> upComingEvent =
+                CompletableFuture.supplyAsync(() -> eventRepository.findAll());
+        return ResponseEntity.ok(upComingEvent.join());
     }
 }

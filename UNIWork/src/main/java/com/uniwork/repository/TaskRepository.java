@@ -40,4 +40,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             @Param("status") TaskStatus status
     );
 
+    List<Task> findAllByAssignedToAndStatus(Long assignedTo, TaskStatus status);
+
+    @Query(value = "SELECT COUNT(*) FROM tasks WHERE assigned_to = :assignedTo AND status = :status AND updated_date < due_date", nativeQuery = true)
+    Long countTasksCompletedBeforeDeadline(@Param("assignedTo") Long assignedTo, @Param("status") TaskStatus status);
 }

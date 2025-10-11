@@ -1,18 +1,15 @@
-package com.uniwork.entity.model;
+package com.uniwork.entity.request;
 
-import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
-@Entity
 @Data
-@Table(name = "file_attachments")
-public class FileAttachment {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long fileId;
+@AllArgsConstructor
+@NoArgsConstructor
+public class UploadFileAttachmentRequest {
     private Long taskId; // ID of the task this file is attached to
     private Long uploaderId; // ID of the user who uploaded the file
     private String fileName; // Name of the file

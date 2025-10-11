@@ -1,7 +1,9 @@
 package com.uniwork.controller;
 
 import com.uniwork.entity.request.TaskRequest;
+import com.uniwork.entity.request.UploadFileAttachmentRequest;
 import com.uniwork.interceptors.Payload;
+import com.uniwork.service.FileAttachmentService;
 import com.uniwork.service.TaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,8 @@ public class TaskController {
 
     @Autowired
     private TaskService taskService;
+    @Autowired
+    private FileAttachmentService fileAttachmentService;
 
     @GetMapping("/{projectId}/get-all")
     public ResponseEntity getTasksByProjectId(@PathVariable Long projectId, @RequestAttribute Payload payload) {
@@ -44,6 +48,15 @@ public class TaskController {
     public ResponseEntity deleteTask(@PathVariable Long taskId, @PathVariable Long projectId, @RequestAttribute Payload payload) {
         log.info("Deleting task with ID: {} for project ID: {}", taskId, projectId);
         return taskService.deleteTask(payload.getUserId(), taskId);
+    }
+
+    @PostMapping("/{projectId}/upload-file/{taskId}")
+    public ResponseEntity uploadFileAttachment(@RequestAttribute Payload payload,
+                                               @PathVariable Long projectId,
+                                               @PathVariable Long taskId,
+                                               @RequestBody UploadFileAttachmentRequest uploadFileAttachmentRequest) {
+        log.info("Uploading file with ID: {} for task ID for project ID: {}", taskId, projectId);
+        return fileAttachmentService.uploadFileAttachment(payload.getUserId(), taskId, uploadFileAttachmentRequest);
     }
 
     @GetMapping("/get-all-tasks")
