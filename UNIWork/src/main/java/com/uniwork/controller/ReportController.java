@@ -6,6 +6,7 @@ import com.uniwork.entity.dto.TaskReportDTO;
 import com.uniwork.entity.model.Event;
 import com.uniwork.entity.model.Task;
 import com.uniwork.entity.response.ResponseFactory;
+import com.uniwork.entity.response.StatsResponse;
 import com.uniwork.interceptors.Payload;
 import com.uniwork.service.ReportService;
 import lombok.extern.slf4j.Slf4j;
@@ -61,6 +62,12 @@ public class ReportController {
                                             @RequestParam(required = false) Long end) {
         List<Event> events = reportService.getUpcomingEvents(payload.getUserId(), begin, end);
         return ResponseFactory.success(events);
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity getStats(@RequestAttribute Payload payload) {
+        List<StatsResponse> statsResponses = reportService.getStats(payload.getUserId());
+        return ResponseFactory.success(statsResponses);
     }
 
 }

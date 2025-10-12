@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+
 public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     Project findProjectByProjectId(Long projectId);
@@ -23,6 +25,10 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             @Param("priority") Priority priority,
             @Param("status") ProjectStatus status
     );
+
+    Long countProjectIdByStatusNot(ProjectStatus status);
+
+    Long countByCreatedDateBetween(LocalDateTime start, LocalDateTime end);
 
 
 }
