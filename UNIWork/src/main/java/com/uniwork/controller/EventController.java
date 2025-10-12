@@ -1,12 +1,16 @@
 package com.uniwork.controller;
 
+import com.uniwork.entity.model.Event;
 import com.uniwork.entity.request.CreateEventRequest;
+import com.uniwork.entity.response.ResponseFactory;
 import com.uniwork.interceptors.Payload;
 import com.uniwork.service.EventService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/event")
@@ -17,17 +21,19 @@ public class EventController {
     private EventService eventService;
 
     @GetMapping("/get-all")
-    public ResponseEntity getAllEvents(@RequestAttribute Payload payload,
+    public ResponseEntity getAllEvents(@RequestAttribute(required = false) Payload payload,
                                        @RequestParam(required = false) Long begin,
                                        @RequestParam(required = false) Long end) {
-        return eventService.getAllEvent(payload.getUserId(), begin, end );
+        List<Event> events = eventService.getAllEvent(payload.getUserId(), begin, end);
+        return ResponseFactory.success(events);
     }
 
     @PostMapping("/create-event")
     public ResponseEntity createEvent(@RequestBody CreateEventRequest createEventRequest,
-                                      @RequestAttribute Payload payload,
+                                      @RequestAttribute(required = false) Payload payload,
                                       @RequestParam(required = false) Long begin,
                                       @RequestParam(required = false) Long end) {
-        return eventService.createEvent(payload.getUserId(), createEventRequest);
+        Event event = eventService.createEvent(payload.getUserId(), createEventRequest);
+        return ResponseFactory.success(event);
     }
 }

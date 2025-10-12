@@ -1,5 +1,8 @@
 package com.uniwork.controller;
+
+import com.uniwork.entity.model.ProjectMember;
 import com.uniwork.entity.request.*;
+import com.uniwork.entity.response.ResponseFactory;
 import com.uniwork.interceptors.Payload;
 import com.uniwork.entity.model.User;
 import com.uniwork.service.UserService;
@@ -21,7 +24,7 @@ public class UserController {
     private UserService userService;
 
     @Autowired
-    private JwtUtil jwtUtil; // Giả sử bạn có một JwtUtil để tạo token
+    private JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity registerUser(@RequestBody RegisterRequest registerRequest) {
@@ -31,8 +34,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity loginUser(
-            @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity loginUser(@RequestBody LoginRequest loginRequest) {
         log.info("Logining user: {}", loginRequest.getEmail());
         User user = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
         String token = jwtUtil.generateToken(user);
@@ -44,18 +46,20 @@ public class UserController {
     }
 
     @PutMapping("/update-profile")
-    public ResponseEntity updateProfile(@RequestAttribute Payload payload, @RequestBody UpdateProfileRequest updateProfileRequest) {
-        return ResponseEntity.ok(userService.updateProfile(payload.getUserId(), updateProfileRequest));
+    public ResponseEntity updateProfile(@RequestAttribute(required = false) Payload payload, @RequestBody UpdateProfileRequest updateProfileRequest) {
+        User user = userService.updateProfile(payload.getUserId(), updateProfileRequest);
+        return ResponseFactory.success(user);
     }
 
     @PostMapping("/assign-member")
-    public ResponseEntity assignMemberToProject(@RequestAttribute Payload payload, @RequestBody AssignMemberRequest assignMemberRequest) {
-        return ResponseEntity.ok(userService.assignMemberToProject(assignMemberRequest));
-
+    public ResponseEntity assignMemberToProject(@RequestAttribute(required = false) Payload payload, @RequestBody AssignMemberRequest assignMemberRequest) {
+        ProjectMember projectMember = userService.assignMemberToProject(assignMemberRequest);
+        return ResponseFactory.success(projectMember);
     }
 
     @PostMapping("/remove-member")
-    public ResponseEntity removeMemberFromProject(@RequestAttribute Payload payload, @RequestBody RemoveMemberRequest removeMemberRequest) {
-        return ResponseEntity.ok(userService.removeMemberFromProject(removeMemberRequest));
+    public ResponseEntity removeMemberFromProject(@RequestAttribute(required = false) Payload payload, @RequestBody RemoveMemberRequest removeMemberRequest) {
+        ProjectMember projectMember = userService.removeMemberFromProject(removeMemberRequest);
+        return ResponseFactory.success(projectMember);
     }
 }

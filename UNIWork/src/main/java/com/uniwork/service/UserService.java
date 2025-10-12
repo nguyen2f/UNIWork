@@ -54,7 +54,7 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
 
-    public ResponseEntity assignMemberToProject(AssignMemberRequest assignMemberRequest) {
+    public ProjectMember assignMemberToProject(AssignMemberRequest assignMemberRequest) {
         Long userId = assignMemberRequest.getUserId();
         Long projectId = assignMemberRequest.getProjectId();
         String role = assignMemberRequest.getRole();
@@ -64,16 +64,16 @@ public class UserService {
         projectMember.setUserId(userId);
         projectMember.setRole(role);
         projectMember.setStatus(true);
-        return ResponseEntity.ok(projectMemberRepository.save(projectMember));
+        return projectMemberRepository.save(projectMember);
     }
 
-    public ResponseEntity updateMemberRole(Long userId, Long projectId, String role) {
+    public ProjectMember updateMemberRole(Long userId, Long projectId, String role) {
         ProjectMember projectMember = projectMemberRepository.findByProjectId(projectId);
         projectMember.setRole(role);
-        return ResponseEntity.ok(projectMemberRepository.save(projectMember));
+        return projectMemberRepository.save(projectMember);
     }
 
-    public ResponseEntity removeMemberFromProject(RemoveMemberRequest removeMemberRequest) {
+    public ProjectMember removeMemberFromProject(RemoveMemberRequest removeMemberRequest) {
         Long memberId = removeMemberRequest.getMemberId();
         Long projectId = removeMemberRequest.getProjectId();
 
@@ -84,16 +84,16 @@ public class UserService {
 
         ProjectMember projectMember = projectMemberRepository.findByProjectId(projectId);
         projectMemberRepository.delete(projectMember);
-        return ResponseEntity.ok("Member removed from project");
+        return projectMember;
     }
 
-    public ResponseEntity getAllMembersByProjectId(Long projectId) {
+    public List<ProjectMember> getAllMembersByProjectId(Long projectId) {
 
         List<ProjectMember> members = projectMemberRepository.findAllByProjectId(projectId);
-        return ResponseEntity.ok(members);
+        return members;
     }
 
-    public ResponseEntity updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {
+    public User updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {
         User user = userRepository.findByUserId(userId);
         if (user == null) {
             throw new RuntimeException("User not found");
@@ -104,7 +104,7 @@ public class UserService {
             user.setPassword(updateProfileRequest.getPassword());
         }
         BeanCopyUtils.copyNonNullProperties(updateProfileRequest, user);
-        return ResponseEntity.ok(userRepository.save(user));
+        return userRepository.save(user);
     }
 
 }

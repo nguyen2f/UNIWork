@@ -19,14 +19,14 @@ public class CommentService {
         this.commentRepository = commentRepository;
     }
 
-    public ResponseEntity addComment(Long userId, AddComment addComment) {
+    public Comment addComment(Long userId, AddComment addComment) {
         Comment comment = new Comment();
         comment.setAuthorId(userId);
         comment.setPosterId(addComment.getPosterId());
         comment.setTaskId(addComment.getTaskId());
         comment.setContent(addComment.getContent());
         comment.setCreatedDate(new Date());
-        return ResponseEntity.ok(commentRepository.save(comment));
+        return commentRepository.save(comment);
     }
 
     public List<Comment> getAllComment(Long taskId) {

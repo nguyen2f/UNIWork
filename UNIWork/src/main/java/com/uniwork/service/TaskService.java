@@ -5,9 +5,12 @@ import com.uniwork.entity.dto.TaskDetailDTO;
 import com.uniwork.entity.enumuration.Priority;
 import com.uniwork.entity.enumuration.TaskStatus;
 import com.uniwork.entity.model.Comment;
+import com.uniwork.entity.model.FileAttachment;
 import com.uniwork.entity.request.TaskRequest;
 import com.uniwork.entity.model.Project;
 import com.uniwork.entity.model.Task;
+import com.uniwork.exceptions.CoreException;
+import com.uniwork.exceptions.ErrorCode;
 import com.uniwork.repository.TaskRepository;
 import com.uniwork.util.BeanCopyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,30 +31,33 @@ public class TaskService {
     private TaskRepository taskRepository;
     @Autowired
     private CommentService commentService;
+    @Autowired
+    private FileAttachmentService fileAttachmentService;
 
-    public ResponseEntity getAllTasksByProjectId(Long projectId) {
+    public List<Task> getAllTasksByProjectId(Long projectId) {
         Project project = projectService.getProjectById(projectId);
         if (project == null) {
-            return ResponseEntity.status(404).body("Project not found");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
         }
-        return ResponseEntity.ok(taskRepository.findAllByProjectId(projectId));
+        return taskRepository.findAllByProjectId(projectId);
     }
 
-    public ResponseEntity getTaskById(Long userId, Long taskId) {
+    public TaskDetailDTO getTaskById(Long userId, Long taskId) {
         Task task = taskRepository.findById(taskId).orElse(null);
         if (userId != task.getAssignedTo()) {
-            return ResponseEntity.status(403).body("You are not the assignee of this task");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
         }
         if (task == null) {
-            return ResponseEntity.status(404).body("Task not found");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
         }
 
         List<Comment> comments = commentService.getAllComment(taskId);
-        TaskDetailDTO taskDetailDTO = new TaskDetailDTO(task, comments);
-        return ResponseEntity.ok(taskDetailDTO);
+        List<FileAttachment> attachments = fileAttachmentService.getAllFileAttachment(taskId);
+        TaskDetailDTO taskDetailDTO = new TaskDetailDTO(task, comments, attachments);
+        return taskDetailDTO;
     }
 
-    public ResponseEntity<List<Task>> createTask(Long userId, TaskRequest taskRequest) {
+    public List<Task> createTask(Long userId, TaskRequest taskRequest) {
         Project project = projectService.getProjectById(taskRequest.getProjectId());
         List<Task> tasks = new ArrayList<>();
         List<Long> memberIds = taskRequest.getAssignedTo();
@@ -73,13 +79,13 @@ public class TaskService {
         }
 
         List<Task> savedTasks = taskRepository.saveAll(tasks);
-        return ResponseEntity.ok(savedTasks);
+        return savedTasks;
     }
 
-    public ResponseEntity<?> updateTask(Long userId, TaskRequest taskRequest) {
+    public Task updateTask(Long userId, TaskRequest taskRequest) {
         Task task = taskRepository.findById(taskRequest.getTaskId()).orElse(null);
         if (task == null) {
-            return ResponseEntity.status(404).body("Task not found");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
         }
 
         task.setUpdatedDate(new Date());
@@ -89,25 +95,25 @@ public class TaskService {
                 "taskId", "createdBy", "createdDate", "projectId");
 
         Task updatedTask = taskRepository.save(task);
-        return ResponseEntity.ok(updatedTask);
+        return updatedTask;
     }
 
 
-    public ResponseEntity deleteTask(Long userId, Long taskId) {
+    public Task deleteTask(Long userId, Long taskId) {
         Task task = taskRepository.findById(taskId).orElse(null);
         if (task == null) {
-            return ResponseEntity.status(404).body("Task not found");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
         }
         if (task.getAssignedTo() != userId) {
-            return ResponseEntity.status(403).body("You are not the assignee of this task");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
         }
         taskRepository.delete(task);
-        return ResponseEntity.ok("Task deleted successfully");
+        return task;
     }
 
-    public ResponseEntity getAllTasksByAssignedTo(Long assignedTo, Integer priority, Integer status) {
+    public List<Task> getAllTasksByAssignedTo(Long assignedTo, Integer priority, Integer status) {
         List<Task> tasks = taskRepository.findAllByAssignedToAndFilter(assignedTo, Priority.fromCode(priority), TaskStatus.fromCode(status));
-        return ResponseEntity.ok(tasks);
+        return tasks;
     }
 
 }

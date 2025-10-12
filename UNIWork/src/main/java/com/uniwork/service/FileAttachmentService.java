@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 public class FileAttachmentService {
@@ -19,7 +20,7 @@ public class FileAttachmentService {
     }
 
     // Tạm thời upload file là gán 1 đường link, còn lưu vào server thì tính sau
-    public ResponseEntity uploadFileAttachment(Long userId, Long taskId, UploadFileAttachmentRequest uploadFileAttachmentRequest) {
+    public FileAttachment uploadFileAttachment(Long userId, Long taskId, UploadFileAttachmentRequest uploadFileAttachmentRequest) {
         FileAttachment fileAttachment = new FileAttachment();
         fileAttachment.setFileSize(uploadFileAttachmentRequest.getFileSize());
         fileAttachment.setFileName(uploadFileAttachmentRequest.getFileName());
@@ -28,6 +29,10 @@ public class FileAttachmentService {
         fileAttachment.setUploadDate(new Date());
         fileAttachment.setUrl(uploadFileAttachmentRequest.getUrl());
         fileAttachment.setFileType(uploadFileAttachmentRequest.getFileType());
-        return ResponseEntity.ok(fileAttachmentRepository.save(fileAttachment));
+        return fileAttachmentRepository.save(fileAttachment);
+    }
+
+    public List<FileAttachment> getAllFileAttachment(Long taskId) {
+        return fileAttachmentRepository.findAllByTaskId(taskId);
     }
 }

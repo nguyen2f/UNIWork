@@ -16,6 +16,13 @@ public class PayloadFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+
+        String uri = request.getRequestURI();
+        if (uri.startsWith("/swagger-ui") || uri.startsWith("/v3/api-docs") || uri.startsWith("/swagger-resources")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String token = request.getHeader("authorization");
         String userId = request.getHeader("userId");
         if (token != null && userId != null) {

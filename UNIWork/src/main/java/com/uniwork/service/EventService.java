@@ -5,10 +5,10 @@ import com.uniwork.entity.model.Event;
 import com.uniwork.entity.request.CreateEventRequest;
 import com.uniwork.repository.EventRepository;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -20,11 +20,11 @@ public class EventService {
         this.eventRepository = eventRepository;
     }
 
-    public ResponseEntity getAllEvent(Long userId, Long begin, Long end) {
-        return ResponseEntity.ok(eventRepository.findAll());
+    public List<Event> getAllEvent(Long userId, Long begin, Long end) {
+        return eventRepository.findAll();
     }
 
-    public ResponseEntity createEvent(Long userId, CreateEventRequest createEventRequest) {
+    public Event createEvent(Long userId, CreateEventRequest createEventRequest) {
         Event event = new Event();
         event.setPriority(Priority.fromCode(createEventRequest.getPriority()));
         event.setTitle(createEventRequest.getTitle());
@@ -32,6 +32,6 @@ public class EventService {
         event.setLocation(createEventRequest.getLocation());
         event.setDate(new Date());
         event.setCreatedBy(userId);
-        return ResponseEntity.ok(eventRepository.save(event));
+        return eventRepository.save(event);
     }
 }

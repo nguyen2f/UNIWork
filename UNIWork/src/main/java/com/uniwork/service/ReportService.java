@@ -33,7 +33,7 @@ public class ReportService {
         this.eventRepository = eventRepository;
     }
 
-    public ResponseEntity<List<ProjectReportDTO>> getProjectReport(Long userId, Long begin, Long end) {
+    public List<ProjectReportDTO> getProjectReport(Long userId, Long begin, Long end) {
         List<Long> projectIds = projectMemberRepository.findProjectIdsByUserId(userId);
 
         List<CompletableFuture<ProjectReportDTO>> futures = projectIds.stream()
@@ -71,10 +71,10 @@ public class ReportService {
                 .map(CompletableFuture::join)
                 .toList();
 
-        return ResponseEntity.ok(reports);
+        return reports;
     }
 
-    public ResponseEntity<TaskReportDTO> getTaskReport(Long userId, Long begin, Long end) {
+    public TaskReportDTO getTaskReport(Long userId, Long begin, Long end) {
 
         CompletableFuture<Long> totalTask =
                 CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedTo(userId));
@@ -93,19 +93,19 @@ public class ReportService {
             Long doing = doingTask.get();
             Double completedPercent = total == 0 ? 0.0 : (completed * 100) / total;
             TaskReportDTO taskReportDTO = new TaskReportDTO(total, completed, pending, doing, completedPercent);
-            return ResponseEntity.ok(taskReportDTO);
+            return taskReportDTO;
         } catch (Exception e) {
             throw new RuntimeException("Error while generating task report for userId=" + userId, e);
         }
     }
 
-    public ResponseEntity getPendingTask(Long userId, Long begin, Long end) {
+    public List<Task> getPendingTask(Long userId, Long begin, Long end) {
         CompletableFuture<List<Task>> pendingTask =
                 CompletableFuture.supplyAsync(() -> taskRepository.findAllByAssignedToAndStatus(userId, TaskStatus.PENDING));
-        return ResponseEntity.ok(pendingTask.join());
+        return pendingTask.join();
     }
 
-    public ResponseEntity getTasksPerformance(Long userId, Long begin, Long end) {
+    public TaskPerformanceDTO getTasksPerformance(Long userId, Long begin, Long end) {
         CompletableFuture<Long> totalTasks =
                 CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedTo(userId));
         CompletableFuture<Long> completedTask =
@@ -117,15 +117,15 @@ public class ReportService {
             Long completed = completedTask.get();
             Double performancePercent = total == 0 ? 0.0 : (completed * 100) / total;
             TaskPerformanceDTO taskPerformanceDTO = new TaskPerformanceDTO(userId, total, completed, performancePercent);
-            return ResponseEntity.ok(taskPerformanceDTO);
-        }catch (Exception e) {
+            return taskPerformanceDTO;
+        } catch (Exception e) {
             throw new RuntimeException("Error while generating report for userId=" + userId, e);
         }
     }
 
-    public ResponseEntity getUpcomingEvents(Long userId, Long begin, Long end) {
+    public List<Event> getUpcomingEvents(Long userId, Long begin, Long end) {
         CompletableFuture<List<Event>> upComingEvent =
                 CompletableFuture.supplyAsync(() -> eventRepository.findAll());
-        return ResponseEntity.ok(upComingEvent.join());
+        return upComingEvent.join();
     }
 }

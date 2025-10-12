@@ -3,7 +3,6 @@ package com.uniwork.service;
 import com.uniwork.entity.dto.NotificationDTO;
 import com.uniwork.entity.model.Notification;
 import com.uniwork.repository.NotificationRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -12,14 +11,14 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 
 @Service
-public class NoticaitonService {
+public class NoticationService {
 
     private final NotificationRepository notificationRepository;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    public NoticaitonService(NotificationRepository notificationRepository) {
+    public NoticationService(NotificationRepository notificationRepository) {
         this.notificationRepository = notificationRepository;
     }
 
@@ -29,9 +28,9 @@ public class NoticaitonService {
         notificationRepository.save(notification);
     }
 
-    public ResponseEntity getUnreadCount(Long userId) {
+    public Long getUnreadCount(Long userId) {
         Long count = (long) notificationRepository.findByRecipientIdAndIsReadFalse(userId).size();
-        return ResponseEntity.ok(count);
+        return count;
     }
 
     public void sendNotification(Long userId, NotificationDTO notificationDTO) {

@@ -1,6 +1,8 @@
 package com.uniwork.controller;
 
+import com.uniwork.entity.model.Comment;
 import com.uniwork.entity.request.AddComment;
+import com.uniwork.entity.response.ResponseFactory;
 import com.uniwork.interceptors.Payload;
 import com.uniwork.service.CommentService;
 import lombok.extern.slf4j.Slf4j;
@@ -17,8 +19,9 @@ public class CommentController {
     private CommentService commentService;
 
     @PostMapping("/add-comment")
-    public ResponseEntity addComment(@RequestAttribute Payload payload, @RequestBody AddComment addComment) {
-        return commentService.addComment(payload.getUserId(), addComment);
+    public ResponseEntity addComment(@RequestAttribute(required = false) Payload payload, @RequestBody AddComment addComment) {
+        Comment comment =  commentService.addComment(payload.getUserId(), addComment);
+        return ResponseFactory.success(comment);
     }
 
 }

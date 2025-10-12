@@ -7,6 +7,8 @@ import com.uniwork.entity.request.ProjectRequest;
 import com.uniwork.entity.model.Project;
 import com.uniwork.entity.model.ProjectMember;
 import com.uniwork.entity.model.User;
+import com.uniwork.exceptions.CoreException;
+import com.uniwork.exceptions.ErrorCode;
 import com.uniwork.repository.ProjectMemberRepository;
 import com.uniwork.repository.ProjectRepository;
 import com.uniwork.repository.UserRepository;
@@ -38,20 +40,20 @@ public class ProjectService {
         return projectRepository.findProjectByProjectId(projectId);
     }
 
-    public ResponseEntity getProjectDetail(Long projectId, Long userId) {
+    public Project getProjectDetail(Long projectId, Long userId) {
         checkProjectMember(projectId, userId);
         Project project = projectRepository.findProjectByProjectId(projectId);
         if (project == null) {
-            return ResponseEntity.status(404).body("Project not found");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
         }
-        return ResponseEntity.ok(project);
+        return project;
     }
 
-    public ResponseEntity getAllProjects() {
-        return ResponseEntity.ok(projectRepository.findAll());
+    public List<Project> getAllProjects() {
+        return projectRepository.findAll();
     }
 
-    public ResponseEntity getAllProjectsByUserId(Long userId, Integer priority, Integer status) {
+    public List<Project> getAllProjectsByUserId(Long userId, Integer priority, Integer status) {
         List<Project> projects = new ArrayList<>();
         List<ProjectMember> projectMembers = projectMemberRepository.findAllByUserId(userId);
         for (ProjectMember pm : projectMembers) {
@@ -59,10 +61,10 @@ public class ProjectService {
             Project project = projectRepository.findProjectByProjectIdAndFilter(projectId, Priority.fromCode(priority), ProjectStatus.fromCode(status));
             projects.add(project);
         }
-        return ResponseEntity.ok(projects);
+        return projects;
     }
 
-    public ResponseEntity createProject(ProjectRequest projectRequest, Long userId) {
+    public Project createProject(ProjectRequest projectRequest, Long userId) {
         Project project = new Project();
         project.setName(projectRequest.getName());
         project.setDescription(projectRequest.getDescription());
@@ -84,22 +86,21 @@ public class ProjectService {
         projectMember.setRole("OWNER");
         projectMember.setStatus(true);
         projectMemberRepository.save(projectMember);
-        return ResponseEntity.ok(project);
+        return project;
 
     }
 
-    public ResponseEntity updateProject(Long projectId, ProjectRequest projectRequest, Long userId) {
+    public Project updateProject(Long projectId, ProjectRequest projectRequest, Long userId) {
         if (!checkProjectOwner(projectId, userId)) {
-            return ResponseEntity.status(403).body("You are not the owner of this project");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
         }
 
         Project project = projectRepository.findProjectByProjectId(projectId);
         if (project == null) {
-            return ResponseEntity.status(404).body("Project not found");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
         }
-
         BeanCopyUtils.copyNonNullProperties(projectRequest, project);
-        return ResponseEntity.ok(projectRepository.save(project));
+        return projectRepository.save(project);
 
     }
 
