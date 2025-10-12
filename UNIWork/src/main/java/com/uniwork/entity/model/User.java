@@ -1,10 +1,9 @@
 package com.uniwork.entity.model;
 
-
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Generated;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -18,8 +17,8 @@ public class User {
     private String name;
     private String email;
     private String password;
-    private Date createdDate;
-    private Date updatedDate;
+    private LocalDateTime createdDate;
+    private LocalDateTime updatedDate;
     private String address;
     private String phone;
     private String department;

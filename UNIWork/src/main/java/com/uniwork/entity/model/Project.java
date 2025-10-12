@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Generated;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -25,10 +26,10 @@ public class Project {
     private String department;
     private String riskLevel;
     private Long ownerId;
-    private Date startDate;
-    private Date endDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
     @Column(name = "status")
     private ProjectStatus status;
-    private Date createdDate;
-    private Date updatedDate;
+    private LocalDateTime createdDate;
+    private LocalDateTime updatedDate;
 }

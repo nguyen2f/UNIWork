@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -71,7 +72,7 @@ public class ProjectService {
         project.setStartDate(projectRequest.getStartDate());
         project.setEndDate(projectRequest.getEndDate());
         project.setOwnerId(userId);
-        project.setCreatedDate(new Date());
+        project.setCreatedDate(LocalDateTime.now());
         project.setStatus(ProjectStatus.PLANNING);
         project.setClient(projectRequest.getClient());
         project.setDepartment(projectRequest.getDepartment());

@@ -7,6 +7,7 @@ import com.uniwork.repository.EventRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class EventService {
         event.setTitle(createEventRequest.getTitle());
         event.setType(createEventRequest.getType());
         event.setLocation(createEventRequest.getLocation());
-        event.setDate(new Date());
+        event.setDate(LocalDateTime.now());
         event.setCreatedBy(userId);
         return eventRepository.save(event);
     }

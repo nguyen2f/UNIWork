@@ -3,6 +3,7 @@ package com.uniwork.entity.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -19,5 +20,5 @@ public class FileAttachment {
     private String url; // URL where the file is stored
     private String fileType; // Type of the file (e.g., image, document)
     private Long fileSize;
-    private Date uploadDate; // Date when the file was uploaded
+    private LocalDateTime uploadDate; // Date when the file was uploaded
 }

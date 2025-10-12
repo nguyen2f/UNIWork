@@ -6,6 +6,7 @@ import com.uniwork.repository.FileAttachmentRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class FileAttachmentService {
         fileAttachment.setFileName(uploadFileAttachmentRequest.getFileName());
         fileAttachment.setTaskId(taskId);
         fileAttachment.setUploaderId(userId);
-        fileAttachment.setUploadDate(new Date());
+        fileAttachment.setUploadDate(LocalDateTime.now());
         fileAttachment.setUrl(uploadFileAttachmentRequest.getUrl());
         fileAttachment.setFileType(uploadFileAttachmentRequest.getFileType());
         return fileAttachmentRepository.save(fileAttachment);

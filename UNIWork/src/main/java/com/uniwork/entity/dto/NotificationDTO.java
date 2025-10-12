@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -22,6 +23,6 @@ public class NotificationDTO {
     private String type;
     private String title;
     private String message;
-    private Date createdDate; // Timestamp when the notification was created
+    private LocalDateTime createdDate; // Timestamp when the notification was created
 
 }

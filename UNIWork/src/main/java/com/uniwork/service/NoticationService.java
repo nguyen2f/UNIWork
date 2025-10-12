@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Service
@@ -35,7 +36,7 @@ public class NoticationService {
 
     public void sendNotification(Long userId, NotificationDTO notificationDTO) {
         Notification notification = new Notification();
-        notification.setCreatedDate(new Date());
+        notification.setCreatedDate(LocalDateTime.now());
         notification.setMessage(notificationDTO.getMessage());
         notification.setSenderId(userId);
         notification.setRecipientId(notificationDTO.getRecipientId());

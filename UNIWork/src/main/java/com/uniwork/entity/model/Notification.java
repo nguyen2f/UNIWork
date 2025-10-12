@@ -4,6 +4,7 @@ package com.uniwork.entity.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -27,5 +28,5 @@ public class Notification {
 
     @Column(name = "is_read")
     private boolean isRead = false; // Indicates if the notification has been read
-    private Date createdDate; // Timestamp when the notification was created
+    private LocalDateTime createdDate; // Timestamp when the notification was created
 }

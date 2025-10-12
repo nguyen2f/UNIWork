@@ -6,6 +6,7 @@ import com.uniwork.entity.enumuration.TaskStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -26,9 +27,9 @@ public class Task {
     private Priority priority; // e.g., Low, Medium, High
     @Column(name = "status")
     private TaskStatus status;
-    private Date dueDate;
-    private Date createdDate;
-    private Date updatedDate;
+    private LocalDateTime dueDate;
+    private LocalDateTime createdDate;
+    private LocalDateTime updatedDate;
     private Long updateBy;
     private Boolean completed;
     private String tags; // List of tags associated with the task

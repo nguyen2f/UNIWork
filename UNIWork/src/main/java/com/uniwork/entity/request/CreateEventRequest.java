@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
 public class CreateEventRequest {
     private String title;
     private Long projectId;
-    private Date date;
+    private LocalDateTime date;
     private String duration;
     private String type;
 //    private List<Long> attendees;

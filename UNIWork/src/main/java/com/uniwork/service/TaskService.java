@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -69,7 +70,7 @@ public class TaskService {
             task.setDescription(taskRequest.getDescription());
             task.setCreatedBy(userId);
             task.setProjectId(project.getProjectId());
-            task.setCreatedDate(new Date());
+            task.setCreatedDate(LocalDateTime.now());
             task.setStatus(TaskStatus.fromCode(taskRequest.getStatus()));
             task.setDueDate(taskRequest.getDueDate());
             task.setPriority(Priority.fromCode(taskRequest.getPriority()));
@@ -88,7 +89,7 @@ public class TaskService {
             throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
         }
 
-        task.setUpdatedDate(new Date());
+        task.setUpdatedDate(LocalDateTime.now());
         task.setUpdateBy(userId);
 
         BeanCopyUtils.copyNonNullProperties(taskRequest, task,

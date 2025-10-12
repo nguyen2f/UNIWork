@@ -3,6 +3,7 @@ package com.uniwork.entity.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -17,6 +18,6 @@ public class Comment {
     private Long posterId;
     private Long authorId;
     private String content;
-    private Date createdDate;
-    private Date updatedDate;
+    private LocalDateTime createdDate;
+    private LocalDateTime updatedDate;
 }

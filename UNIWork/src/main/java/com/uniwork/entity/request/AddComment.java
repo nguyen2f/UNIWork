@@ -2,7 +2,7 @@ package com.uniwork.entity.request;
 
 import lombok.Data;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 public class AddComment {
@@ -10,6 +10,6 @@ public class AddComment {
     private Long posterId;
     private Long authorId;
     private String content;
-    private Date createdDate;
-    private Date updatedDate;
+    private LocalDateTime createdDate;
+    private LocalDateTime updatedDate;
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -16,6 +17,6 @@ public class Report {
     private String title;
     private String type;
     private String url;
-    private Date createdDate;
+    private LocalDateTime createdDate;
 
 }

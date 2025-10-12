@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -37,7 +38,7 @@ public class UserService {
         user.setName(registerRequest.getName());
         user.setPassword(registerRequest.getPassword());
         user.setEmail(registerRequest.getEmail());
-        user.setCreatedDate(new Date());
+        user.setCreatedDate(LocalDateTime.now());
         return userRepository.save(user);
     }
 
@@ -98,7 +99,7 @@ public class UserService {
         if (user == null) {
             throw new RuntimeException("User not found");
         }
-        user.setUpdatedDate(new Date());
+        user.setUpdatedDate(LocalDateTime.now());
 
         if (updateProfileRequest.getPassword() != null && !updateProfileRequest.getPassword().isEmpty()) {
             user.setPassword(updateProfileRequest.getPassword());

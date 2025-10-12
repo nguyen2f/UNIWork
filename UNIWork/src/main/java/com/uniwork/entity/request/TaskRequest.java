@@ -3,6 +3,7 @@ package com.uniwork.entity.request;
 
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -15,8 +16,8 @@ public class TaskRequest {
     private String description;
     private Integer priority; // e.g., Low, Medium, High
     private Integer status; // e.g., Not Started, In Progress, Completed
-    private Date dueDate;
-    private Date createdDate;
-    private Date updatedDate;
+    private LocalDateTime dueDate;
+    private LocalDateTime createdDate;
+    private LocalDateTime updatedDate;
     private String tags; // Comma-separated tags
 }

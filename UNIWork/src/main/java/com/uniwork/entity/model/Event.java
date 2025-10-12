@@ -4,6 +4,7 @@ import com.uniwork.entity.enumuration.Priority;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -16,7 +17,7 @@ public class Event {
     private Long eventId;
     private String title;
     private Long projectId;
-    private Date date;
+    private LocalDateTime date;
     private String duration;
     private String type;
 //    private List<Long> attendees;

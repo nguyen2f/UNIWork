@@ -7,6 +7,7 @@ import org.hibernate.annotations.Comments;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -25,7 +26,7 @@ public class CommentService {
         comment.setPosterId(addComment.getPosterId());
         comment.setTaskId(addComment.getTaskId());
         comment.setContent(addComment.getContent());
-        comment.setCreatedDate(new Date());
+        comment.setCreatedDate(LocalDateTime.now());
         return commentRepository.save(comment);
     }
 
