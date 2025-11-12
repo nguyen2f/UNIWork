@@ -23,4 +23,5 @@ public class User {
     private String phone;
     private String department;
     private String bio;
+    private Boolean active;
 }

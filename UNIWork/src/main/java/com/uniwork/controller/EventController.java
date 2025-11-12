@@ -20,7 +20,7 @@ public class EventController {
     @Autowired
     private EventService eventService;
 
-    @GetMapping("/get-all")
+    @GetMapping("/all")
     public ResponseEntity getAllEvents(@RequestAttribute(required = false) Payload payload,
                                        @RequestParam(required = false) Long begin,
                                        @RequestParam(required = false) Long end) {
@@ -28,7 +28,7 @@ public class EventController {
         return ResponseFactory.success(events);
     }
 
-    @PostMapping("/create-event")
+    @PostMapping("/create")
     public ResponseEntity createEvent(@RequestBody CreateEventRequest createEventRequest,
                                       @RequestAttribute(required = false) Payload payload,
                                       @RequestParam(required = false) Long begin,

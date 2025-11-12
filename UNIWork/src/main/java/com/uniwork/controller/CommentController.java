@@ -18,7 +18,7 @@ public class CommentController {
     @Autowired
     private CommentService commentService;
 
-    @PostMapping("/add-comment")
+    @PostMapping("/add")
     public ResponseEntity addComment(@RequestAttribute(required = false) Payload payload, @RequestBody AddComment addComment) {
         Comment comment =  commentService.addComment(payload.getUserId(), addComment);
         return ResponseFactory.success(comment);

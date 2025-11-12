@@ -21,7 +21,7 @@ public class ProjectController {
     @Autowired
     private ProjectService projectService;
 
-    @GetMapping("/get-all")
+    @GetMapping("/all")
     public ResponseEntity getAllProjects(@RequestAttribute(required = false) Payload payload,
                                          @RequestParam(required = false) Integer priority,
                                          @RequestParam(required = false) Integer status) {
@@ -30,21 +30,21 @@ public class ProjectController {
         return ResponseFactory.success(projects);
     }
 
-    @GetMapping("/get-detail/{projectId}")
+    @GetMapping("/detail/{projectId}")
     public ResponseEntity getProjectDetail(@PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
         log.info("Getting project detail for projectId: {} and userId: {}", projectId, payload.getUserId());
         Project project = projectService.getProjectDetail(projectId, payload.getUserId());
         return ResponseFactory.success(project);
     }
 
-    @PostMapping("/create-project")
+    @PostMapping("/create")
     public ResponseEntity createProject(@RequestBody ProjectRequest projectRequest, @RequestAttribute(required = false) Payload payload) {
         log.info("Creating project with request: {}", projectRequest);
         Project project = projectService.createProject(projectRequest, payload.getUserId());
         return ResponseFactory.success(project);
     }
 
-    @PostMapping("/update-project/{projectId}")
+    @PostMapping("/{projectId}/update")
     public ResponseEntity updateProject(@PathVariable Long projectId, @RequestBody ProjectRequest projectRequest, @RequestAttribute(required = false) Payload payload) {
         log.info("Updating project with ID: {} and request: {}", projectId, projectRequest);
         Project project = projectService.updateProject(projectId, projectRequest, payload.getUserId());

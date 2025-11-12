@@ -26,42 +26,42 @@ public class TaskController {
     @Autowired
     private FileAttachmentService fileAttachmentService;
 
-    @GetMapping("/{projectId}/get-all")
+    @GetMapping("/all/{projectId}")
     public ResponseEntity getTasksByProjectId(@PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
         log.info("Fetching tasks for project ID: {}", projectId);
         List<Task> tasks = taskService.getAllTasksByProjectId(projectId);
         return ResponseFactory.success(tasks);
     }
 
-    @GetMapping("/{projectId}/get-detail/{taskId}")
+    @GetMapping("/detail/{projectId}/{taskId}")
     public ResponseEntity getTaskById(@PathVariable Long taskId, @RequestAttribute(required = false) Payload payload) {
         log.info("Fetching task with ID: {}", taskId);
         TaskDetailDTO taskDetailDTO = taskService.getTaskById(payload.getUserId(), taskId);
         return ResponseFactory.success(taskDetailDTO);
     }
 
-    @PostMapping("/{projectId}/create-task")
+    @PostMapping("/{projectId}/create")
     public ResponseEntity createTask(@RequestBody TaskRequest taskRequest, @PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
         log.info("Creating task with request: {} for project ID: {}", taskRequest, projectId);
         List<Task> tasks = taskService.createTask(payload.getUserId(), taskRequest);
         return ResponseFactory.success(tasks);
     }
 
-    @PostMapping("/{projectId}/update-task")
+    @PostMapping("/{projectId}/update")
     public ResponseEntity updateTask(@RequestBody TaskRequest taskRequest, @PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
         log.info("Updating task with request: {} for project ID: {}", taskRequest, projectId);
         Task task = taskService.updateTask(payload.getUserId(), taskRequest);
         return ResponseFactory.success(task);
     }
 
-    @DeleteMapping("/{projectId}/delete-task/{taskId}")
+    @DeleteMapping("/{projectId}/{taskId}/delete")
     public ResponseEntity deleteTask(@PathVariable Long taskId, @PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
         log.info("Deleting task with ID: {} for project ID: {}", taskId, projectId);
         Task task = taskService.deleteTask(payload.getUserId(), taskId);
         return ResponseFactory.success(task);
     }
 
-    @PostMapping("/{projectId}/upload-file/{taskId}")
+    @PostMapping("/{projectId}/{taskId}/file/upload")
     public ResponseEntity uploadFileAttachment(@RequestAttribute(required = false) Payload payload,
                                                @PathVariable Long projectId,
                                                @PathVariable Long taskId,
@@ -71,7 +71,7 @@ public class TaskController {
         return ResponseFactory.success(fileAttachment);
     }
 
-    @GetMapping("/get-all-tasks")
+    @GetMapping("/all")
     public ResponseEntity getAllTasksByAssignedTo(@RequestAttribute(required = false) Payload payload,
                                                   @RequestParam(required = false) Integer priority,
                                                   @RequestParam(required = false) Integer status) {

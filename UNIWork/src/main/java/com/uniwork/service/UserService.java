@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -106,6 +107,18 @@ public class UserService {
         }
         BeanCopyUtils.copyNonNullProperties(updateProfileRequest, user);
         return userRepository.save(user);
+    }
+
+    public List<UserDTO> getAllMembersActive() {
+        List<UserDTO> users = userRepository.findAll().stream()
+                .map(user -> new UserDTO(
+                        user.getUserId(),
+                        user.getPhone(),
+                        user.getName(),
+                        user.getEmail()
+                ))
+                .collect(Collectors.toList());
+        return users;
     }
 
 }
