@@ -90,7 +90,7 @@ public class TaskService {
         }
 
         task.setUpdatedDate(LocalDateTime.now());
-        task.setUpdateBy(userId);
+        task.setUpdatedBy(userId);
 
         BeanCopyUtils.copyNonNullProperties(taskRequest, task,
                 "taskId", "createdBy", "createdDate", "projectId");
