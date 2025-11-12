@@ -30,7 +30,7 @@ public class Task {
     private LocalDateTime dueDate;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
-    private Long updateBy;
+    private Long updatedBy;
     private Boolean completed;
     private String tags; // List of tags associated with the task
 
