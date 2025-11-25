@@ -1,6 +1,7 @@
 package com.uniwork.controller;
 
 
+import com.uniwork.entity.dto.UserDTO;
 import com.uniwork.entity.model.Project;
 import com.uniwork.entity.request.ProjectRequest;
 import com.uniwork.entity.response.ResponseFactory;
@@ -49,5 +50,12 @@ public class ProjectController {
         log.info("Updating project with ID: {} and request: {}", projectId, projectRequest);
         Project project = projectService.updateProject(projectId, projectRequest, payload.getUserId());
         return ResponseFactory.success(project);
+    }
+
+    @GetMapping("/{projectId}/members")
+    public ResponseEntity getProjectMembers(@PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
+        log.info("Getting members for projectId: {} and userId: {}", projectId, payload.getUserId());
+        List<UserDTO> members = projectService.findAllMembersByProjectId(projectId);
+        return ResponseFactory.success(members);
     }
 }

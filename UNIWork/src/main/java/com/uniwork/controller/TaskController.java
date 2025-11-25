@@ -40,16 +40,16 @@ public class TaskController {
         return ResponseFactory.success(taskDetailDTO);
     }
 
-    @PostMapping("/{projectId}/create")
-    public ResponseEntity createTask(@RequestBody TaskRequest taskRequest, @PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
-        log.info("Creating task with request: {} for project ID: {}", taskRequest, projectId);
+    @PostMapping("/create")
+    public ResponseEntity createTask(@RequestBody TaskRequest taskRequest, @RequestAttribute(required = false) Payload payload) {
+        log.info("Creating task with request: {} for project ID: {}", taskRequest);
         List<Task> tasks = taskService.createTask(payload.getUserId(), taskRequest);
         return ResponseFactory.success(tasks);
     }
 
-    @PostMapping("/{projectId}/update")
-    public ResponseEntity updateTask(@RequestBody TaskRequest taskRequest, @PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
-        log.info("Updating task with request: {} for project ID: {}", taskRequest, projectId);
+    @PostMapping("/{projectId}/{taskId}/update")
+    public ResponseEntity updateTask(@RequestBody TaskRequest taskRequest, @PathVariable Long projectId, @PathVariable Long taskId, @RequestAttribute(required = false) Payload payload) {
+        log.info("Updating task with request: {} for project IzD: {}", taskRequest);
         Task task = taskService.updateTask(payload.getUserId(), taskRequest);
         return ResponseFactory.success(task);
     }

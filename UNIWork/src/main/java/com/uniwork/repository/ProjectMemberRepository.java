@@ -1,6 +1,8 @@
 package com.uniwork.repository;
 
 import com.uniwork.entity.model.ProjectMember;
+import com.uniwork.entity.projection.MemberProjection;
+import com.uniwork.entity.projection.ProjectProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -19,4 +21,10 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
     List<Long> findProjectIdsByUserId(Long userId);
 
     Long countUserIdByProjectId(Long projectId);
+
+//    @Query()
+//    ProjectProjection findAll();
+//
+//    MemberProjection findAll();
+
 }

@@ -14,10 +14,10 @@ public class TaskRequest {
     private List<Long> assignedTo;
     private String title;
     private String description;
-    private Integer priority; // e.g., Low, Medium, High
-    private Integer status; // e.g., Not Started, In Progress, Completed
+    private Integer priority;
+    private Integer status;
     private LocalDateTime dueDate;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
-    private String tags; // Comma-separated tags
+    private String tags;
 }

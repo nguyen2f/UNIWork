@@ -3,7 +3,8 @@ package com.uniwork.entity.enumuration;
 public enum Priority {
     LOW(0),
     MEDIUM(1),
-    HIGH(2);
+    HIGH(2),
+    CRITICAL(3);
     private final Integer code;
     Priority(Integer code) {
         this.code = code;

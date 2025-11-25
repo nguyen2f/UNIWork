@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequestMapping("/comment")
 @RestController
 @Slf4j
@@ -22,6 +24,12 @@ public class CommentController {
     public ResponseEntity addComment(@RequestAttribute(required = false) Payload payload, @RequestBody AddComment addComment) {
         Comment comment =  commentService.addComment(payload.getUserId(), addComment);
         return ResponseFactory.success(comment);
+    }
+
+    @GetMapping("/task/{taskId}" )
+    public ResponseEntity getCommentsByTaskId(@RequestAttribute(required = false) Payload payload, @PathVariable Long taskId) {
+        List<Comment> comments = commentService.getAllComment(taskId);
+        return ResponseFactory.success(comments);
     }
 
 }

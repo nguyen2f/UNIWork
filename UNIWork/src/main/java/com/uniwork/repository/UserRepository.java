@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Long countByCreatedDateBetween(LocalDateTime start, LocalDateTime end);
 
     List<User> findAll();
+
+    List<User> findAllByUserIdIn(List<Long> userIds);
 }

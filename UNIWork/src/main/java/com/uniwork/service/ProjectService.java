@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ProjectService {
@@ -116,15 +117,15 @@ public class ProjectService {
     }
 
     public List<UserDTO> findAllMembersByProjectId(Long projectId) {
-        List<UserDTO> users = new ArrayList<>();
         List<ProjectMember> projectMembers = projectMemberRepository.findAllByProjectId(projectId);
-        for (ProjectMember pm : projectMembers) {
-            User user = userRepository.findByUserId(pm.getUserId());
-            UserDTO userDTO = new UserDTO();
-            userDTO.setUserId(user.getUserId());
-            userDTO.setName(user.getName());
-            userDTO.setEmail(user.getEmail());
-        }
-        return users;
+        List<Long> userIds = projectMembers.stream()
+                .map(ProjectMember::getUserId)
+                .collect(Collectors.toList());
+
+        List<User> users = userRepository.findAllByUserIdIn(userIds);
+
+        return users.stream()
+                .map(u -> new UserDTO(u.getUserId(), u.getName(), u.getEmail(), u.getPhone(),u.getDepartment()))
+                .collect(Collectors.toList());
     }
 }

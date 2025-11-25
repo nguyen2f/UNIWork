@@ -113,9 +113,10 @@ public class UserService {
         List<UserDTO> users = userRepository.findAll().stream()
                 .map(user -> new UserDTO(
                         user.getUserId(),
-                        user.getPhone(),
                         user.getName(),
-                        user.getEmail()
+                        user.getEmail(),
+                        user.getPhone(),
+                        user.getDepartment()
                 ))
                 .collect(Collectors.toList());
         return users;
