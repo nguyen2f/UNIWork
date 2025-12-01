@@ -14,6 +14,7 @@ public class ApiResponse<T> {
     private String message;
     private T data;
     private LocalDateTime timestamp;
+    private PageMetadata pagination;
 
     public static <T> ApiResponse<T> success(T data, String message) {
         return ApiResponse.<T>builder()
@@ -21,6 +22,16 @@ public class ApiResponse<T> {
                 .code("SUCCESS")
                 .message(message)
                 .data(data)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
+
+    public static <T> ApiResponse<T> success(T data, PageMetadata pagination) {
+        return ApiResponse.<T>builder()
+                .success(true)
+                .code("SUCCESS")
+                .data(data)
+                .pagination(pagination)
                 .timestamp(LocalDateTime.now())
                 .build();
     }
@@ -33,4 +44,5 @@ public class ApiResponse<T> {
                 .timestamp(LocalDateTime.now())
                 .build();
     }
+
 }

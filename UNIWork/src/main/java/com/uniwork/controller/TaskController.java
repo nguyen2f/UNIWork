@@ -50,7 +50,7 @@ public class TaskController {
     @PostMapping("/{projectId}/{taskId}/update")
     public ResponseEntity updateTask(@RequestBody TaskRequest taskRequest, @PathVariable Long projectId, @PathVariable Long taskId, @RequestAttribute(required = false) Payload payload) {
         log.info("Updating task with request: {} for project IzD: {}", taskRequest);
-        Task task = taskService.updateTask(payload.getUserId(), taskRequest);
+        Task task = taskService.updateTask(payload.getUserId(), taskId, taskRequest);
         return ResponseFactory.success(task);
     }
 

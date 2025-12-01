@@ -45,12 +45,12 @@ public class TaskService {
 
     public TaskDetailDTO getTaskById(Long userId, Long taskId) {
         Task task = taskRepository.findById(taskId).orElse(null);
-        if (userId != task.getAssignedTo()) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
-        }
-        if (task == null) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
-        }
+//        if (userId != task.getAssignedTo()) {
+//            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Không phải task của bạn");
+//        }
+//        if (task == null) {
+//            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
+//        }
 
         List<Comment> comments = commentService.getAllComment(taskId);
         List<FileAttachment> attachments = fileAttachmentService.getAllFileAttachment(taskId);
@@ -83,12 +83,15 @@ public class TaskService {
         return savedTasks;
     }
 
-    public Task updateTask(Long userId, TaskRequest taskRequest) {
-        Task task = taskRepository.findById(taskRequest.getTaskId()).orElse(null);
+    public Task updateTask(Long userId, Long taskId, TaskRequest taskRequest) {
+        Task task = taskRepository.findById(taskId).orElse(null);
         if (task == null) {
             throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
         }
 
+        if (taskRequest.getStatus() == TaskStatus.COMPLETED.getCode() || taskRequest.getStatus() == TaskStatus.REVIEWING.getCode()) {
+            task.setCompleted(true);
+        }
         task.setUpdatedDate(LocalDateTime.now());
         task.setUpdatedBy(userId);
 

@@ -22,6 +22,8 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
 
     Long countUserIdByProjectId(Long projectId);
 
+    Long countByUserId(Long userId);
+
 //    @Query()
 //    ProjectProjection findAll();
 //

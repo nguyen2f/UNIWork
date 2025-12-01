@@ -1,5 +1,6 @@
 package com.uniwork.service;
 
+import com.uniwork.entity.dto.ProjectDTO;
 import com.uniwork.entity.dto.ProjectReportDTO;
 import com.uniwork.entity.dto.TaskPerformanceDTO;
 import com.uniwork.entity.dto.TaskReportDTO;
@@ -10,7 +11,6 @@ import com.uniwork.entity.model.Project;
 import com.uniwork.entity.model.Task;
 import com.uniwork.entity.response.StatsResponse;
 import com.uniwork.repository.*;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -36,10 +36,18 @@ public class ReportService {
         this.userRepository = userRepository;
     }
 
-    public List<ProjectReportDTO> getProjectReport(Long userId, Long begin, Long end) {
-        List<Long> projectIds = projectMemberRepository.findProjectIdsByUserId(userId);
+    public long countProjectsByUserId(Long userId) {
+        return projectMemberRepository.countByUserId(userId);
+    }
 
-        List<CompletableFuture<ProjectReportDTO>> futures = projectIds.stream()
+    public List<ProjectReportDTO> getProjectReport(Long userId, Long begin, Long end, int page, int size) {
+        List<Long> allProjectIds = projectMemberRepository.findProjectIdsByUserId(userId);
+        int startIndex = page * size;
+        int endIndex = Math.min(startIndex + size, allProjectIds.size());
+        List<Long> pagedProjectIds = allProjectIds.subList(startIndex, endIndex);
+
+
+        List<CompletableFuture<ProjectReportDTO>> futures = pagedProjectIds.stream()
                 .map(projectId -> CompletableFuture.supplyAsync(() -> {
                     Project project = projectRepository.findProjectByProjectId(projectId);
 
@@ -118,8 +126,9 @@ public class ReportService {
         try {
             Long total = totalTasks.get();
             Long completed = completedTask.get();
+            Long remaining = total - completed;
             Double performancePercent = total == 0 ? 0.0 : (completed * 100) / total;
-            TaskPerformanceDTO taskPerformanceDTO = new TaskPerformanceDTO(userId, total, completed, performancePercent);
+            TaskPerformanceDTO taskPerformanceDTO = new TaskPerformanceDTO(userId, total, completed, remaining, performancePercent);
             return taskPerformanceDTO;
         } catch (Exception e) {
             throw new RuntimeException("Error while generating report for userId=" + userId, e);

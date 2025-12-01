@@ -5,12 +5,15 @@ import com.uniwork.entity.dto.TaskPerformanceDTO;
 import com.uniwork.entity.dto.TaskReportDTO;
 import com.uniwork.entity.model.Event;
 import com.uniwork.entity.model.Task;
+import com.uniwork.entity.response.PageMetadata;
 import com.uniwork.entity.response.ResponseFactory;
 import com.uniwork.entity.response.StatsResponse;
 import com.uniwork.interceptors.Payload;
 import com.uniwork.service.ReportService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,9 +30,13 @@ public class ReportController {
     @GetMapping("/project-report")
     public ResponseEntity getProjectReport(@RequestAttribute(required = false) Payload payload,
                                            @RequestParam(required = false) Long begin,
-                                           @RequestParam(required = false) Long end) {
-        List<ProjectReportDTO> projectReportDTOS = reportService.getProjectReport(payload.getUserId(), begin, end);
-        return ResponseFactory.success(projectReportDTOS);
+                                           @RequestParam(required = false) Long end,
+                                           @RequestParam(defaultValue = "0") int page,
+                                           @RequestParam(defaultValue = "5") int size) {
+        List<ProjectReportDTO> projectReportDTOS = reportService.getProjectReport(payload.getUserId(), begin, end,  page, size);
+        long totalElements = reportService.countProjectsByUserId(payload.getUserId());
+        PageMetadata pageMetadata = PageMetadata.of(page, size, totalElements);
+        return ResponseFactory.makePagination(projectReportDTOS, pageMetadata);
     }
 
     @GetMapping("/task-report")
