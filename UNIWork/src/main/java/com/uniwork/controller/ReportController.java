@@ -1,19 +1,17 @@
 package com.uniwork.controller;
 
-import com.uniwork.entity.dto.ProjectReportDTO;
-import com.uniwork.entity.dto.TaskPerformanceDTO;
-import com.uniwork.entity.dto.TaskReportDTO;
-import com.uniwork.entity.model.Event;
-import com.uniwork.entity.model.Task;
-import com.uniwork.entity.response.PageMetadata;
-import com.uniwork.entity.response.ResponseFactory;
-import com.uniwork.entity.response.StatsResponse;
+import com.uniwork.model.dto.ProjectReportDTO;
+import com.uniwork.model.dto.TaskPerformanceDTO;
+import com.uniwork.model.dto.TaskReportDTO;
+import com.uniwork.model.entity.Event;
+import com.uniwork.model.entity.Task;
+import com.uniwork.model.response.PageMetadata;
+import com.uniwork.model.response.ResponseFactory;
+import com.uniwork.model.response.StatsResponse;
 import com.uniwork.interceptors.Payload;
 import com.uniwork.service.ReportService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

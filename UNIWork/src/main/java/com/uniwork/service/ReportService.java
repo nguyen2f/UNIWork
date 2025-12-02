@@ -1,15 +1,14 @@
 package com.uniwork.service;
 
-import com.uniwork.entity.dto.ProjectReportDTO;
-import com.uniwork.entity.dto.TaskPerformanceDTO;
-import com.uniwork.entity.dto.TaskReportDTO;
-import com.uniwork.entity.enumuration.ProjectStatus;
-import com.uniwork.entity.enumuration.TaskStatus;
-import com.uniwork.entity.model.Event;
-import com.uniwork.entity.model.Project;
-import com.uniwork.entity.model.Task;
-import com.uniwork.entity.projection.*;
-import com.uniwork.entity.response.StatsResponse;
+import com.uniwork.model.dto.ProjectReportDTO;
+import com.uniwork.model.dto.TaskPerformanceDTO;
+import com.uniwork.model.dto.TaskReportDTO;
+import com.uniwork.model.enumuration.TaskStatus;
+import com.uniwork.model.entity.Event;
+import com.uniwork.model.entity.Project;
+import com.uniwork.model.entity.Task;
+import com.uniwork.model.projection.*;
+import com.uniwork.model.response.StatsResponse;
 import com.uniwork.repository.*;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;

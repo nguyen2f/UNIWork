@@ -1,12 +1,12 @@
 package com.uniwork.repository;
 
-import com.uniwork.entity.enumuration.Priority;
-import com.uniwork.entity.enumuration.TaskStatus;
-import com.uniwork.entity.model.Task;
-import com.uniwork.entity.projection.ReportProjectProjection;
-import com.uniwork.entity.projection.ReportTaskPerformanceProjection;
-import com.uniwork.entity.projection.ReportTaskProjection;
-import com.uniwork.entity.projection.ReportTaskStatsProjection;
+import com.uniwork.model.enumuration.Priority;
+import com.uniwork.model.enumuration.TaskStatus;
+import com.uniwork.model.entity.Task;
+import com.uniwork.model.projection.ReportProjectProjection;
+import com.uniwork.model.projection.ReportTaskPerformanceProjection;
+import com.uniwork.model.projection.ReportTaskProjection;
+import com.uniwork.model.projection.ReportTaskStatsProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

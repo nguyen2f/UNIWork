@@ -1,11 +1,12 @@
 package com.uniwork.controller;
 
-import com.uniwork.entity.dto.UserDTO;
-import com.uniwork.entity.model.ProjectMember;
-import com.uniwork.entity.request.*;
-import com.uniwork.entity.response.ResponseFactory;
+import com.uniwork.model.dto.ProfileDTO;
+import com.uniwork.model.dto.UserDTO;
+import com.uniwork.model.entity.ProjectMember;
+import com.uniwork.model.request.*;
+import com.uniwork.model.response.ResponseFactory;
 import com.uniwork.interceptors.Payload;
-import com.uniwork.entity.model.User;
+import com.uniwork.model.entity.User;
 import com.uniwork.service.UserService;
 import com.uniwork.util.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +44,7 @@ public class UserController {
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
         response.put("userId", user.getUserId());
+        response.put("user", user);
         return ResponseEntity.ok(response);
 
     }
@@ -69,5 +71,11 @@ public class UserController {
     public ResponseEntity getAllMemberActive(@RequestAttribute(required = false) Payload payload) {
         List<UserDTO> users = userService.getAllMembersActive();
         return ResponseFactory.success(users);
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity getUserById(@RequestAttribute(required = false) Payload payload, @PathVariable Long userId) {
+        ProfileDTO user = userService.getUserById(userId);
+        return ResponseFactory.success(user);
     }
 }

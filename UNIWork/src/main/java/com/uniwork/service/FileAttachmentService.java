@@ -1,13 +1,11 @@
 package com.uniwork.service;
 
-import com.uniwork.entity.model.FileAttachment;
-import com.uniwork.entity.request.UploadFileAttachmentRequest;
+import com.uniwork.model.entity.FileAttachment;
+import com.uniwork.model.request.UploadFileAttachmentRequest;
 import com.uniwork.repository.FileAttachmentRepository;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 @Service

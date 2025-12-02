@@ -1,8 +1,8 @@
 package com.uniwork.controller;
 
-import com.uniwork.entity.model.Event;
-import com.uniwork.entity.request.CreateEventRequest;
-import com.uniwork.entity.response.ResponseFactory;
+import com.uniwork.model.entity.Event;
+import com.uniwork.model.request.CreateEventRequest;
+import com.uniwork.model.response.ResponseFactory;
 import com.uniwork.interceptors.Payload;
 import com.uniwork.service.EventService;
 import lombok.extern.slf4j.Slf4j;

@@ -1,6 +1,6 @@
 package com.uniwork.repository;
 
-import com.uniwork.entity.model.ProjectMember;
+import com.uniwork.model.entity.ProjectMember;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

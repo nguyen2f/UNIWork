@@ -1,26 +1,24 @@
 package com.uniwork.service;
 
 
-import com.uniwork.entity.dto.TaskDetailDTO;
-import com.uniwork.entity.enumuration.Priority;
-import com.uniwork.entity.enumuration.TaskStatus;
-import com.uniwork.entity.model.Comment;
-import com.uniwork.entity.model.FileAttachment;
-import com.uniwork.entity.request.TaskRequest;
-import com.uniwork.entity.model.Project;
-import com.uniwork.entity.model.Task;
+import com.uniwork.model.dto.TaskDetailDTO;
+import com.uniwork.model.enumuration.Priority;
+import com.uniwork.model.enumuration.TaskStatus;
+import com.uniwork.model.entity.Comment;
+import com.uniwork.model.entity.FileAttachment;
+import com.uniwork.model.request.TaskRequest;
+import com.uniwork.model.entity.Project;
+import com.uniwork.model.entity.Task;
 import com.uniwork.exceptions.CoreException;
 import com.uniwork.exceptions.ErrorCode;
 import com.uniwork.repository.TaskRepository;
 import com.uniwork.util.BeanCopyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @Service

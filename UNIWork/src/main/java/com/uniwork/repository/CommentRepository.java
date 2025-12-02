@@ -1,6 +1,6 @@
 package com.uniwork.repository;
 
-import com.uniwork.entity.model.Comment;
+import com.uniwork.model.entity.Comment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

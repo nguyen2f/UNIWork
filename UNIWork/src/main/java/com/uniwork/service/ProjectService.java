@@ -1,12 +1,12 @@
 package com.uniwork.service;
 
-import com.uniwork.entity.dto.UserDTO;
-import com.uniwork.entity.enumuration.Priority;
-import com.uniwork.entity.enumuration.ProjectStatus;
-import com.uniwork.entity.request.ProjectRequest;
-import com.uniwork.entity.model.Project;
-import com.uniwork.entity.model.ProjectMember;
-import com.uniwork.entity.model.User;
+import com.uniwork.model.dto.UserDTO;
+import com.uniwork.model.enumuration.Priority;
+import com.uniwork.model.enumuration.ProjectStatus;
+import com.uniwork.model.request.ProjectRequest;
+import com.uniwork.model.entity.Project;
+import com.uniwork.model.entity.ProjectMember;
+import com.uniwork.model.entity.User;
 import com.uniwork.exceptions.CoreException;
 import com.uniwork.exceptions.ErrorCode;
 import com.uniwork.repository.ProjectMemberRepository;
@@ -14,12 +14,10 @@ import com.uniwork.repository.ProjectRepository;
 import com.uniwork.repository.UserRepository;
 import com.uniwork.util.BeanCopyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 

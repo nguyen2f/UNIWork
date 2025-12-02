@@ -1,14 +1,11 @@
 package com.uniwork.service;
 
-import com.uniwork.entity.model.Comment;
-import com.uniwork.entity.request.AddComment;
+import com.uniwork.model.entity.Comment;
+import com.uniwork.model.request.AddComment;
 import com.uniwork.repository.CommentRepository;
-import org.hibernate.annotations.Comments;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 @Service

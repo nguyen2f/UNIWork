@@ -1,17 +1,16 @@
 package com.uniwork.controller;
 
-import com.uniwork.entity.dto.TaskDetailDTO;
-import com.uniwork.entity.model.FileAttachment;
-import com.uniwork.entity.model.Task;
-import com.uniwork.entity.request.TaskRequest;
-import com.uniwork.entity.request.UploadFileAttachmentRequest;
-import com.uniwork.entity.response.ResponseFactory;
+import com.uniwork.model.dto.TaskDetailDTO;
+import com.uniwork.model.entity.FileAttachment;
+import com.uniwork.model.entity.Task;
+import com.uniwork.model.request.TaskRequest;
+import com.uniwork.model.request.UploadFileAttachmentRequest;
+import com.uniwork.model.response.ResponseFactory;
 import com.uniwork.interceptors.Payload;
 import com.uniwork.service.FileAttachmentService;
 import com.uniwork.service.TaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

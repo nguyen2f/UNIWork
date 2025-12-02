@@ -1,10 +1,10 @@
 package com.uniwork.controller;
 
 
-import com.uniwork.entity.dto.UserDTO;
-import com.uniwork.entity.model.Project;
-import com.uniwork.entity.request.ProjectRequest;
-import com.uniwork.entity.response.ResponseFactory;
+import com.uniwork.model.dto.UserDTO;
+import com.uniwork.model.entity.Project;
+import com.uniwork.model.request.ProjectRequest;
+import com.uniwork.model.response.ResponseFactory;
 import com.uniwork.interceptors.Payload;
 import com.uniwork.service.ProjectService;
 import lombok.extern.slf4j.Slf4j;

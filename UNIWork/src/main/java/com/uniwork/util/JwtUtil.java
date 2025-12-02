@@ -1,6 +1,6 @@
 package com.uniwork.util;
 
-import com.uniwork.entity.model.User;
+import com.uniwork.model.entity.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;

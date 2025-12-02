@@ -1,6 +1,6 @@
 package com.uniwork.service;
 
-import com.uniwork.entity.model.User;
+import com.uniwork.model.entity.User;
 import com.uniwork.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;

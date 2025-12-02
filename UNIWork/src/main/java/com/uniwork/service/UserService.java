@@ -1,10 +1,12 @@
 package com.uniwork.service;
 
-import com.uniwork.entity.model.Task;
-import com.uniwork.entity.request.*;
-import com.uniwork.entity.dto.UserDTO;
-import com.uniwork.entity.model.ProjectMember;
-import com.uniwork.entity.model.User;
+import com.uniwork.model.dto.ProfileDTO;
+import com.uniwork.model.entity.Task;
+import com.uniwork.model.projection.UserProfileProjection;
+import com.uniwork.model.request.*;
+import com.uniwork.model.dto.UserDTO;
+import com.uniwork.model.entity.ProjectMember;
+import com.uniwork.model.entity.User;
 import com.uniwork.repository.ProjectMemberRepository;
 import com.uniwork.repository.ProjectRepository;
 import com.uniwork.repository.TaskRepository;
@@ -13,6 +15,8 @@ import com.uniwork.util.BeanCopyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.annotation.Profile;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,6 +34,8 @@ public class UserService {
     private ProjectMemberRepository projectMemberRepository;
     @Autowired
     private TaskRepository taskRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @CacheEvict(value = "uniwork:user:list", key = "'active'")
     public User registerUser(RegisterRequest registerRequest) {
@@ -38,16 +44,17 @@ public class UserService {
         }
         User user = new User();
         user.setName(registerRequest.getName());
-        user.setPassword(registerRequest.getPassword());
+
+        String encodedPassword = passwordEncoder.encode(registerRequest.getPassword());
+        user.setPassword(encodedPassword);
         user.setEmail(registerRequest.getEmail());
         user.setCreatedDate(LocalDateTime.now());
         return userRepository.save(user);
     }
 
-
     public User login(String email, String password) {
         User user = userRepository.findByEmail(email);
-        if (user == null || !user.getPassword().equals(password)) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("Invalid email or password");
         }
         return user;
@@ -122,6 +129,23 @@ public class UserService {
                 ))
                 .collect(Collectors.toList());
         return users;
+    }
+
+    public ProfileDTO getUserById(Long userId) {
+        UserProfileProjection user = userRepository.getUserProfile(userId);
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+        return new ProfileDTO(
+                user.getUserId(),
+                user.getName(),
+                user.getPhone(),
+                user.getEmail(),
+                user.getBio(),
+                user.getAddress(),
+                user.getDepartment(),
+                user.getActive()
+        );
     }
 
 }

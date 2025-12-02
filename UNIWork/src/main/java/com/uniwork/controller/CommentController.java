@@ -1,8 +1,8 @@
 package com.uniwork.controller;
 
-import com.uniwork.entity.model.Comment;
-import com.uniwork.entity.request.AddComment;
-import com.uniwork.entity.response.ResponseFactory;
+import com.uniwork.model.entity.Comment;
+import com.uniwork.model.request.AddComment;
+import com.uniwork.model.response.ResponseFactory;
 import com.uniwork.interceptors.Payload;
 import com.uniwork.service.CommentService;
 import lombok.extern.slf4j.Slf4j;

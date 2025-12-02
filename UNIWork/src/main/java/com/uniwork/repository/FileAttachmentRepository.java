@@ -1,6 +1,6 @@
 package com.uniwork.repository;
 
-import com.uniwork.entity.model.FileAttachment;
+import com.uniwork.model.entity.FileAttachment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

@@ -1,15 +1,13 @@
 package com.uniwork.service;
 
-import com.uniwork.entity.dto.NotificationDTO;
-import com.uniwork.entity.model.Notification;
+import com.uniwork.model.dto.NotificationDTO;
+import com.uniwork.model.entity.Notification;
 import com.uniwork.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Service
 public class NoticationService {

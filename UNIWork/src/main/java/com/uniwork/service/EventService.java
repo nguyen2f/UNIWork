@@ -1,14 +1,13 @@
 package com.uniwork.service;
 
-import com.uniwork.entity.enumuration.Priority;
-import com.uniwork.entity.model.Event;
-import com.uniwork.entity.request.CreateEventRequest;
+import com.uniwork.model.enumuration.Priority;
+import com.uniwork.model.entity.Event;
+import com.uniwork.model.request.CreateEventRequest;
 import com.uniwork.repository.EventRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 @Slf4j

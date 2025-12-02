@@ -1,7 +1,7 @@
 package com.uniwork.exceptions;
 
 
-import com.uniwork.entity.response.ApiResponse;
+import com.uniwork.model.response.ApiResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

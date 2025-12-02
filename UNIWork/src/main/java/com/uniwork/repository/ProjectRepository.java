@@ -1,10 +1,10 @@
 package com.uniwork.repository;
 
 
-import com.uniwork.entity.enumuration.Priority;
-import com.uniwork.entity.enumuration.ProjectStatus;
-import com.uniwork.entity.model.Project;
-import com.uniwork.entity.projection.ReportProjectStatsProjection;
+import com.uniwork.model.enumuration.Priority;
+import com.uniwork.model.enumuration.ProjectStatus;
+import com.uniwork.model.entity.Project;
+import com.uniwork.model.projection.ReportProjectStatsProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

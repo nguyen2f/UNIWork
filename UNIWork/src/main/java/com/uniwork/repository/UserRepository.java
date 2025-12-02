@@ -1,7 +1,9 @@
 package com.uniwork.repository;
 
-import com.uniwork.entity.model.User;
-import com.uniwork.entity.projection.ReportUserStatsProjection;
+import com.uniwork.model.dto.UserDTO;
+import com.uniwork.model.entity.User;
+import com.uniwork.model.projection.ReportUserStatsProjection;
+import com.uniwork.model.projection.UserProfileProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,5 +35,20 @@ public interface UserRepository extends JpaRepository<User, Long> {
             """)
     ReportUserStatsProjection getUserStats(@Param("startOfMonth") LocalDateTime startOfMonth,
                                            @Param("now") LocalDateTime now);
+
+    @Query("""
+                SELECT 
+                    u.userId AS userId, 
+                    u.name AS name, 
+                    u.phone AS phone, 
+                    u.email AS email, 
+                    u.bio AS bio, 
+                    u.address AS address, 
+                    u.department AS department, 
+                    u.active AS active
+                FROM User u
+                WHERE u.userId = :userId
+            """)
+    UserProfileProjection getUserProfile(@Param("userId") Long userId);
 
 }
