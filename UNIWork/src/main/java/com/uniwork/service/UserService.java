@@ -11,11 +11,11 @@ import com.uniwork.repository.TaskRepository;
 import com.uniwork.repository.UserRepository;
 import com.uniwork.util.BeanCopyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +31,7 @@ public class UserService {
     @Autowired
     private TaskRepository taskRepository;
 
+    @CacheEvict(value = "uniwork:user:list", key = "'active'")
     public User registerUser(RegisterRequest registerRequest) {
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
             throw new RuntimeException("User already exists");
@@ -109,6 +110,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Cacheable(value = "uniwork:user:list", key = "'active'")
     public List<UserDTO> getAllMembersActive() {
         List<UserDTO> users = userRepository.findAll().stream()
                 .map(user -> new UserDTO(

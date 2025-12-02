@@ -1,6 +1,5 @@
 package com.uniwork.service;
 
-import com.uniwork.entity.dto.ProjectDTO;
 import com.uniwork.entity.dto.ProjectReportDTO;
 import com.uniwork.entity.dto.TaskPerformanceDTO;
 import com.uniwork.entity.dto.TaskReportDTO;
@@ -11,11 +10,11 @@ import com.uniwork.entity.model.Project;
 import com.uniwork.entity.model.Task;
 import com.uniwork.entity.response.StatsResponse;
 import com.uniwork.repository.*;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -39,6 +38,11 @@ public class ReportService {
     public long countProjectsByUserId(Long userId) {
         return projectMemberRepository.countByUserId(userId);
     }
+
+    @Cacheable(
+            value = "uniwork:project:report",
+            key = "'user:' + #userId + ':p:' + #page + ':s:' + #size"
+    )
 
     public List<ProjectReportDTO> getProjectReport(Long userId, Long begin, Long end, int page, int size) {
         List<Long> allProjectIds = projectMemberRepository.findProjectIdsByUserId(userId);
@@ -154,11 +158,9 @@ public class ReportService {
                         )
                 );
 
-        // 3️⃣ Task đã hoàn thành
         CompletableFuture<Long> completedTasks =
                 CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatus(userId, TaskStatus.COMPLETED));
 
-        // 4️⃣ Task hoàn thành trong tuần này
         CompletableFuture<Long> newTasksThisWeek =
                 CompletableFuture.supplyAsync(() ->
                         taskRepository.countByAssignedToAndUpdatedDateBetweenAndStatus(userId,
@@ -167,11 +169,9 @@ public class ReportService {
                         )
                 );
 
-        // 5️⃣ Tổng thành viên
         CompletableFuture<Long> teamMembers =
                 CompletableFuture.supplyAsync(() -> userRepository.countAll());
 
-        // 6️⃣ Thành viên mới trong tháng
         CompletableFuture<Long> newMembers =
                 CompletableFuture.supplyAsync(() ->
                         userRepository.countByCreatedDateBetween(
@@ -180,11 +180,9 @@ public class ReportService {
                         )
                 );
 
-        // 7️⃣ Task đang pending
         CompletableFuture<Long> pendingTasks =
                 CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatus(userId, TaskStatus.PENDING));
 
-        // 8️⃣ Task pending của tuần trước (so sánh)
         CompletableFuture<Long> pendingTasksLastWeek =
                 CompletableFuture.supplyAsync(() ->
                         taskRepository.countByAssignedToAndUpdatedDateBetweenAndStatus( userId,

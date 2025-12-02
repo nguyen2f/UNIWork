@@ -14,6 +14,7 @@ import com.uniwork.exceptions.ErrorCode;
 import com.uniwork.repository.TaskRepository;
 import com.uniwork.util.BeanCopyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +36,7 @@ public class TaskService {
     @Autowired
     private FileAttachmentService fileAttachmentService;
 
+    @Cacheable(value = "uniwork:task:list", key = "'projectId:' + #projectId")
     public List<Task> getAllTasksByProjectId(Long projectId) {
         Project project = projectService.getProjectById(projectId);
         if (project == null) {
@@ -45,13 +47,6 @@ public class TaskService {
 
     public TaskDetailDTO getTaskById(Long userId, Long taskId) {
         Task task = taskRepository.findById(taskId).orElse(null);
-//        if (userId != task.getAssignedTo()) {
-//            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Không phải task của bạn");
-//        }
-//        if (task == null) {
-//            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
-//        }
-
         List<Comment> comments = commentService.getAllComment(taskId);
         List<FileAttachment> attachments = fileAttachmentService.getAllFileAttachment(taskId);
         TaskDetailDTO taskDetailDTO = new TaskDetailDTO(task, comments, attachments);

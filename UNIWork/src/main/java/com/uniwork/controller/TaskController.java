@@ -11,6 +11,7 @@ import com.uniwork.service.FileAttachmentService;
 import com.uniwork.service.TaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -71,6 +72,7 @@ public class TaskController {
         return ResponseFactory.success(fileAttachment);
     }
 
+    @Cacheable(value = "uniwork:task:assignedTo", key = "'userId:' +  #payload.getUserId()")
     @GetMapping("/all")
     public ResponseEntity getAllTasksByAssignedTo(@RequestAttribute(required = false) Payload payload,
                                                   @RequestParam(required = false) Integer priority,
