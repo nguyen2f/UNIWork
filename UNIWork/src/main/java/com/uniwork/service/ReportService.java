@@ -8,6 +8,7 @@ import com.uniwork.entity.enumuration.TaskStatus;
 import com.uniwork.entity.model.Event;
 import com.uniwork.entity.model.Project;
 import com.uniwork.entity.model.Task;
+import com.uniwork.entity.projection.*;
 import com.uniwork.entity.response.StatsResponse;
 import com.uniwork.repository.*;
 import org.springframework.cache.annotation.Cacheable;
@@ -16,7 +17,9 @@ import org.springframework.stereotype.Service;
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 public class ReportService {
@@ -50,68 +53,52 @@ public class ReportService {
         int endIndex = Math.min(startIndex + size, allProjectIds.size());
         List<Long> pagedProjectIds = allProjectIds.subList(startIndex, endIndex);
 
+        CompletableFuture<Map<Long, Project>> projectMapFuture =
+                CompletableFuture.supplyAsync(() -> projectRepository.findAllById(pagedProjectIds)
+                        .stream()
+                        .collect(Collectors.toMap(project -> project.getProjectId(), project -> project)));
 
-        List<CompletableFuture<ProjectReportDTO>> futures = pagedProjectIds.stream()
-                .map(projectId -> CompletableFuture.supplyAsync(() -> {
-                    Project project = projectRepository.findProjectByProjectId(projectId);
+        CompletableFuture<Map<Long, ReportProjectProjection>> reportProjectionMapFuture =
+                CompletableFuture.supplyAsync(() -> taskRepository.reportProjects(pagedProjectIds)
+                        .stream()
+                        .collect(Collectors.toMap(ReportProjectProjection::getProjectId, projection -> projection)));
 
-                    CompletableFuture<Long> totalTask =
-                            CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectId(projectId));
-                    CompletableFuture<Long> completedTask =
-                            CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectIdAndStatus(projectId, TaskStatus.COMPLETED));
-                    CompletableFuture<Long> pendingTask =
-                            CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectIdAndStatus(projectId, TaskStatus.PENDING));
-                    CompletableFuture<Long> doingTask =
-                            CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectIdAndStatus(projectId, TaskStatus.DOING));
-                    CompletableFuture<Long> countMember =
-                            CompletableFuture.supplyAsync(() -> projectMemberRepository.countUserIdByProjectId(projectId));
+        CompletableFuture.allOf(projectMapFuture, reportProjectionMapFuture).join();
 
-                    CompletableFuture.allOf(totalTask, completedTask, pendingTask, doingTask, countMember).join();
-
-                    try {
-                        Long total = totalTask.get();
-                        Long completed = completedTask.get();
-                        Long pending = pendingTask.get();
-                        Long doing = doingTask.get();
-                        Double completedPercent = total == 0 ? 0.0 : (completed * 100) / total;
-                        Long count = countMember.get();
-                        return new ProjectReportDTO(project, total, completed, pending, doing, completedPercent, count);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Error while generating report for projectId=" + projectId, e);
-                    }
-                }))
-                .toList();
-
-        List<ProjectReportDTO> reports = futures.stream()
-                .map(CompletableFuture::join)
-                .toList();
-
-        return reports;
+        Map<Long, Project> projectMap = projectMapFuture.join();
+        Map<Long, ReportProjectProjection> reportProjectionMap = reportProjectionMapFuture.join();
+        return pagedProjectIds.stream().map(id -> {
+            Project project = projectMap.get(id);
+            ReportProjectProjection projection = reportProjectionMap.get(id);
+            Long total = projection != null ? projection.getTotalTasks() - projection.getCancelledTasks() : 0L;
+            Long completed = projection != null ? projection.getCompletedTasks() + projection.getReviewingTasks() : 0L;
+            Long pending = projection != null ? projection.getPendingTasks() : 0L;
+            Long doing = projection != null ? projection.getDoingTasks() : 0L;
+            Double completedPercent = total == 0 ? 0.0 : (completed * 100) / total;
+            Long count = projection != null ? projection.getTotalMembers() : 0L;
+            return new ProjectReportDTO(project, total, completed, pending, doing, completedPercent, count);
+        }).toList();
     }
 
     public TaskReportDTO getTaskReport(Long userId, Long begin, Long end) {
 
-        CompletableFuture<Long> totalTask =
-                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedTo(userId));
-        CompletableFuture<Long> completedTask =
-                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatus(userId, TaskStatus.COMPLETED));
-        CompletableFuture<Long> pendingTask =
-                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatus(userId, TaskStatus.PENDING));
-        CompletableFuture<Long> doingTask =
-                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatus(userId, TaskStatus.DOING));
-        CompletableFuture.allOf(totalTask, completedTask, pendingTask, doingTask).join();
+        ReportTaskProjection p = taskRepository.getTaskReport(userId);
 
-        try {
-            Long total = totalTask.get();
-            Long completed = completedTask.get();
-            Long pending = pendingTask.get();
-            Long doing = doingTask.get();
-            Double completedPercent = total == 0 ? 0.0 : (completed * 100) / total;
-            TaskReportDTO taskReportDTO = new TaskReportDTO(total, completed, pending, doing, completedPercent);
-            return taskReportDTO;
-        } catch (Exception e) {
-            throw new RuntimeException("Error while generating task report for userId=" + userId, e);
-        }
+        long total = p != null ? p.getTotalTasks() - p.getCancelledTasks() : 0;
+        long completed = p != null ? p.getCompletedTasks() + p.getReviewingTasks(): 0;
+        long pending = p != null ? p.getPendingTasks() : 0;
+        long doing = p != null ? p.getDoingTasks() : 0;
+
+        double completedPercent = total == 0 ? 0 : (completed * 100.0) / total;
+
+        return new TaskReportDTO(
+                total,
+                completed,
+                pending,
+                doing,
+                completedPercent
+        );
+
     }
 
     public List<Task> getPendingTask(Long userId, Long begin, Long end) {
@@ -121,22 +108,18 @@ public class ReportService {
     }
 
     public TaskPerformanceDTO getTasksPerformance(Long userId, Long begin, Long end) {
-        CompletableFuture<Long> totalTasks =
-                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedTo(userId));
-        CompletableFuture<Long> completedTask =
-                CompletableFuture.supplyAsync(() -> taskRepository.countTasksCompletedBeforeDeadline(userId, TaskStatus.COMPLETED));
-
-        CompletableFuture.allOf(totalTasks, completedTask).join();
-        try {
-            Long total = totalTasks.get();
-            Long completed = completedTask.get();
-            Long remaining = total - completed;
-            Double performancePercent = total == 0 ? 0.0 : (completed * 100) / total;
-            TaskPerformanceDTO taskPerformanceDTO = new TaskPerformanceDTO(userId, total, completed, remaining, performancePercent);
-            return taskPerformanceDTO;
-        } catch (Exception e) {
-            throw new RuntimeException("Error while generating report for userId=" + userId, e);
-        }
+        ReportTaskPerformanceProjection p = taskRepository.getTasksPerformance(userId);
+        long total = p != null ? p.getTotalTasks() : 0;
+        long completedBeforeDeadline = p != null ? p.getCompletedBeforeDeadline() : 0;
+        long remaining = total - completedBeforeDeadline;
+        double performancePercent = total == 0 ? 0 : (completedBeforeDeadline * 100.0) / total;
+        return new TaskPerformanceDTO(
+                userId,
+                total,
+                completedBeforeDeadline,
+                remaining,
+                performancePercent
+        );
     }
 
     public List<Event> getUpcomingEvents(Long userId, Long begin, Long end) {
@@ -148,80 +131,39 @@ public class ReportService {
     public List<StatsResponse> getStats(Long userId) {
 
         LocalDateTime now = LocalDateTime.now();
-        CompletableFuture<Long> activeProjects =
-                CompletableFuture.supplyAsync(() -> projectRepository.countProjectIdByStatusNot(ProjectStatus.ON_HOLD));
-        CompletableFuture<Long> newProjectThisMonth =
-                CompletableFuture.supplyAsync(() ->
-                        projectRepository.countByCreatedDateBetween(
-                                now.withDayOfMonth(1).toLocalDate().atStartOfDay(),
-                                now
-                        )
-                );
+        LocalDateTime startOfMonth = now.withDayOfMonth(1).toLocalDate().atStartOfDay();
+        LocalDateTime startOfWeek = now.with(DayOfWeek.MONDAY).toLocalDate().atStartOfDay();
+        LocalDateTime startOfLastWeek = now.minusWeeks(1).with(DayOfWeek.MONDAY).toLocalDate().atStartOfDay();
+        LocalDateTime endOfLastWeek = now.minusWeeks(1).with(DayOfWeek.SUNDAY).toLocalDate().atTime(23, 59, 59);
 
-        CompletableFuture<Long> completedTasks =
-                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatus(userId, TaskStatus.COMPLETED));
+        CompletableFuture<ReportProjectStatsProjection> projectStats =
+                CompletableFuture.supplyAsync(() -> projectRepository.getProjectStats(startOfMonth, now));
 
-        CompletableFuture<Long> newTasksThisWeek =
-                CompletableFuture.supplyAsync(() ->
-                        taskRepository.countByAssignedToAndUpdatedDateBetweenAndStatus(userId,
-                                now.with(DayOfWeek.MONDAY).toLocalDate().atStartOfDay(),
-                                now, TaskStatus.COMPLETED
-                        )
-                );
+        CompletableFuture<ReportUserStatsProjection> userStats =
+                CompletableFuture.supplyAsync(() -> userRepository.getUserStats(startOfMonth, now));
 
-        CompletableFuture<Long> teamMembers =
-                CompletableFuture.supplyAsync(() -> userRepository.countAll());
+        CompletableFuture<ReportTaskStatsProjection> taskStats =
+                CompletableFuture.supplyAsync(() -> taskRepository.getTaskStats(
+                        userId, startOfWeek, now, startOfLastWeek, endOfLastWeek));
 
-        CompletableFuture<Long> newMembers =
-                CompletableFuture.supplyAsync(() ->
-                        userRepository.countByCreatedDateBetween(
-                                now.withDayOfMonth(1).toLocalDate().atStartOfDay(),
-                                now
-                        )
-                );
-
-        CompletableFuture<Long> pendingTasks =
-                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatus(userId, TaskStatus.PENDING));
-
-        CompletableFuture<Long> pendingTasksLastWeek =
-                CompletableFuture.supplyAsync(() ->
-                        taskRepository.countByAssignedToAndUpdatedDateBetweenAndStatus( userId,
-                                now.minusWeeks(1).with(DayOfWeek.MONDAY).toLocalDate().atStartOfDay(),
-                                now.minusWeeks(1).with(DayOfWeek.SUNDAY).toLocalDate().atTime(23, 59, 59), TaskStatus.PENDING)
-                );
-
-        CompletableFuture.allOf(
-                activeProjects, newProjectThisMonth,
-                completedTasks, newTasksThisWeek,
-                teamMembers, newMembers,
-                pendingTasks, pendingTasksLastWeek).join();
+        CompletableFuture.allOf(projectStats, userStats, taskStats).join();
 
         try {
+            ReportProjectStatsProjection p = projectStats.get();
+            ReportUserStatsProjection u = userStats.get();
+            ReportTaskStatsProjection t = taskStats.get();
+
             return List.of(
-                    StatsResponse.builder()
-                            .title("Active Projects")
-                            .value(activeProjects.get())
-                            .change("+" + newProjectThisMonth.get() + " this month")
-                            .build(),
-                    StatsResponse.builder()
-                            .title("Tasks Completed")
-                            .value(completedTasks.get())
-                            .change("+" + newTasksThisWeek.get() + " this week")
-                            .build(),
-                    StatsResponse.builder()
-                            .title("Team Members")
-                            .value(teamMembers.get())
-                            .change("+" + newMembers.get() + " new")
-                            .build(),
-                    StatsResponse.builder()
-                            .title("Pending Tasks")
-                            .value(pendingTasks.get())
-                            .change("-" + (pendingTasksLastWeek.get() - pendingTasks.get()) + " from last week")
-                            .build()
+                    new StatsResponse("Active Projects", p.getActiveProjects(), "+" + p.getNewProjectThisMonth() + " this month"),
+                    new StatsResponse("Tasks Completed", t.getCompletedTasks(), "+" + t.getNewTasksThisWeek() + " this week"),
+                    new StatsResponse("Team Members", u.getTeamMembers(), "+" + u.getNewMembers() + " new"),
+                    new StatsResponse("Pending Tasks", t.getPendingTasks(),
+                            "-" + (t.getPendingTasksLastWeek() - t.getPendingTasks()) + " from last week")
             );
         } catch (Exception e) {
             throw new RuntimeException("Error building stats response", e);
         }
     }
+
 
 }

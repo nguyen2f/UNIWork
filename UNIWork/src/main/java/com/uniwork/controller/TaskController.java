@@ -50,7 +50,7 @@ public class TaskController {
 
     @PostMapping("/{projectId}/{taskId}/update")
     public ResponseEntity updateTask(@RequestBody TaskRequest taskRequest, @PathVariable Long projectId, @PathVariable Long taskId, @RequestAttribute(required = false) Payload payload) {
-        log.info("Updating task with request: {} for project IzD: {}", taskRequest);
+        log.info("Updating task with request: {} for project ID: {}", taskRequest);
         Task task = taskService.updateTask(payload.getUserId(), taskId, taskRequest);
         return ResponseFactory.success(task);
     }
@@ -72,7 +72,6 @@ public class TaskController {
         return ResponseFactory.success(fileAttachment);
     }
 
-    @Cacheable(value = "uniwork:task:assignedTo", key = "'userId:' +  #payload.getUserId()")
     @GetMapping("/all")
     public ResponseEntity getAllTasksByAssignedTo(@RequestAttribute(required = false) Payload payload,
                                                   @RequestParam(required = false) Integer priority,

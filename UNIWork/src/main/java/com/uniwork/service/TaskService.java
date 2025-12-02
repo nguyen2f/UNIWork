@@ -36,7 +36,6 @@ public class TaskService {
     @Autowired
     private FileAttachmentService fileAttachmentService;
 
-    @Cacheable(value = "uniwork:task:list", key = "'projectId:' + #projectId")
     public List<Task> getAllTasksByProjectId(Long projectId) {
         Project project = projectService.getProjectById(projectId);
         if (project == null) {
@@ -89,6 +88,7 @@ public class TaskService {
         }
         task.setUpdatedDate(LocalDateTime.now());
         task.setUpdatedBy(userId);
+        task.setStatus(TaskStatus.fromCode(taskRequest.getStatus()));
 
         BeanCopyUtils.copyNonNullProperties(taskRequest, task,
                 "taskId", "createdBy", "createdDate", "projectId");
@@ -110,6 +110,7 @@ public class TaskService {
         return task;
     }
 
+    @Cacheable(value = "uniwork:task:assignedTo", key = "'userId:' +  #assignedTo")
     public List<Task> getAllTasksByAssignedTo(Long assignedTo, Integer priority, Integer status) {
         List<Task> tasks = taskRepository.findAllByAssignedToAndFilter(assignedTo, Priority.fromCode(priority), TaskStatus.fromCode(status));
         return tasks;

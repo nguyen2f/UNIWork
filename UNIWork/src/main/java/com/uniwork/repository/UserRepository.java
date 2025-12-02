@@ -1,8 +1,10 @@
 package com.uniwork.repository;
 
 import com.uniwork.entity.model.User;
+import com.uniwork.entity.projection.ReportUserStatsProjection;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,4 +24,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findAll();
 
     List<User> findAllByUserIdIn(List<Long> userIds);
+
+    @Query("""
+                SELECT 
+                    COUNT(u.userId) AS teamMembers,
+                    COUNT(u.userId) FILTER (WHERE u.createdDate BETWEEN :startOfMonth AND :now) AS newMembers
+                FROM User u
+            """)
+    ReportUserStatsProjection getUserStats(@Param("startOfMonth") LocalDateTime startOfMonth,
+                                           @Param("now") LocalDateTime now);
+
 }
