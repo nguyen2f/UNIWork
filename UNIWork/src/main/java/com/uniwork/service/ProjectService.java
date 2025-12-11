@@ -104,12 +104,12 @@ public class ProjectService {
 
     }
 
-    private Boolean checkProjectMember(Long projectId, Long userId) {
+    public Boolean checkProjectMember(Long projectId, Long userId) {
         ProjectMember projectMember = projectMemberRepository.findByProjectIdAndUserId(projectId, userId);
         return projectMember != null;
     }
 
-    private Boolean checkProjectOwner(Long projectId, Long userId) {
+    public Boolean checkProjectOwner(Long projectId, Long userId) {
         ProjectMember projectMember = projectMemberRepository.findByProjectIdAndUserId(projectId, userId);
         return projectMember != null && projectMember.getRole().equals("OWNER");
     }

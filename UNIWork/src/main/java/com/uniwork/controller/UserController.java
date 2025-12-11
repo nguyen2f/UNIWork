@@ -49,7 +49,7 @@ public class UserController {
 
     }
 
-    @PutMapping("/profile/update")
+    @PutMapping("/profile/{userId}")
     public ResponseEntity updateProfile(@RequestAttribute(required = false) Payload payload, @RequestBody UpdateProfileRequest updateProfileRequest) {
         User user = userService.updateProfile(payload.getUserId(), updateProfileRequest);
         return ResponseFactory.success(user);
@@ -73,7 +73,7 @@ public class UserController {
         return ResponseFactory.success(users);
     }
 
-    @GetMapping("/{userId}")
+    @GetMapping("/profile/{userId}")
     public ResponseEntity getUserById(@RequestAttribute(required = false) Payload payload, @PathVariable Long userId) {
         ProfileDTO user = userService.getUserById(userId);
         return ResponseFactory.success(user);

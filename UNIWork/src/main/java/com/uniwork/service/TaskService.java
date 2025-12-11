@@ -6,6 +6,7 @@ import com.uniwork.model.enumuration.Priority;
 import com.uniwork.model.enumuration.TaskStatus;
 import com.uniwork.model.entity.Comment;
 import com.uniwork.model.entity.FileAttachment;
+import com.uniwork.model.request.AssignMemberRequest;
 import com.uniwork.model.request.TaskRequest;
 import com.uniwork.model.entity.Project;
 import com.uniwork.model.entity.Task;
@@ -33,6 +34,8 @@ public class TaskService {
     private CommentService commentService;
     @Autowired
     private FileAttachmentService fileAttachmentService;
+    @Autowired
+    private UserService userService;
 
     public List<Task> getAllTasksByProjectId(Long projectId) {
         Project project = projectService.getProjectById(projectId);
@@ -56,13 +59,24 @@ public class TaskService {
         List<Long> memberIds = taskRequest.getAssignedTo();
 
         for (Long memberId : memberIds) {
+
+            //check đã lưu user vào project member chưa, nếu chưa thì phải thêm mới
+            Boolean checkMemberInProject = projectService.checkProjectMember(taskRequest.getProjectId(), memberId);
+            if (!checkMemberInProject) {
+                AssignMemberRequest assignMemberRequest = new AssignMemberRequest();
+                assignMemberRequest.setProjectId(taskRequest.getProjectId());
+                assignMemberRequest.setUserId(memberId);
+                assignMemberRequest.setRole("MEMBER");
+                userService.assignMemberToProject(assignMemberRequest);
+            }
+
             Task task = new Task();
             task.setTitle(taskRequest.getTitle());
             task.setAssignedTo(memberId);
             task.setDescription(taskRequest.getDescription());
             task.setCreatedBy(userId);
             task.setProjectId(project.getProjectId());
-            task.setCreatedDate(LocalDateTime.now());
+            task.setCreatedDate(LocalDateTime.now().withNano(0));
             task.setStatus(TaskStatus.fromCode(taskRequest.getStatus()));
             task.setDueDate(taskRequest.getDueDate());
             task.setPriority(Priority.fromCode(taskRequest.getPriority()));
@@ -108,7 +122,7 @@ public class TaskService {
         return task;
     }
 
-    @Cacheable(value = "uniwork:task:assignedTo", key = "'userId:' +  #assignedTo")
+//    @Cacheable(value = "uniwork:task:assignedTo", key = "'userId:' +  #assignedTo")
     public List<Task> getAllTasksByAssignedTo(Long assignedTo, Integer priority, Integer status) {
         List<Task> tasks = taskRepository.findAllByAssignedToAndFilter(assignedTo, Priority.fromCode(priority), TaskStatus.fromCode(status));
         return tasks;

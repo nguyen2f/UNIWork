@@ -101,8 +101,9 @@ public class ReportService {
     }
 
     public List<Task> getPendingTask(Long userId, Long begin, Long end) {
+        List<TaskStatus> pendingStatuses = List.of(TaskStatus.PENDING, TaskStatus.DOING, TaskStatus.REVIEWING);
         CompletableFuture<List<Task>> pendingTask =
-                CompletableFuture.supplyAsync(() -> taskRepository.findAllByAssignedToAndStatus(userId, TaskStatus.PENDING));
+                CompletableFuture.supplyAsync(() -> taskRepository.findAllByAssignedToAndStatusIn(userId, pendingStatuses));
         return pendingTask.join();
     }
 

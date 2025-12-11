@@ -47,6 +47,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     List<Task> findAllByAssignedToAndStatus(Long assignedTo, TaskStatus status);
 
+    List<Task> findAllByAssignedToAndStatusIn(Long assignedTo, List<TaskStatus> statuses);
+
     @Query(value = "SELECT COUNT(*) FROM tasks WHERE assigned_to = :assignedTo AND status = :status AND updated_date < due_date", nativeQuery = true)
     Long countTasksCompletedBeforeDeadline(@Param("assignedTo") Long assignedTo, @Param("status") TaskStatus status);
 
@@ -84,17 +86,16 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     ReportTaskProjection getTaskReport(@Param("userId") Long userId);
 
     @Query("""
-                SELECT
-                    COUNT(t.taskId) AS totalTasks,
-                    SUM(
-                        CASE WHEN 
-                            t.status = 3 OR t.status = 2 
-                            AND t.updatedDate <= t.dueDate
-                        THEN 1 ELSE 0 END
-                    ) AS completedBeforeDeadline
-                FROM Task t
-                WHERE t.assignedTo = :userId
-            """)
+            SELECT
+                COUNT(t.taskId) AS totalTasks,
+                COALESCE(SUM(
+                    CASE WHEN 
+                        t.status = 3 AND t.updatedDate <= t.dueDate
+                    THEN 1 ELSE 0 END
+                ), 0) AS completedBeforeDeadline
+            FROM Task t
+            WHERE t.assignedTo = :userId
+        """)
     ReportTaskPerformanceProjection getTasksPerformance(@Param("userId") Long userId);
 
     @Query("""
