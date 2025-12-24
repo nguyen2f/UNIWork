@@ -12,6 +12,8 @@ import com.uniwork.interceptors.Payload;
 import com.uniwork.service.ReportService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,11 +33,26 @@ public class ReportController {
                                            @RequestParam(required = false) Long end,
                                            @RequestParam(defaultValue = "0") int page,
                                            @RequestParam(defaultValue = "5") int size) {
-        List<ProjectReportDTO> projectReportDTOS = reportService.getProjectReport(payload.getUserId(), begin, end,  page, size);
+        List<ProjectReportDTO> projectReportDTOS = reportService.getProjectReport(payload.getUserId(), begin, end, page, size);
         long totalElements = reportService.countProjectsByUserId(payload.getUserId());
         PageMetadata pageMetadata = PageMetadata.of(page, size, totalElements);
         return ResponseFactory.makePagination(projectReportDTOS, pageMetadata);
     }
+
+    @GetMapping("/v2/project-report")
+    public ResponseEntity<?> getProjectReport(
+            @RequestAttribute Payload payload,
+            @RequestParam(required = false) Long begin,
+            @RequestParam(required = false) Long end,
+            Pageable pageable
+    ) {
+        Page<ProjectReportDTO> page = reportService.getProjectReportV2(payload.getUserId(), begin, end, pageable);
+
+        PageMetadata metadata = PageMetadata.of(page.getNumber(), page.getSize(), page.getTotalElements());
+
+        return ResponseFactory.makePagination(page.getContent(), metadata);
+    }
+
 
     @GetMapping("/task-report")
     public ResponseEntity getTaskReport(@RequestAttribute(required = false) Payload payload,

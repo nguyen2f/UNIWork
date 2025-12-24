@@ -1,14 +1,22 @@
 package com.uniwork.model.entity;
 
 
+import com.uniwork.model.enumuration.NotificationEntityType;
+import com.uniwork.model.enumuration.NotificationType;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "notifications")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class Notification {
 
     @Id
@@ -16,16 +24,20 @@ public class Notification {
     private Long notiId;
 
     private Long recipientId;
-    private Long senderId;
 
-    private String entityType; // e.g., "Project", "Task"
-    private Long entityId; // ID of the project or task
+    @Enumerated(EnumType.STRING)
+    private NotificationEntityType entityType;
 
-    private String type;
+    private Long entityId;
+
+    @Enumerated(EnumType.STRING)
+    private NotificationType type;
+
     private String title;
     private String message;
 
     @Column(name = "is_read")
-    private boolean isRead = false; // Indicates if the notification has been read
-    private LocalDateTime createdDate; // Timestamp when the notification was created
+    private boolean isRead = false;
+
+    private LocalDateTime createdDate;
 }

@@ -11,6 +11,9 @@ import com.uniwork.model.projection.*;
 import com.uniwork.model.response.StatsResponse;
 import com.uniwork.repository.*;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -78,6 +81,83 @@ public class ReportService {
             return new ProjectReportDTO(project, total, completed, pending, doing, completedPercent, count);
         }).toList();
     }
+
+    public Page<ProjectReportDTO> getProjectReportV2(
+            Long userId,
+            Long begin,
+            Long end,
+            Pageable pageable
+    ) {
+        Page<Long> projectIdPage = projectMemberRepository.findProjectIdsByUserId(userId, pageable);
+
+        List<Long> projectIds = projectIdPage.getContent();
+
+        if (projectIds.isEmpty()) {
+            return Page.empty(pageable);
+        }
+
+        CompletableFuture<Map<Long, Project>> projectMapFuture =
+                CompletableFuture.supplyAsync(() ->
+                        projectRepository.findAllById(projectIds)
+                                .stream()
+                                .collect(Collectors.toMap(
+                                        Project::getProjectId,
+                                        p -> p
+                                ))
+                );
+
+        CompletableFuture<Map<Long, ReportProjectProjection>> reportProjectionMapFuture =
+                CompletableFuture.supplyAsync(() ->
+                        taskRepository.reportProjects(projectIds)
+                                .stream()
+                                .collect(Collectors.toMap(
+                                        ReportProjectProjection::getProjectId,
+                                        p -> p
+                                ))
+                );
+
+        CompletableFuture.allOf(projectMapFuture, reportProjectionMapFuture).join();
+
+        Map<Long, Project> projectMap = projectMapFuture.join();
+        Map<Long, ReportProjectProjection> reportMap = reportProjectionMapFuture.join();
+
+        List<ProjectReportDTO> result = projectIds.stream()
+                .map(id -> {
+                    Project project = projectMap.get(id);
+                    ReportProjectProjection projection = reportMap.get(id);
+
+                    Long total = projection != null
+                            ? projection.getTotalTasks() - projection.getCancelledTasks()
+                            : 0L;
+
+                    Long completed = projection != null
+                            ? projection.getCompletedTasks() + projection.getReviewingTasks()
+                            : 0L;
+
+                    Long pending = projection != null ? projection.getPendingTasks() : 0L;
+                    Long doing = projection != null ? projection.getDoingTasks() : 0L;
+
+                    double completedPercent =
+                            total == 0 ? 0.0 : (completed * 100.0) / total;
+
+                    Long memberCount =
+                            projection != null ? projection.getTotalMembers() : 0L;
+
+                    return new ProjectReportDTO(
+                            project,
+                            total,
+                            completed,
+                            pending,
+                            doing,
+                            completedPercent,
+                            memberCount
+                    );
+                })
+                .toList();
+
+        return new PageImpl<>(result, pageable, projectIdPage.getTotalElements());
+    }
+
 
     public TaskReportDTO getTaskReport(Long userId, Long begin, Long end) {
 

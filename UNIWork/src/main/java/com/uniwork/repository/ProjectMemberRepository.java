@@ -1,6 +1,8 @@
 package com.uniwork.repository;
 
 import com.uniwork.model.entity.ProjectMember;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -22,9 +24,10 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
 
     Long countByUserId(Long userId);
 
-//    @Query()
-//    ProjectProjection findAll();
-//
-//    MemberProjection findAll();
-
+    @Query("""
+        SELECT pm.projectId
+        FROM ProjectMember pm
+        WHERE pm.userId = :userId
+    """)
+    Page<Long> findProjectIdsByUserId(Long userId, Pageable pageable);
 }

@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
-    Notification findByNotiId(Long notiId);
+    Notification findByNotiIdAndRecipientId(Long notiId, Long userId);
 
     List<Notification> findByRecipientIdOrderByCreatedDateDesc(Long recipientId);
     List<Notification> findByRecipientIdAndIsReadFalse(Long recipientId);

@@ -44,6 +44,7 @@ public class UserController {
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
         response.put("userId", user.getUserId());
+        response.put("role", user.getSystemRole());
         response.put("user", user);
         return ResponseEntity.ok(response);
 

@@ -8,21 +8,22 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
-public class NoticationService {
+public class NotificationService {
 
     private final NotificationRepository notificationRepository;
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
-    public NoticationService(NotificationRepository notificationRepository) {
+    public NotificationService(NotificationRepository notificationRepository) {
         this.notificationRepository = notificationRepository;
     }
 
-    public void markAsRead(Long notificationId) {
-        Notification notification = notificationRepository.findByNotiId(notificationId);
+    public void markAsRead(Long notificationId, Long userId) {
+        Notification notification = notificationRepository.findByNotiIdAndRecipientId(notificationId, userId);
         notification.setRead(true);
         notificationRepository.save(notification);
     }
@@ -32,21 +33,24 @@ public class NoticationService {
         return count;
     }
 
-    public void sendNotification(Long userId, NotificationDTO notificationDTO) {
+    public List<Notification> getAllNotificationByUserId(Long userId) {
+        List<Notification> notifications = notificationRepository.findByRecipientIdAndIsReadFalse(userId);
+        return notifications;
+    }
+
+    public void sendNotification(Long recipientId, NotificationDTO dto) {
+
         Notification notification = new Notification();
+        notification.setRecipientId(recipientId);
+        notification.setEntityType(dto.getEntityType());
+        notification.setEntityId(dto.getEntityId());
+        notification.setType(dto.getType());
+        notification.setRead(false);
         notification.setCreatedDate(LocalDateTime.now());
-        notification.setMessage(notificationDTO.getMessage());
-        notification.setSenderId(userId);
-        notification.setRecipientId(notificationDTO.getRecipientId());
-        notification.setEntityType(notificationDTO.getEntityType());
-        notification.setEntityId(notificationDTO.getEntityId());
+
         notificationRepository.save(notification);
 
-
-        messagingTemplate.convertAndSend(
-                "/topic/notifications/" + notification.getRecipientId(),
-                notification
-        );
-
+        messagingTemplate.convertAndSend("/topic/notifications/" + recipientId, dto);
     }
+
 }

@@ -1,6 +1,7 @@
 package com.uniwork.filter;
 
 import com.uniwork.interceptors.Payload;
+import com.uniwork.model.enumuration.SystemRole;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
@@ -25,10 +26,13 @@ public class PayloadFilter extends OncePerRequestFilter {
 
         String token = request.getHeader("authorization");
         String userId = request.getHeader("userId");
+//        SystemRole role = SystemRole.valueOf(request.getHeader("role"));
+
         if (token != null && userId != null) {
             Payload payload = new Payload();
             payload.setToken(token);
             payload.setUserId(Long.parseLong(userId));
+//            payload.setRole(role);
             request.setAttribute("payload", payload);
         }
 

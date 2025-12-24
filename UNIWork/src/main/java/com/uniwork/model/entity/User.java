@@ -1,5 +1,6 @@
 package com.uniwork.model.entity;
 
+import com.uniwork.model.enumuration.SystemRole;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -23,4 +24,6 @@ public class User {
     private String department;
     private String bio;
     private Boolean active;
+
+    private SystemRole systemRole;
 }
