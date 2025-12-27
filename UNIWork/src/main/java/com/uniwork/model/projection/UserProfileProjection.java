@@ -9,5 +9,6 @@ public interface UserProfileProjection {
     String getAddress();
     String getDepartment();
     Boolean getActive();
+    String getSystemRole();
 
 }

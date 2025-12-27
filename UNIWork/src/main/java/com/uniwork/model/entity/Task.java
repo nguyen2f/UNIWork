@@ -33,5 +33,4 @@ public class Task {
     private Boolean completed;
     private String tags; // List of tags associated with the task
 
-    // Additional fields can be added as needed
 }

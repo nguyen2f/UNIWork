@@ -4,11 +4,14 @@ import com.uniwork.model.dto.*;
 import com.uniwork.model.entity.ChatRoom;
 import com.uniwork.model.entity.ChatRoomMember;
 import com.uniwork.model.entity.Message;
+import com.uniwork.model.entity.User;
+import com.uniwork.model.enumuration.ChatRoomType;
 import com.uniwork.model.enumuration.NotificationEntityType;
 import com.uniwork.model.enumuration.NotificationType;
 import com.uniwork.repository.ChatRoomMemberRepository;
 import com.uniwork.repository.ChatRoomRepository;
 import com.uniwork.repository.MessageRepository;
+import com.uniwork.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +43,13 @@ public class ChatService {
 
     @Autowired
     private ChatRoomRepository chatRoomRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     public void sendMessage(ChatMessageDTO dto) {
-        boolean isMember = chatRoomMemberRepository.existsByRoomIdAndUserId(dto.getRoomId(), dto.getSenderId());
+        Long senderId = dto.getSenderId();
+        Long roomId = dto.getRoomId();
+        boolean isMember = chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, senderId);
 
         if (!isMember) {
             throw new RuntimeException("User not in this room");
@@ -53,10 +60,28 @@ public class ChatService {
         message.setSenderId(dto.getSenderId());
         message.setContent(dto.getContent());
         message.setCreatedAt(LocalDateTime.now());
-
         messageRepository.save(message);
 
-        simpMessagingTemplate.convertAndSend("/topic/chat/" + dto.getRoomId(), message);
+        String senderName = userRepository.findUserNameByUserId(senderId);
+
+        ChatMessageResponseDTO response =
+                ChatMessageResponseDTO.builder()
+                        .messageId(message.getId())
+                        .senderId(senderId)
+                        .senderName(senderName)
+                        .content(message.getContent())
+                        .createdAt(message.getCreatedAt())
+                        .build();
+
+        simpMessagingTemplate.convertAndSend("/topic/chat/" + roomId, response);
+
+//
+//        NotificationDTO notificationDTO = NotificationDTO
+//                .builder()
+//                .entityType(NotificationEntityType.CHAT_ROOM)
+//                .type(NotificationType.MESSAGE)
+//                .build();
+//        notificationService.sendNotification(senderId, notificationDTO);
     }
 
     @Transactional
@@ -67,21 +92,21 @@ public class ChatService {
         }
 
         return chatRoomMemberRepository.findDirectRoom(user1, user2).orElseGet(() -> {
-                    ChatRoom room = new ChatRoom();
-                    room.setType("DIRECT");
-                    room.setCreatedAt(LocalDateTime.now());
-                    chatRoomRepository.save(room);
+            ChatRoom room = new ChatRoom();
+            room.setType(ChatRoomType.DIRECT);
+            room.setCreatedAt(LocalDateTime.now());
+            chatRoomRepository.save(room);
 
-                    chatRoomMemberRepository.saveAll(List.of(ChatRoomMember.builder()
-                                    .roomId(room.getId())
-                                    .userId(user1)
-                                    .build(),
-                            ChatRoomMember.builder()
-                                    .roomId(room.getId())
-                                    .userId(user2)
-                                    .build()));
-                    return room.getId();
-                });
+            chatRoomMemberRepository.saveAll(List.of(ChatRoomMember.builder()
+                            .roomId(room.getId())
+                            .userId(user1)
+                            .build(),
+                    ChatRoomMember.builder()
+                            .roomId(room.getId())
+                            .userId(user2)
+                            .build()));
+            return room.getId();
+        });
     }
 
 
@@ -100,7 +125,7 @@ public class ChatService {
         }
 
         ChatRoom room = new ChatRoom();
-        room.setType("GROUP");
+        room.setType(ChatRoomType.GROUP);
         room.setName(dto.getName());
         room.setCreatedAt(LocalDateTime.now());
         chatRoomRepository.save(room);
@@ -135,13 +160,23 @@ public class ChatService {
         List<ChatRoom> rooms = chatRoomRepository.findAllByUserId(userId);
 
         return rooms.stream()
-                .map(room -> ChatRoomDTO.builder()
-                        .roomId(room.getId())
-                        .type(room.getType())
-                        .name(room.getName())
-                        .createdAt(room.getCreatedAt())
-                        .build())
+                .map(room -> {
+                    ChatRoomDTO.ChatRoomDTOBuilder builder = ChatRoomDTO.builder()
+                            .roomId(room.getId())
+                            .type(room.getType())
+                            .createdAt(room.getCreatedAt());
+
+                    if (room.getType() == ChatRoomType.GROUP) {
+                        builder.name(room.getName());
+                    }
+                    if (room.getType() == ChatRoomType.DIRECT) {
+                        String otherName = userRepository.getUserNamesInChatRoom(room.getId(), userId);
+                        builder.name(otherName);
+                    }
+                    return builder.build();
+                })
                 .toList();
+
     }
 
     public Page<ChatMessageResponseDTO> getChatHistoryByRoomId(
@@ -149,15 +184,34 @@ public class ChatService {
             Long userId,
             Pageable pageable
     ) {
-        boolean isMember =
-                chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, userId);
+        boolean isMember = chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, userId);
 
         if (!isMember) {
             throw new RuntimeException("User not in this room");
         }
 
-        return messageRepository.findByRoomIdOrderByCreatedAtDesc(roomId, pageable)
-                .map(message -> ChatMessageResponseDTO.from(message));
+        return messageRepository.findMessagesWithSenderName(roomId, pageable).map(message -> ChatMessageResponseDTO.from(message));
+    }
+
+    @Transactional
+    public ChatRoom renameGroupChat(Long userId, Long roomId, String newName) {
+
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Chat room not found"));
+
+        room.setName(newName);
+        chatRoomRepository.save(room);
+
+        ChatRoomRenameEvent event = ChatRoomRenameEvent.builder()
+                .roomId(roomId)
+                .newName(newName)
+                .updatedBy(userId)
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        simpMessagingTemplate.convertAndSend("/topic/chat-room/" + roomId + "/rename", event);
+
+        return room;
     }
 
 

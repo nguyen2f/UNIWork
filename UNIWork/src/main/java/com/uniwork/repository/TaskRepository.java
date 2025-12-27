@@ -3,10 +3,7 @@ package com.uniwork.repository;
 import com.uniwork.model.enumuration.Priority;
 import com.uniwork.model.enumuration.TaskStatus;
 import com.uniwork.model.entity.Task;
-import com.uniwork.model.projection.ReportProjectProjection;
-import com.uniwork.model.projection.ReportTaskPerformanceProjection;
-import com.uniwork.model.projection.ReportTaskProjection;
-import com.uniwork.model.projection.ReportTaskStatsProjection;
+import com.uniwork.model.projection.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -86,16 +83,16 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     ReportTaskProjection getTaskReport(@Param("userId") Long userId);
 
     @Query("""
-            SELECT
-                COUNT(t.taskId) AS totalTasks,
-                COALESCE(SUM(
-                    CASE WHEN 
-                        t.status = 3 AND t.updatedDate <= t.dueDate
-                    THEN 1 ELSE 0 END
-                ), 0) AS completedBeforeDeadline
-            FROM Task t
-            WHERE t.assignedTo = :userId
-        """)
+                SELECT
+                    COUNT(t.taskId) AS totalTasks,
+                    COALESCE(SUM(
+                        CASE WHEN 
+                            t.status = 3 AND t.updatedDate <= t.dueDate
+                        THEN 1 ELSE 0 END
+                    ), 0) AS completedBeforeDeadline
+                FROM Task t
+                WHERE t.assignedTo = :userId
+            """)
     ReportTaskPerformanceProjection getTasksPerformance(@Param("userId") Long userId);
 
     @Query("""
@@ -111,4 +108,75 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                                            @Param("now") LocalDateTime now,
                                            @Param("startOfLastWeek") LocalDateTime startOfLastWeek,
                                            @Param("endOfLastWeek") LocalDateTime endOfLastWeek);
+
+
+    @Query("""
+            SELECT 
+                t.taskId        AS taskId,
+                    t.projectId     AS projectId,
+                    t.assignedTo    AS assignedTo,
+                    t.createdBy     AS createdBy,
+                    t.title         AS title,
+                    t.description   AS description,
+                    t.priority      AS priority,
+                    t.status        AS status,
+                    t.dueDate       AS dueDate,
+                    t.createdDate  AS createdDate,
+                    t.updatedDate  AS updatedDate,
+                    t.completed     AS completed,
+                    t.tags          AS tags,
+                    t.parentId      AS taskParentId,
+                u.name      AS assigneeName
+            FROM Task t
+            LEFT JOIN User u ON t.assignedTo = u.userId
+            WHERE t.projectId = :projectId
+            """)
+    List<TaskDetailProjection> findByProjectIdWithUser(Long projectId);
+
+    @Query("""
+            SELECT 
+                t.taskId        AS taskId,
+                                               t.projectId     AS projectId,
+                                               t.assignedTo    AS assignedTo,
+                                               t.createdBy     AS createdBy,
+                                               t.title         AS title,
+                                               t.description   AS description,
+                                               t.priority      AS priority,
+                                               t.status        AS status,
+                                               t.dueDate       AS dueDate,
+                                               t.createdDate  AS createdDate,
+                                               t.updatedDate  AS updatedDate,
+                                               t.completed     AS completed,
+                                               t.tags          AS tags,
+                                               t.parentId      AS taskParentId,
+                u.name      AS assigneeName
+            FROM Task t
+            LEFT JOIN User u ON t.assignedTo = u.userId
+            WHERE t.taskId = :taskId
+            """)
+    TaskDetailProjection findByTaskId(@Param("taskId") Long taskId);
+
+    @Query("""
+            SELECT 
+                t.taskId        AS taskId,
+                                               t.projectId     AS projectId,
+                                               t.assignedTo    AS assignedTo,
+                                               t.createdBy     AS createdBy,
+                                               t.title         AS title,
+                                               t.description   AS description,
+                                               t.priority      AS priority,
+                                               t.status        AS status,
+                                               t.dueDate       AS dueDate,
+                                               t.createdDate  AS createdDate,
+                                               t.updatedDate  AS updatedDate,
+                                               t.completed     AS completed,
+                                               t.tags          AS tags,
+                                               t.parentId      AS taskParentId,
+                u.name      AS assigneeName
+            FROM Task t
+            LEFT JOIN User u ON t.assignedTo = u.userId
+            WHERE t.parentId = :taskParentId
+            """)
+    List<TaskDetailProjection> findByParentId(@Param("taskParentId") Long taskParentId);
+
 }

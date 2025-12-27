@@ -2,6 +2,7 @@ package com.uniwork.service;
 
 import com.uniwork.model.dto.ProfileDTO;
 import com.uniwork.model.entity.Task;
+import com.uniwork.model.enumuration.Role;
 import com.uniwork.model.projection.UserProfileProjection;
 import com.uniwork.model.request.*;
 import com.uniwork.model.dto.UserDTO;
@@ -72,14 +73,14 @@ public class UserService {
         ProjectMember projectMember = new ProjectMember();
         projectMember.setProjectId(projectId);
         projectMember.setUserId(userId);
-        projectMember.setRole(role);
+        projectMember.setRole(Role.valueOf(role));
         projectMember.setStatus(true);
         return projectMemberRepository.save(projectMember);
     }
 
     public ProjectMember updateMemberRole(Long userId, Long projectId, String role) {
         ProjectMember projectMember = projectMemberRepository.findByProjectId(projectId);
-        projectMember.setRole(role);
+        projectMember.setRole(Role.valueOf(role));
         return projectMemberRepository.save(projectMember);
     }
 
@@ -144,7 +145,8 @@ public class UserService {
                 user.getBio(),
                 user.getAddress(),
                 user.getDepartment(),
-                user.getActive()
+                user.getActive(),
+                user.getSystemRole()
         );
     }
 

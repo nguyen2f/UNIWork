@@ -25,5 +25,6 @@ public class User {
     private String bio;
     private Boolean active;
 
+    @Enumerated(EnumType.STRING)
     private SystemRole systemRole;
 }

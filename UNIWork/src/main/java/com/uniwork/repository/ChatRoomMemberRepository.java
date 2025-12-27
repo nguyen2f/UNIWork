@@ -25,4 +25,5 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
     Optional<Long> findDirectRoom(Long user1, Long user2);
 
 
+
 }

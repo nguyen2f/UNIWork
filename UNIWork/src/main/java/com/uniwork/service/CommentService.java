@@ -1,5 +1,6 @@
 package com.uniwork.service;
 
+import com.uniwork.model.dto.CommentDTO;
 import com.uniwork.model.entity.Comment;
 import com.uniwork.model.request.AddComment;
 import com.uniwork.repository.CommentRepository;
@@ -29,5 +30,14 @@ public class CommentService {
 
     public List<Comment> getAllComment(Long taskId) {
         return commentRepository.findAllByTaskId(taskId);
+    }
+
+    public List<CommentDTO> getAllCommentDTO(Long taskId) {
+        List<CommentDTO> comments = commentRepository.findCommentDetailByTaskId(taskId)
+                .stream()
+                .map(CommentDTO::new)
+                .toList();
+
+        return comments;
     }
 }

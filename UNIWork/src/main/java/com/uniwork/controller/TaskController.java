@@ -1,5 +1,6 @@
 package com.uniwork.controller;
 
+import com.uniwork.model.dto.TaskDTO;
 import com.uniwork.model.dto.TaskDetailDTO;
 import com.uniwork.model.entity.FileAttachment;
 import com.uniwork.model.entity.Task;
@@ -29,7 +30,7 @@ public class TaskController {
     @GetMapping("/all/{projectId}")
     public ResponseEntity getTasksByProjectId(@PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
         log.info("Fetching tasks for project ID: {}", projectId);
-        List<Task> tasks = taskService.getAllTasksByProjectId(projectId);
+        List<TaskDTO> tasks = taskService.getAllTasksByProjectId(projectId);
         return ResponseFactory.success(tasks);
     }
 

@@ -13,7 +13,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TaskDetailDTO {
-    private Task task;
-    private List<Comment> comments;
+    private TaskDTO task;
+    private List<TaskDTO> childTasks;
+//    private List<CommentDTO> comments;
     private List<FileAttachment> fileAttachments;
 }

@@ -1,9 +1,7 @@
 package com.uniwork.model.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.uniwork.model.enumuration.Role;
+import jakarta.persistence.*;
 import lombok.Data;
 
 @Entity
@@ -16,6 +14,7 @@ public class ProjectMember {
     private Long pmId;
     private Long userId;
     private Long projectId;
-    private String role; // e.g., "developer", "manager", etc.
+    @Enumerated(EnumType.STRING)
+    private Role role;
     private Boolean status;
 }

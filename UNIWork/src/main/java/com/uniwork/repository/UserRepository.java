@@ -1,6 +1,5 @@
 package com.uniwork.repository;
 
-import com.uniwork.model.dto.UserDTO;
 import com.uniwork.model.entity.User;
 import com.uniwork.model.projection.ReportUserStatsProjection;
 import com.uniwork.model.projection.UserProfileProjection;
@@ -45,10 +44,23 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     u.bio AS bio, 
                     u.address AS address, 
                     u.department AS department, 
-                    u.active AS active
+                    u.active AS active,
+                    u.systemRole AS systemRole 
                 FROM User u
                 WHERE u.userId = :userId
             """)
     UserProfileProjection getUserProfile(@Param("userId") Long userId);
+
+    @Query(value = """
+            SELECT u.name
+            FROM chat_room_member cm
+            JOIN users u ON cm.user_id = u.user_id
+            WHERE cm.room_id = :roomId
+              AND cm.user_id <> :currentUserId
+            """, nativeQuery = true)
+    String getUserNamesInChatRoom(@Param("roomId") Long roomId, @Param("currentUserId") Long currentUserId);
+
+    @Query("select u.name from User u where u.userId = :userId")
+    String findUserNameByUserId(@Param("userId") Long userId);
 
 }

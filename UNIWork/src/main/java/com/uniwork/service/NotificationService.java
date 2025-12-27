@@ -2,6 +2,7 @@ package com.uniwork.service;
 
 import com.uniwork.model.dto.NotificationDTO;
 import com.uniwork.model.entity.Notification;
+import com.uniwork.model.enumuration.NotificationType;
 import com.uniwork.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -28,13 +29,17 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    public void markAsReadAll(Long userId) {
+        notificationRepository.markAllAsReadByUserId(userId);
+    }
+
     public Long getUnreadCount(Long userId) {
         Long count = (long) notificationRepository.findByRecipientIdAndIsReadFalse(userId).size();
         return count;
     }
 
     public List<Notification> getAllNotificationByUserId(Long userId) {
-        List<Notification> notifications = notificationRepository.findByRecipientIdAndIsReadFalse(userId);
+        List<Notification> notifications = notificationRepository.findByRecipientId(userId);
         return notifications;
     }
 
@@ -47,6 +52,21 @@ public class NotificationService {
         notification.setType(dto.getType());
         notification.setRead(false);
         notification.setCreatedDate(LocalDateTime.now());
+        String message;
+        switch (dto.getType()) {
+            case GROUP_ADDED:
+                message = "Bạn đã được thêm vào một nhóm mới.";
+                break;
+            case MESSAGE:
+                message = "Bạn có một tin nhắn mới.";
+                break;
+            case TASK_ASSIGNED:
+                message = "Bạn vừa được giao một nhiệm vụ.";
+                break;
+            default:
+                message = "Bạn có một thông báo mới.";
+        }
+        notification.setMessage(message);
 
         notificationRepository.save(notification);
 

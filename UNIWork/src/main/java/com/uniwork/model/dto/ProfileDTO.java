@@ -1,5 +1,6 @@
 package com.uniwork.model.dto;
 
+import com.uniwork.model.enumuration.SystemRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,4 +17,5 @@ public class ProfileDTO {
     private String address;
     private String department;
     private Boolean active;
+    private String systemRole;
 }

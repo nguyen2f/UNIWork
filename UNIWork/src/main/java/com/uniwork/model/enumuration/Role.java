@@ -1,28 +1,19 @@
 package com.uniwork.model.enumuration;
 
 public enum Role {
-    OWNER(0),
-    PROJECT_MANAGER(10),
-    MEMBER(1);
-
-    private final Integer code;
-
-    Role(Integer code) {
-        this.code = code;
-    }
-
-    public Integer getCode() {
-        return this.code;
-    }
-
-    public static Role fromCode(Integer code) {
-        for (Role r : Role.values()) {
-            if (r.code.equals(code)) {
-                return r;
-            }
-        }
-        return null;
-    }
-
-
+    OWNER,
+    PROJECT_MANAGER,
+    MEMBER,
+    MOBILE_DEVELOPER,
+    TESTER,
+    IOT_ENGINEER,
+    BA,
+    DATA_ENGINEER,
+    BACKEND_DEVELOPER,
+    UIUX_DESIGNER,
+    AI_ENGINEER,
+    BI_ANALYST,
+    FULLSTACK_DEVELOPER,
+    DEVOPS,
+    FRONTEND_DEVELOPER;
 }

@@ -1,5 +1,6 @@
 package com.uniwork.controller;
 
+import com.uniwork.model.dto.CommentDTO;
 import com.uniwork.model.entity.Comment;
 import com.uniwork.model.request.AddComment;
 import com.uniwork.model.response.ResponseFactory;
@@ -28,7 +29,7 @@ public class CommentController {
 
     @GetMapping("/task/{taskId}" )
     public ResponseEntity getCommentsByTaskId(@RequestAttribute(required = false) Payload payload, @PathVariable Long taskId) {
-        List<Comment> comments = commentService.getAllComment(taskId);
+        List<CommentDTO> comments = commentService.getAllCommentDTO(taskId);
         return ResponseFactory.success(comments);
     }
 

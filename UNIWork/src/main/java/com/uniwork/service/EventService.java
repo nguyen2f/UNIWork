@@ -5,6 +5,8 @@ import com.uniwork.model.entity.Event;
 import com.uniwork.model.request.CreateEventRequest;
 import com.uniwork.repository.EventRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,8 +22,8 @@ public class EventService {
         this.eventRepository = eventRepository;
     }
 
-    public List<Event> getAllEvent(Long userId, Long begin, Long end) {
-        return eventRepository.findAll();
+    public Page<Event> getAllEvent(Long userId, Long begin, Long end, Pageable pageable) {
+        return eventRepository.findAllByOrderByCreatedByDesc(pageable);
     }
 
     public Event createEvent(Long userId, CreateEventRequest createEventRequest) {

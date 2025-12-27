@@ -3,6 +3,7 @@ package com.uniwork.service;
 import com.uniwork.model.dto.UserDTO;
 import com.uniwork.model.enumuration.Priority;
 import com.uniwork.model.enumuration.ProjectStatus;
+import com.uniwork.model.enumuration.Role;
 import com.uniwork.model.request.ProjectRequest;
 import com.uniwork.model.entity.Project;
 import com.uniwork.model.entity.ProjectMember;
@@ -83,7 +84,7 @@ public class ProjectService {
         ProjectMember projectMember = new ProjectMember();
         projectMember.setProjectId(project.getProjectId());
         projectMember.setUserId(userId);
-        projectMember.setRole("OWNER");
+        projectMember.setRole(Role.OWNER);
         projectMember.setStatus(true);
         projectMemberRepository.save(projectMember);
         return project;
@@ -111,7 +112,7 @@ public class ProjectService {
 
     public Boolean checkProjectOwner(Long projectId, Long userId) {
         ProjectMember projectMember = projectMemberRepository.findByProjectIdAndUserId(projectId, userId);
-        return projectMember != null && projectMember.getRole().equals("OWNER");
+        return projectMember != null && projectMember.getRole() == Role.OWNER;
     }
 
     public List<UserDTO> findAllMembersByProjectId(Long projectId) {

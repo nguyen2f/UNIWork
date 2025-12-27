@@ -13,7 +13,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/notification")
+@RequestMapping("/notifications")
 public class NotificationController {
 
     @Autowired
@@ -30,6 +30,12 @@ public class NotificationController {
                                      @RequestAttribute Payload payload) {
         notificationService.markAsRead(notiId, payload.getUserId());
         return ResponseFactory.success("Mark as read");
+    }
+
+    @PostMapping("/read-all")
+    public ResponseEntity markAsReadAll(@RequestAttribute Payload payload) {
+        notificationService.markAsReadAll(payload.getUserId());
+        return ResponseFactory.success("Mark as read all");
     }
 
 }
