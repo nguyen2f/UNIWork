@@ -1,14 +1,16 @@
 package com.uniwork.controller;
 
+import com.uniwork.interceptors.Payload;
 import com.uniwork.model.dto.ProjectReportDTO;
 import com.uniwork.model.dto.TaskPerformanceDTO;
 import com.uniwork.model.dto.TaskReportDTO;
 import com.uniwork.model.entity.Event;
 import com.uniwork.model.entity.Task;
+import com.uniwork.model.enumuration.Priority;
+import com.uniwork.model.enumuration.ProjectStatus;
 import com.uniwork.model.response.PageMetadata;
 import com.uniwork.model.response.ResponseFactory;
 import com.uniwork.model.response.StatsResponse;
-import com.uniwork.interceptors.Payload;
 import com.uniwork.service.ReportService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,12 +33,14 @@ public class ReportController {
     public ResponseEntity getProjectReport(@RequestAttribute(required = false) Payload payload,
                                            @RequestParam(required = false) Long begin,
                                            @RequestParam(required = false) Long end,
-                                           @RequestParam(defaultValue = "0") int page,
-                                           @RequestParam(defaultValue = "5") int size) {
-        List<ProjectReportDTO> projectReportDTOS = reportService.getProjectReport(payload.getUserId(), begin, end, page, size);
-        long totalElements = reportService.countProjectsByUserId(payload.getUserId());
-        PageMetadata pageMetadata = PageMetadata.of(page, size, totalElements);
-        return ResponseFactory.makePagination(projectReportDTOS, pageMetadata);
+                                           @RequestParam(value = "priority", required = false) Priority priority,
+                                           @RequestParam(value = "status", required = false) ProjectStatus projectStatus,
+                                           Pageable pageable) {
+        Page<ProjectReportDTO> page = reportService.getProjectReportV2(payload.getUserId(), begin, end, pageable);
+
+        PageMetadata metadata = PageMetadata.of(page.getNumber(), page.getSize(), page.getTotalElements());
+
+        return ResponseFactory.makePagination(page.getContent(), metadata);
     }
 
     @GetMapping("/v2/project-report")
@@ -65,9 +69,11 @@ public class ReportController {
     @GetMapping("/task-report/pending-tasks")
     public ResponseEntity getPendingTasks(@RequestAttribute(required = false) Payload payload,
                                           @RequestParam(required = false) Long begin,
-                                          @RequestParam(required = false) Long end) {
-        List<Task> tasks = reportService.getPendingTask(payload.getUserId(), begin, end);
-        return ResponseFactory.success(tasks);
+                                          @RequestParam(required = false) Long end,
+                                          Pageable pageable) {
+        Page<Task> page = reportService.getPendingTask(payload.getUserId(), begin, end, pageable);
+        PageMetadata metadata = PageMetadata.of(page.getNumber(), page.getSize(), page.getTotalElements());
+        return ResponseFactory.makePagination(page.getContent(), metadata);
     }
 
     @GetMapping("/task-report/tasks-performance")

@@ -1,10 +1,10 @@
 package com.uniwork.controller;
 
+import com.uniwork.interceptors.Payload;
 import com.uniwork.model.entity.Event;
 import com.uniwork.model.request.CreateEventRequest;
 import com.uniwork.model.response.PageMetadata;
 import com.uniwork.model.response.ResponseFactory;
-import com.uniwork.interceptors.Payload;
 import com.uniwork.service.EventService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/event")

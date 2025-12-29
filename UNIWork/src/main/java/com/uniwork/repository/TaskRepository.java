@@ -4,6 +4,8 @@ import com.uniwork.model.enumuration.Priority;
 import com.uniwork.model.enumuration.TaskStatus;
 import com.uniwork.model.entity.Task;
 import com.uniwork.model.projection.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -45,6 +47,9 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findAllByAssignedToAndStatus(Long assignedTo, TaskStatus status);
 
     List<Task> findAllByAssignedToAndStatusIn(Long assignedTo, List<TaskStatus> statuses);
+
+    Page<Task> findAllByAssignedToAndStatusIn(Long assignedTo, List<TaskStatus> statuses, Pageable pageable);
+
 
     @Query(value = "SELECT COUNT(*) FROM tasks WHERE assigned_to = :assignedTo AND status = :status AND updated_date < due_date", nativeQuery = true)
     Long countTasksCompletedBeforeDeadline(@Param("assignedTo") Long assignedTo, @Param("status") TaskStatus status);

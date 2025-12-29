@@ -8,8 +8,8 @@ import com.uniwork.model.request.TaskRequest;
 import com.uniwork.model.request.UploadFileAttachmentRequest;
 import com.uniwork.model.response.ResponseFactory;
 import com.uniwork.interceptors.Payload;
-import com.uniwork.service.FileAttachmentService;
-import com.uniwork.service.TaskService;
+import com.uniwork.service.impl.FileAttachmentServiceImpl;
+import com.uniwork.service.impl.TaskServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,42 +23,42 @@ import java.util.List;
 public class TaskController {
 
     @Autowired
-    private TaskService taskService;
+    private TaskServiceImpl taskServiceImpl;
     @Autowired
-    private FileAttachmentService fileAttachmentService;
+    private FileAttachmentServiceImpl fileAttachmentService;
 
     @GetMapping("/all/{projectId}")
     public ResponseEntity getTasksByProjectId(@PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
         log.info("Fetching tasks for project ID: {}", projectId);
-        List<TaskDTO> tasks = taskService.getAllTasksByProjectId(projectId);
+        List<TaskDTO> tasks = taskServiceImpl.getAllTasksByProjectId(projectId);
         return ResponseFactory.success(tasks);
     }
 
     @GetMapping("/detail/{projectId}/{taskId}")
     public ResponseEntity getTaskById(@PathVariable Long taskId, @RequestAttribute(required = false) Payload payload) {
         log.info("Fetching task with ID: {}", taskId);
-        TaskDetailDTO taskDetailDTO = taskService.getTaskById(payload.getUserId(), taskId);
+        TaskDetailDTO taskDetailDTO = taskServiceImpl.getTaskById(payload.getUserId(), taskId);
         return ResponseFactory.success(taskDetailDTO);
     }
 
     @PostMapping("/create")
     public ResponseEntity createTask(@RequestBody TaskRequest taskRequest, @RequestAttribute(required = false) Payload payload) {
         log.info("Creating task with request: {} for project ID: {}", taskRequest);
-        List<Task> tasks = taskService.createTask(payload.getUserId(), taskRequest);
+        List<Task> tasks = taskServiceImpl.createTask(payload.getUserId(), taskRequest);
         return ResponseFactory.success(tasks);
     }
 
     @PostMapping("/{projectId}/{taskId}/update")
     public ResponseEntity updateTask(@RequestBody TaskRequest taskRequest, @PathVariable Long projectId, @PathVariable Long taskId, @RequestAttribute(required = false) Payload payload) {
         log.info("Updating task with request: {} for project ID: {}", taskRequest);
-        Task task = taskService.updateTask(payload.getUserId(), taskId, taskRequest);
+        Task task = taskServiceImpl.updateTask(payload.getUserId(), taskId, taskRequest);
         return ResponseFactory.success(task);
     }
 
     @DeleteMapping("/{projectId}/{taskId}/delete")
     public ResponseEntity deleteTask(@PathVariable Long taskId, @PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
         log.info("Deleting task with ID: {} for project ID: {}", taskId, projectId);
-        Task task = taskService.deleteTask(payload.getUserId(), taskId);
+        Task task = taskServiceImpl.deleteTask(payload.getUserId(), taskId);
         return ResponseFactory.success(task);
     }
 
@@ -77,7 +77,7 @@ public class TaskController {
                                                   @RequestParam(required = false) Integer priority,
                                                   @RequestParam(required = false) Integer status) {
         log.info("Fetching all tasks for assigned user: {}", payload.getUserId());
-        List<Task> tasks = taskService.getAllTasksByAssignedTo(payload.getUserId(), priority, status);
+        List<Task> tasks = taskServiceImpl.getAllTasksByAssignedTo(payload.getUserId(), priority, status);
         return ResponseFactory.success(tasks);
     }
 }
