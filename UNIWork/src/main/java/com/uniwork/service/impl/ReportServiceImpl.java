@@ -3,6 +3,7 @@ package com.uniwork.service.impl;
 import com.uniwork.model.dto.ProjectReportDTO;
 import com.uniwork.model.dto.TaskPerformanceDTO;
 import com.uniwork.model.dto.TaskReportDTO;
+import com.uniwork.model.enumuration.ProjectStatus;
 import com.uniwork.model.enumuration.TaskStatus;
 import com.uniwork.model.entity.Event;
 import com.uniwork.model.entity.Project;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -117,6 +119,9 @@ public class ReportServiceImpl implements ReportService {
         Map<Long, Project> projectMap = projectMapFuture.join();
         Map<Long, ReportProjectProjection> reportMap = reportProjectionMapFuture.join();
 
+        // ✅ Gom project cần update để batch save
+        List<Project> projectsToUpdate = new ArrayList<>();
+
         List<ProjectReportDTO> result = projectIds.stream()
                 .map(id -> {
                     Project project = projectMap.get(id);
@@ -139,6 +144,15 @@ public class ReportServiceImpl implements ReportService {
                     Long memberCount =
                             projection != null ? projection.getTotalMembers() : 0L;
 
+                    // ✅ Tính status động
+                    ProjectStatus status = ProjectStatus.fromProgress(completedPercent, total, pending, doing);
+
+                    // ✅ Nếu status khác DB thì update
+                    if (project != null && (project.getStatus() == null || !project.getStatus().equals(status))) {
+                        project.setStatus(status);
+                        projectsToUpdate.add(project);
+                    }
+
                     return new ProjectReportDTO(
                             project,
                             total,
@@ -150,6 +164,11 @@ public class ReportServiceImpl implements ReportService {
                     );
                 })
                 .toList();
+
+        // ✅ Batch update một lần
+        if (!projectsToUpdate.isEmpty()) {
+            projectRepository.saveAll(projectsToUpdate);
+        }
 
         return new PageImpl<>(result, pageable, projectIdPage.getTotalElements());
     }

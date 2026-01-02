@@ -32,7 +32,7 @@ public class EventServiceImpl implements EventService {
         event.setTitle(createEventRequest.getTitle());
         event.setType(createEventRequest.getType());
         event.setLocation(createEventRequest.getLocation());
-        event.setDate(LocalDateTime.now());
+        event.setDate(createEventRequest.getDate());
         event.setCreatedBy(userId);
         return eventRepository.save(event);
     }

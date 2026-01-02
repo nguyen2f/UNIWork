@@ -81,7 +81,7 @@ public class ProjectServiceImpl implements ProjectService {
         project.setDepartment(projectRequest.getDepartment());
         project.setRiskLevel(projectRequest.getRiskLevel());
         project.setCategory(projectRequest.getCategory());
-        project.setPriority(Priority.fromCode(projectRequest.getPriority()));
+        project.setPriority(Priority.fromCode(projectRequest.getPriority()) != null ? Priority.fromCode(projectRequest.getPriority()) : Priority.HIGH);
         projectRepository.save(project);
 
         ProjectMember projectMember = new ProjectMember();

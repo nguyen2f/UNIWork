@@ -2,6 +2,7 @@ package com.uniwork.service.impl;
 
 import com.uniwork.exceptions.CoreException;
 import com.uniwork.exceptions.ErrorCode;
+import com.uniwork.model.dto.CommentDTO;
 import com.uniwork.model.dto.NotificationDTO;
 import com.uniwork.model.dto.TaskDTO;
 import com.uniwork.model.dto.TaskDetailDTO;
@@ -13,10 +14,7 @@ import com.uniwork.model.projection.TaskDetailProjection;
 import com.uniwork.model.request.AssignMemberRequest;
 import com.uniwork.model.request.TaskRequest;
 import com.uniwork.repository.TaskRepository;
-import com.uniwork.service.FileAttachmentService;
-import com.uniwork.service.NotificationService;
-import com.uniwork.service.TaskService;
-import com.uniwork.service.UserService;
+import com.uniwork.service.*;
 import com.uniwork.util.BeanCopyUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +41,8 @@ public class TaskServiceImpl implements TaskService {
 
     @Autowired
     private NotificationService notificationService;
+    @Autowired
+    private CommentService commentService;
 
     public List<TaskDTO> getAllTasksByProjectId(Long projectId) {
         Project project = projectService.getProjectById(projectId);
@@ -79,6 +79,9 @@ public class TaskServiceImpl implements TaskService {
 
             dto.setChildTasks(childTasks);
         }
+
+        List<CommentDTO> comments = commentService.getAllCommentDTO(taskId);
+        dto.setComments(comments);
         return dto;
     }
 
@@ -87,7 +90,6 @@ public class TaskServiceImpl implements TaskService {
 
         Project project = projectService.getProjectById(taskRequest.getProjectId());
         List<Long> memberIds = taskRequest.getAssignedTo();
-
 
         Task parentTask = new Task();
         parentTask.setProjectId(project.getProjectId());
@@ -148,13 +150,11 @@ public class TaskServiceImpl implements TaskService {
         return childTasks;
     }
 
-
     public Task updateTask(Long userId, Long taskId, TaskRequest taskRequest) {
         Task task = taskRepository.findById(taskId).orElse(null);
-        if (task == null) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
+        if (task.getParentId() == null && !checkSubTaskDone(taskId)) {
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Các task con chưa hoàn thiện, chưa thể thay đổi trạng thái task cha! ");
         }
-
         if (taskRequest.getStatus() == TaskStatus.COMPLETED.getCode() || taskRequest.getStatus() == TaskStatus.REVIEWING.getCode()) {
             task.setCompleted(true);
         }
@@ -167,7 +167,6 @@ public class TaskServiceImpl implements TaskService {
         Task updatedTask = taskRepository.save(task);
         return updatedTask;
     }
-
 
     public Task deleteTask(Long userId, Long taskId) {
         Task task = taskRepository.findById(taskId).orElse(null);
@@ -188,4 +187,8 @@ public class TaskServiceImpl implements TaskService {
         return tasks;
     }
 
+    private Boolean checkSubTaskDone(Long taskId) {
+        List<Task> subTasks = taskRepository.findByParentIdOrderByTaskIdDesc(taskId);
+        return subTasks.stream().allMatch(Task::getCompleted);
+    }
 }

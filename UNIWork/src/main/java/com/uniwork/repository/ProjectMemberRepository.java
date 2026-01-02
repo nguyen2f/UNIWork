@@ -25,7 +25,7 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
     Long countByUserId(Long userId);
 
     @Query("""
-        SELECT pm.projectId
+        SELECT DISTINCT(pm.projectId)
         FROM ProjectMember pm
         WHERE pm.userId = :userId
     """)

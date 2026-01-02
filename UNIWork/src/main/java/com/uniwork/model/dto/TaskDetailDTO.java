@@ -15,6 +15,6 @@ import java.util.List;
 public class TaskDetailDTO {
     private TaskDTO task;
     private List<TaskDTO> childTasks;
-//    private List<CommentDTO> comments;
+    private List<CommentDTO> comments;
     private List<FileAttachment> fileAttachments;
 }

@@ -22,4 +22,18 @@ public enum ProjectStatus {
         }
         return null;
     }
+
+    public static ProjectStatus fromProgress(double completedPercent, Long total, Long pending, Long doing) {
+        if (total == null || total == 0) {
+            return PLANNING;
+        }
+        if (completedPercent >= 100.0) {
+            return COMPLETED;
+        }
+        if (doing != null) {
+            return IN_PROGRESS;
+        }
+        return ON_HOLD;
+    }
+
 }

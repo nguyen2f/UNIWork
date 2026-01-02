@@ -184,4 +184,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             """)
     List<TaskDetailProjection> findByParentId(@Param("taskParentId") Long taskParentId);
 
+    List<Task> findByParentIdOrderByTaskIdDesc(Long taskId);
+
 }
