@@ -17,17 +17,22 @@ public class MailServiceImpl implements MailService {
 
     @Async
     public void sendAssignMail(String toEmail, String projectName, String role) {
-
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
         message.setSubject("Bạn đã được thêm vào dự án");
         message.setText(
                 "Xin chào,\n\n" +
                         "Bạn đã được assign vào dự án: " + projectName + "\n" +
-                        "Vai trò: " + role + "\n\n" +
-                        "Vui lòng đăng nhập hệ thống để xem chi tiết."
+                        "Vai trò: " + seperateRoleString(role) + "\n\n" +
+                        "Vui lòng đăng nhập hệ thống để xem chi tiết: https://v0-uniwork.vercel.app/"
         );
 
         mailSender.send(message);
+    }
+    private String seperateRoleString(String role) {
+        if (role.contains("_")) {
+            return role.replace("_", " ");
+        }
+        return role;
     }
 }

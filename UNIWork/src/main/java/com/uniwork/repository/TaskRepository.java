@@ -57,8 +57,8 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     Long countByAssignedToAndUpdatedDateBetweenAndStatus(Long assignedTo, LocalDateTime startDate, LocalDateTime endDate, TaskStatus status);
 
     @Query("""
-            SELECT 
-                t.projectId AS projectId,
+            SELECT
+                p.projectId AS projectId,
                 p.name AS name,
                 COUNT(DISTINCT pm.userId) AS totalMembers,
                 COUNT(t.taskId) AS totalTasks,
@@ -67,11 +67,11 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                 SUM(CASE WHEN t.status = 4 THEN 1 ELSE 0 END) AS cancelledTasks,
                 SUM(CASE WHEN t.status = 0 THEN 1 ELSE 0 END) AS pendingTasks,
                 SUM(CASE WHEN t.status = 1 THEN 1 ELSE 0 END) AS doingTasks
-            FROM Task t
-            JOIN ProjectMember pm ON t.projectId = pm.projectId
-            JOIN Project p ON t.projectId = p.projectId
-            WHERE t.projectId IN :projectIds
-            GROUP BY t.projectId, p.name
+            FROM Project p
+            JOIN ProjectMember pm ON p.projectId = pm.projectId
+            LEFT JOIN Task t ON p.projectId = t.projectId
+            WHERE p.projectId IN :projectIds
+            GROUP BY p.projectId, p.name
             """)
     List<ReportProjectProjection> reportProjects(@Param("projectIds") List<Long> projectIds);
 

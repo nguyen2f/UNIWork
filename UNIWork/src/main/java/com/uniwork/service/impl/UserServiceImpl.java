@@ -3,6 +3,7 @@ package com.uniwork.service.impl;
 import com.uniwork.model.dto.ProfileDTO;
 import com.uniwork.model.entity.Task;
 import com.uniwork.model.enumuration.Role;
+import com.uniwork.model.enumuration.SystemRole;
 import com.uniwork.model.projection.UserProfileProjection;
 import com.uniwork.model.request.*;
 import com.uniwork.model.dto.UserDTO;
@@ -53,6 +54,8 @@ public class UserServiceImpl implements UserService {
         user.setPassword(encodedPassword);
         user.setEmail(registerRequest.getEmail());
         user.setCreatedDate(LocalDateTime.now());
+        user.setSystemRole(SystemRole.EMPLOYEE);
+        user.setActive(true);
         return userRepository.save(user);
     }
 
