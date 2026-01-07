@@ -12,6 +12,7 @@ import com.uniwork.util.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -45,7 +46,6 @@ public class UserController {
         response.put("token", token);
         response.put("userId", user.getUserId());
         response.put("role", user.getSystemRole());
-        response.put("user", user);
         return ResponseEntity.ok(response);
 
     }
@@ -56,12 +56,14 @@ public class UserController {
         return ResponseFactory.success(user);
     }
 
+    @PreAuthorize("hasAuthority('PERM_ASSIGN_MEMBERS')")
     @PostMapping("/member/assign")
     public ResponseEntity assignMemberToProject(@RequestAttribute(required = false) Payload payload, @RequestBody AssignMemberRequest assignMemberRequest) {
         ProjectMember projectMember = userService.assignMemberToProject(assignMemberRequest);
         return ResponseFactory.success(projectMember);
     }
 
+    @PreAuthorize("hasAuthority('PERM_REMOVE_MEMBERS')")
     @PostMapping("/member/remove")
     public ResponseEntity removeMemberFromProject(@RequestAttribute(required = false) Payload payload, @RequestBody RemoveMemberRequest removeMemberRequest) {
         ProjectMember projectMember = userService.removeMemberFromProject(removeMemberRequest);

@@ -13,6 +13,7 @@ import com.uniwork.service.impl.TaskServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/task")
+@PreAuthorize("hasAuthority('PERM_MANAGE_TASKS')")
 public class TaskController {
 
     @Autowired
@@ -55,6 +57,7 @@ public class TaskController {
         return ResponseFactory.success(task);
     }
 
+    @PreAuthorize("hasAuthority('PERM_DELETE_TASK')")
     @DeleteMapping("/{projectId}/{taskId}/delete")
     public ResponseEntity deleteTask(@PathVariable Long taskId, @PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
         log.info("Deleting task with ID: {} for project ID: {}", taskId, projectId);

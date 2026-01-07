@@ -4,9 +4,11 @@ import com.uniwork.interceptors.Payload;
 import com.uniwork.model.enumuration.SystemRole;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -16,26 +18,26 @@ import java.io.IOException;
 public class PayloadFilter extends OncePerRequestFilter {
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
 
-        String uri = request.getRequestURI();
-        if (uri.startsWith("/swagger-ui") || uri.startsWith("/v3/api-docs") || uri.startsWith("/swagger-resources") || uri.startsWith("/user/register")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        String token = request.getHeader("authorization");
-        String userId = request.getHeader("userId");
-//        SystemRole role = SystemRole.valueOf(request.getHeader("role"));
+        if (auth instanceof UsernamePasswordAuthenticationToken
+                && auth.getPrincipal() instanceof Long
+                && auth.getDetails() instanceof SystemRole) {
 
-        if (token != null && userId != null) {
             Payload payload = new Payload();
-            payload.setToken(token);
-            payload.setUserId(Long.parseLong(userId));
-//            payload.setRole(role);
+            payload.setUserId((Long) auth.getPrincipal());
+            payload.setRole((SystemRole) auth.getDetails());
+
             request.setAttribute("payload", payload);
         }
 
         filterChain.doFilter(request, response);
     }
 }
+

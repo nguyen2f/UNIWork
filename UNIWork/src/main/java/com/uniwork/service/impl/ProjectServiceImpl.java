@@ -48,7 +48,7 @@ public class ProjectServiceImpl implements ProjectService {
         checkProjectMember(projectId, userId);
         Project project = projectRepository.findProjectByProjectId(projectId);
         if (project == null) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Can not find project");
         }
         return project;
     }
@@ -96,12 +96,12 @@ public class ProjectServiceImpl implements ProjectService {
 
     public Project updateProject(Long projectId, ProjectRequest projectRequest, Long userId) {
         if (!checkProjectOwner(projectId, userId)) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "This member is not in this project");
         }
 
         Project project = projectRepository.findProjectByProjectId(projectId);
         if (project == null) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Can not find this project");
         }
         BeanCopyUtils.copyNonNullProperties(projectRequest, project);
         return projectRepository.save(project);

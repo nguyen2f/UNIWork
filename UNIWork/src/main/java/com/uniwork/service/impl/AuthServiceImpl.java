@@ -32,7 +32,7 @@ public class AuthServiceImpl implements AuthService {
     public Long getUserIdFromToken() {
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            throw new RuntimeException("Token không hợp lệ hoặc thiếu");
+            throw new RuntimeException("Invalid token");
         }
 
         String token = authHeader.substring(7);
@@ -40,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
 
         Object rawUserId = claims.get("id");
         if (rawUserId == null) {
-            throw new RuntimeException("Không tìm thấy userId trong token");
+            throw new RuntimeException("Can not find User");
         }
 
         return Long.valueOf(rawUserId.toString());

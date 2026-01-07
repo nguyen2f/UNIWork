@@ -11,11 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/event")
 @Slf4j
+@PreAuthorize("hasAuthority('PERM_MANAGE_EVENTS')")
 public class EventController {
 
     @Autowired
@@ -31,6 +33,7 @@ public class EventController {
         return ResponseFactory.makePagination(events.getContent(), metadata);
     }
 
+    @PreAuthorize(("hasAuthority('PERM_CREATE_EVENT')"))
     @PostMapping("/create")
     public ResponseEntity createEvent(@RequestBody CreateEventRequest createEventRequest,
                                       @RequestAttribute(required = false) Payload payload,

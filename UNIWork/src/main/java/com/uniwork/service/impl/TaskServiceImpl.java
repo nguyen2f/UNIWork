@@ -47,7 +47,7 @@ public class TaskServiceImpl implements TaskService {
     public List<TaskDTO> getAllTasksByProjectId(Long projectId) {
         Project project = projectService.getProjectById(projectId);
         if (project == null) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Can not find this project");
         }
         List<TaskDetailProjection> tasks = taskRepository.findByProjectIdWithUser(projectId);
 
@@ -153,7 +153,7 @@ public class TaskServiceImpl implements TaskService {
     public Task updateTask(Long userId, Long taskId, TaskRequest taskRequest) {
         Task task = taskRepository.findById(taskId).orElse(null);
         if (task.getParentId() == null && !checkSubTaskDone(taskId)) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Các task con chưa hoàn thiện, chưa thể thay đổi trạng thái task cha! ");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Not all subtasks have been done, so you cannot change the status");
         }
         if (taskRequest.getStatus() == TaskStatus.COMPLETED.getCode() || taskRequest.getStatus() == TaskStatus.REVIEWING.getCode()) {
             task.setCompleted(true);
@@ -171,10 +171,10 @@ public class TaskServiceImpl implements TaskService {
     public Task deleteTask(Long userId, Long taskId) {
         Task task = taskRepository.findById(taskId).orElse(null);
         if (task == null) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Can not find this task");
         }
         if (task.getAssignedTo() != userId) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "");
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "You can not delete this task");
         }
         taskRepository.delete(task);
         return task;

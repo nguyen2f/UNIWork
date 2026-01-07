@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 public class Payload {
-    private String token;
+
     private Long userId;
-//    private SystemRole role;
+    private SystemRole role;
 }

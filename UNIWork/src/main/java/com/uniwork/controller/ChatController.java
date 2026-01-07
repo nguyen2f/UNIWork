@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/chat")
 @Slf4j
+@PreAuthorize("hasAuthority('PERM_MANAGE_CHATS')")
 public class ChatController {
 
     @Autowired

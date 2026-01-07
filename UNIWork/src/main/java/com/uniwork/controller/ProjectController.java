@@ -10,6 +10,7 @@ import com.uniwork.service.ProjectService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/project")
+@PreAuthorize("hasAuthority('PERM_MANAGE_PROJECTS')")
 public class ProjectController {
 
     @Autowired
@@ -38,6 +40,7 @@ public class ProjectController {
         return ResponseFactory.success(project);
     }
 
+    @PreAuthorize("hasAuthority('PERM_CREATE_PROJECT')")
     @PostMapping("/create")
     public ResponseEntity createProject(@RequestBody ProjectRequest projectRequest, @RequestAttribute(required = false) Payload payload) {
         log.info("Creating project with request: {}", projectRequest);
@@ -45,6 +48,7 @@ public class ProjectController {
         return ResponseFactory.success(project);
     }
 
+    @PreAuthorize("hasAuthority('PERM_UPDATE_PROJECT')")
     @PostMapping("/{projectId}/update")
     public ResponseEntity updateProject(@PathVariable Long projectId, @RequestBody ProjectRequest projectRequest, @RequestAttribute(required = false) Payload payload) {
         log.info("Updating project with ID: {} and request: {}", projectId, projectRequest);
