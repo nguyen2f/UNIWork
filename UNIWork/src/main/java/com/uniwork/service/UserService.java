@@ -8,6 +8,7 @@ import com.uniwork.model.request.AssignMemberRequest;
 import com.uniwork.model.request.RegisterRequest;
 import com.uniwork.model.request.RemoveMemberRequest;
 import com.uniwork.model.request.UpdateProfileRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -28,5 +29,7 @@ public interface UserService {
     List<UserDTO> getAllMembersActive();
 
     ProfileDTO getUserById(Long userId);
+
+    ProfileDTO updateAvatar(Long userId, MultipartFile file);
 
 }

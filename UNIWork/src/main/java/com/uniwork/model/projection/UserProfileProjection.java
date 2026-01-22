@@ -10,5 +10,7 @@ public interface UserProfileProjection {
     String getDepartment();
     Boolean getActive();
     String getSystemRole();
+    String getAvatarUrl();
+    String getAvatarPublicId();
 
 }

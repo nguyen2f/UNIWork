@@ -13,6 +13,7 @@ import com.uniwork.repository.ProjectMemberRepository;
 import com.uniwork.repository.ProjectRepository;
 import com.uniwork.repository.TaskRepository;
 import com.uniwork.repository.UserRepository;
+import com.uniwork.service.FileAttachmentService;
 import com.uniwork.service.MailService;
 import com.uniwork.service.UserService;
 import com.uniwork.util.BeanCopyUtils;
@@ -21,9 +22,11 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +44,8 @@ public class UserServiceImpl implements UserService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private MailService mailService;
+    @Autowired
+    private FileAttachmentService fileAttachmentService;
 
     @CacheEvict(value = "uniwork:user:list", key = "'active'")
     public User registerUser(RegisterRequest registerRequest) {
@@ -56,6 +61,9 @@ public class UserServiceImpl implements UserService {
         user.setCreatedDate(LocalDateTime.now());
         user.setSystemRole(SystemRole.EMPLOYEE);
         user.setActive(true);
+
+        mailService.sendRegisterMail(registerRequest.getEmail(), registerRequest.getName());
+
         return userRepository.save(user);
     }
 
@@ -156,8 +164,25 @@ public class UserServiceImpl implements UserService {
                 user.getAddress(),
                 user.getDepartment(),
                 user.getActive(),
-                user.getSystemRole()
+                user.getSystemRole(),
+                user.getAvatarUrl(),
+                user.getAvatarPublicId()
         );
+    }
+
+    @Override
+    public ProfileDTO updateAvatar(Long userId, MultipartFile file) {
+        User user = userRepository.findByUserId(userId);
+        String publicId = "avatars/user_" + userId + "/" + java.util.UUID.randomUUID() + "_" + file.getOriginalFilename();
+        Map uploadResult = fileAttachmentService.uploadImage(file, publicId);
+        user.setAvatarUrl((String) uploadResult.get("secure_url"));
+        user.setAvatarPublicId((String) uploadResult.get("public_id"));
+        user.setUpdatedDate(LocalDateTime.now());
+        userRepository.save(user);
+        return ProfileDTO.builder()
+                .avatarUrl(user.getAvatarUrl())
+                .avatarPublicId(user.getAvatarPublicId())
+                .build();
     }
 
 }

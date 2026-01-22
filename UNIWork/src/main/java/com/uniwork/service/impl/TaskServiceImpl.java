@@ -2,10 +2,7 @@ package com.uniwork.service.impl;
 
 import com.uniwork.exceptions.CoreException;
 import com.uniwork.exceptions.ErrorCode;
-import com.uniwork.model.dto.CommentDTO;
-import com.uniwork.model.dto.NotificationDTO;
-import com.uniwork.model.dto.TaskDTO;
-import com.uniwork.model.dto.TaskDetailDTO;
+import com.uniwork.model.dto.*;
 import com.uniwork.model.entity.FileAttachment;
 import com.uniwork.model.entity.Project;
 import com.uniwork.model.entity.Task;
@@ -65,7 +62,7 @@ public class TaskServiceImpl implements TaskService {
         TaskDTO taskDTO = new TaskDTO(task);
         dto.setTask(taskDTO);
 
-        List<FileAttachment> attachments = fileAttachmentService.getAllFileAttachment(taskId);
+        List<FileAttachmentDTO> attachments = fileAttachmentService.getAllFileAttachment(taskId);
         dto.setFileAttachments(attachments);
 
         if (taskDTO.getTaskParentId() == null) {

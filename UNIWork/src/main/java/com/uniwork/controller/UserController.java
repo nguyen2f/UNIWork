@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.List;
@@ -79,6 +80,12 @@ public class UserController {
     @GetMapping("/profile/{userId}")
     public ResponseEntity getUserById(@RequestAttribute(required = false) Payload payload, @PathVariable Long userId) {
         ProfileDTO user = userService.getUserById(userId);
+        return ResponseFactory.success(user);
+    }
+
+    @PostMapping("/profile/avatar")
+    public ResponseEntity updateAvatar(@RequestAttribute(required = false) Payload payload, @RequestParam("file") MultipartFile file) {
+        ProfileDTO user = userService.updateAvatar(payload.getUserId(), file);
         return ResponseFactory.success(user);
     }
 }

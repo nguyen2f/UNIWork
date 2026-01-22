@@ -47,7 +47,9 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     u.address AS address, 
                     u.department AS department, 
                     u.active AS active,
-                    u.systemRole AS systemRole 
+                    u.systemRole AS systemRole,
+                    u.avatarUrl AS avatarUrl,
+                    u.avatarPublicId AS avatarPublicId 
                 FROM User u
                 WHERE u.userId = :userId
             """)

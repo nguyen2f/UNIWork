@@ -32,5 +32,6 @@ public class Task {
     private Long updatedBy;
     private Boolean completed;
     private String tags; // List of tags associated with the task
+    private Long departmentId;
 
 }

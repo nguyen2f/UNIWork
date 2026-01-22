@@ -29,6 +29,22 @@ public class MailServiceImpl implements MailService {
 
         mailSender.send(message);
     }
+
+    @Override
+    public void sendRegisterMail(String toEmail, String userName) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("Chào mừng bạn đến với UNIWork!");
+        message.setText("Xin chào " + userName + ",\n\n" +
+                "Cảm ơn bạn đã đăng ký tài khoản tại UNIWork. Chúng tôi rất vui được chào đón bạn đến với cộng đồng của chúng tôi.\n\n" +
+                "Truy cập vào hệ thống để khám phá các tính năng và bắt đầu làm việc cùng chúng tôi: https://v0-uniwork.vercel.app/\n\n" +
+                "Nếu bạn có bất kỳ câu hỏi hoặc cần hỗ trợ, đừng ngần ngại liên hệ với chúng tôi.\n\n" +
+                "Chúc bạn một ngày làm việc hiệu quả!\n\n" +
+                "Trân trọng,\n" +
+                "Đội ngũ UNIWork"
+        );
+    }
+
     private String seperateRoleString(String role) {
         if (role.contains("_")) {
             return role.replace("_", " ");

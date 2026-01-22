@@ -27,4 +27,11 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private SystemRole systemRole;
+
+    private Long departmentId;
+
+    // Avatar (Cloudinary)
+    private String avatarUrl;
+
+    private String avatarPublicId;
 }

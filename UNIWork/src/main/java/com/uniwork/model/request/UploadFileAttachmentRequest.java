@@ -3,6 +3,7 @@ package com.uniwork.model.request;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 
@@ -17,4 +18,5 @@ public class UploadFileAttachmentRequest {
     private String fileType;
     private Long fileSize;
     private LocalDateTime uploadDate;
+    private MultipartFile file;
 }

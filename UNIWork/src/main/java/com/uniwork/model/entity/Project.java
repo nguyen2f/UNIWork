@@ -30,4 +30,5 @@ public class Project {
     private ProjectStatus status;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
+    private Long departmentId;
 }

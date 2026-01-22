@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -69,9 +70,9 @@ public class TaskController {
     public ResponseEntity uploadFileAttachment(@RequestAttribute(required = false) Payload payload,
                                                @PathVariable Long projectId,
                                                @PathVariable Long taskId,
-                                               @RequestBody UploadFileAttachmentRequest uploadFileAttachmentRequest) {
+                                               @RequestParam("file") MultipartFile file) {
         log.info("Uploading file with ID: {} for task ID for project ID: {}", taskId, projectId);
-        FileAttachment fileAttachment = fileAttachmentService.uploadFileAttachment(payload.getUserId(), taskId, uploadFileAttachmentRequest);
+        FileAttachment fileAttachment = fileAttachmentService.uploadFileAttachment(payload.getUserId(), taskId, file);
         return ResponseFactory.success(fileAttachment);
     }
 
