@@ -1,9 +1,11 @@
 package com.uniwork.util;
 
-import com.uniwork.entity.model.User;
+import com.uniwork.model.entity.User;
+import com.uniwork.model.enumuration.SystemRole;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -50,10 +52,11 @@ public class JwtUtil {
         return Jwts.builder()
                 .claim("userId", user.getUserId())
                 .claim("email", user.getEmail())
+                .claim("role", user.getSystemRole().name())
                 .setSubject(user.getEmail())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 86400000)) // 1 ngày
-                .signWith(SignatureAlgorithm.HS256, SECRET_KEY)
+                .setExpiration(new Date(System.currentTimeMillis() + 86400000))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -61,4 +64,21 @@ public class JwtUtil {
         Claims claims = extractAllClaims(token);
         return claims.get("userId", Long.class);
     }
+
+    public SystemRole extractRole(String token) {
+        Claims claims = extractAllClaims(token);
+        return SystemRole.valueOf(claims.get("role", String.class));
+    }
+
+
+    public boolean validateToken(String token) {
+        try {
+            extractAllClaims(token);
+            return !isTokenExpired(token);
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+
+
 }

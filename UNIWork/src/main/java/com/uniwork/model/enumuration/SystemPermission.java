@@ -1,0 +1,30 @@
+package com.uniwork.model.enumuration;
+
+public enum SystemPermission {
+    MANAGE_SYSTEM,
+
+    MANAGE_REPORTS,
+
+    MANAGE_NOTIFICATIONS,
+
+    MANAGE_PROJECTS,
+    CREATE_PROJECT,
+    UPDATE_PROJECT,
+
+    MANAGE_PROJECT_MEMBERS,
+
+    MANAGE_EVENTS,
+    CREATE_EVENT,
+
+    MANAGE_CHATS,
+
+    MANAGE_COMMENTS,
+
+    MANAGE_TASKS,
+    DELETE_TASK,
+
+    MANAGE_USERS,
+    REMOVE_MEMBERS,
+    ASSIGN_MEMBERS
+
+}

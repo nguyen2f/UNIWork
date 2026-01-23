@@ -1,15 +1,23 @@
 package com.uniwork.controller;
-import com.uniwork.entity.request.*;
+
 import com.uniwork.interceptors.Payload;
-import com.uniwork.entity.model.User;
+import com.uniwork.model.dto.ProfileDTO;
+import com.uniwork.model.dto.UserDTO;
+import com.uniwork.model.entity.ProjectMember;
+import com.uniwork.model.entity.User;
+import com.uniwork.model.request.*;
+import com.uniwork.model.response.ResponseFactory;
 import com.uniwork.service.UserService;
 import com.uniwork.util.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Slf4j
@@ -21,7 +29,7 @@ public class UserController {
     private UserService userService;
 
     @Autowired
-    private JwtUtil jwtUtil; // Giả sử bạn có một JwtUtil để tạo token
+    private JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity registerUser(@RequestBody RegisterRequest registerRequest) {
@@ -31,31 +39,53 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity loginUser(
-            @RequestBody LoginRequest loginRequest) {
+    public ResponseEntity loginUser(@RequestBody LoginRequest loginRequest) {
         log.info("Logining user: {}", loginRequest.getEmail());
         User user = userService.login(loginRequest.getEmail(), loginRequest.getPassword());
         String token = jwtUtil.generateToken(user);
         Map<String, Object> response = new HashMap<>();
         response.put("token", token);
         response.put("userId", user.getUserId());
+        response.put("role", user.getSystemRole());
         return ResponseEntity.ok(response);
 
     }
 
-    @PutMapping("/update-profile")
-    public ResponseEntity updateProfile(@RequestAttribute Payload payload, @RequestBody UpdateProfileRequest updateProfileRequest) {
-        return ResponseEntity.ok(userService.updateProfile(payload.getUserId(), updateProfileRequest));
+    @PutMapping("/profile/{userId}")
+    public ResponseEntity updateProfile(@RequestAttribute(required = false) Payload payload, @RequestBody UpdateProfileRequest updateProfileRequest) {
+        User user = userService.updateProfile(payload.getUserId(), updateProfileRequest);
+        return ResponseFactory.success(user);
     }
 
-    @PostMapping("/assign-member")
-    public ResponseEntity assignMemberToProject(@RequestAttribute Payload payload, @RequestBody AssignMemberRequest assignMemberRequest) {
-        return ResponseEntity.ok(userService.assignMemberToProject(assignMemberRequest));
-
+    @PreAuthorize("hasAuthority('PERM_ASSIGN_MEMBERS')")
+    @PostMapping("/member/assign")
+    public ResponseEntity assignMemberToProject(@RequestAttribute(required = false) Payload payload, @RequestBody AssignMemberRequest assignMemberRequest) {
+        ProjectMember projectMember = userService.assignMemberToProject(assignMemberRequest);
+        return ResponseFactory.success(projectMember);
     }
 
-    @PostMapping("/remove-member")
-    public ResponseEntity removeMemberFromProject(@RequestAttribute Payload payload, @RequestBody RemoveMemberRequest removeMemberRequest) {
-        return ResponseEntity.ok(userService.removeMemberFromProject(removeMemberRequest));
+    @PreAuthorize("hasAuthority('PERM_REMOVE_MEMBERS')")
+    @PostMapping("/member/remove")
+    public ResponseEntity removeMemberFromProject(@RequestAttribute(required = false) Payload payload, @RequestBody RemoveMemberRequest removeMemberRequest) {
+        ProjectMember projectMember = userService.removeMemberFromProject(removeMemberRequest);
+        return ResponseFactory.success(projectMember);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity getAllMemberActive(@RequestAttribute(required = false) Payload payload) {
+        List<UserDTO> users = userService.getAllMembersActive();
+        return ResponseFactory.success(users);
+    }
+
+    @GetMapping("/profile/{userId}")
+    public ResponseEntity getUserById(@RequestAttribute(required = false) Payload payload, @PathVariable Long userId) {
+        ProfileDTO user = userService.getUserById(userId);
+        return ResponseFactory.success(user);
+    }
+
+    @PostMapping("/profile/avatar")
+    public ResponseEntity updateAvatar(@RequestAttribute(required = false) Payload payload, @RequestParam("file") MultipartFile file) {
+        ProfileDTO user = userService.updateAvatar(payload.getUserId(), file);
+        return ResponseFactory.success(user);
     }
 }

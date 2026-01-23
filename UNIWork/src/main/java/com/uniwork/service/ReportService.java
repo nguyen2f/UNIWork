@@ -1,95 +1,27 @@
 package com.uniwork.service;
 
-import com.uniwork.entity.dto.ProjectReportDTO;
-import com.uniwork.entity.dto.TaskReportDTO;
-import com.uniwork.entity.enumuration.TaskStatus;
-import com.uniwork.entity.model.Project;
-import com.uniwork.repository.ProjectMemberRepository;
-import com.uniwork.repository.ProjectRepository;
-import com.uniwork.repository.TaskRepository;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
+import com.uniwork.model.dto.ProjectReportDTO;
+import com.uniwork.model.dto.TaskPerformanceDTO;
+import com.uniwork.model.dto.TaskReportDTO;
+import com.uniwork.model.entity.Event;
+import com.uniwork.model.entity.Task;
+import com.uniwork.model.response.StatsResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
-@Service
-public class ReportService {
+public interface ReportService {
 
-    private final TaskRepository taskRepository;
-    private final ProjectMemberRepository projectMemberRepository;
-    private final ProjectRepository projectRepository;
+    Page<ProjectReportDTO> getProjectReportV2(Long userId, Long begin, Long end, Pageable pageable);
 
-    public ReportService(TaskRepository taskRepository, ProjectMemberRepository projectMemberRepository, ProjectRepository projectRepository) {
-        this.taskRepository = taskRepository;
-        this.projectMemberRepository = projectMemberRepository;
-        this.projectRepository = projectRepository;
-    }
+    TaskReportDTO getTaskReport(Long userId, Long begin, Long end);
 
-    public ResponseEntity<List<ProjectReportDTO>> getProjectReport(Long userId, Long begin, Long end) {
-        List<Long> projectIds = projectMemberRepository.findProjectIdsByUserId(userId);
+    Page<Task> getPendingTask(Long userId, Long begin, Long end, Pageable pageable);
 
-        List<CompletableFuture<ProjectReportDTO>> futures = projectIds.stream()
-                .map(projectId -> CompletableFuture.supplyAsync(() -> {
-                    Project project = projectRepository.findProjectByProjectId(projectId);
+    TaskPerformanceDTO getTasksPerformance(Long userId, Long begin, Long end);
 
-                    CompletableFuture<Long> totalTask =
-                            CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectId(projectId));
-                    CompletableFuture<Long> completedTask =
-                            CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectIdAndStatus(projectId, TaskStatus.COMPLETED));
-                    CompletableFuture<Long> pendingTask =
-                            CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectIdAndStatus(projectId, TaskStatus.PENDING));
-                    CompletableFuture<Long> doingTask =
-                            CompletableFuture.supplyAsync(() -> taskRepository.countAllByProjectIdAndStatus(projectId, TaskStatus.DOING));
-                    CompletableFuture<Long> countMember =
-                            CompletableFuture.supplyAsync(() -> projectMemberRepository.countUserIdByProjectId(projectId));
+    List<Event> getUpcomingEvents(Long userId, Long begin, Long end);
 
-                    CompletableFuture.allOf(totalTask, completedTask, pendingTask, doingTask, countMember).join();
-
-                    try {
-                        Long total = totalTask.get();
-                        Long completed = completedTask.get();
-                        Long pending = pendingTask.get();
-                        Long doing = doingTask.get();
-                        Double completedPercent = total == 0 ? 0.0 : (completed * 100) / total;
-                        Long count = countMember.get();
-                        return new ProjectReportDTO(project, total, completed, pending, doing, completedPercent, count);
-                    } catch (Exception e) {
-                        throw new RuntimeException("Error while generating report for projectId=" + projectId, e);
-                    }
-                }))
-                .toList();
-
-        List<ProjectReportDTO> reports = futures.stream()
-                .map(CompletableFuture::join)
-                .toList();
-
-        return ResponseEntity.ok(reports);
-    }
-
-    public ResponseEntity<TaskReportDTO> getTaskReport(Long userId, Long begin, Long end) {
-
-        CompletableFuture<Long> totalTask =
-                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedTo(userId));
-        CompletableFuture<Long> completedTask =
-                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatus(userId, TaskStatus.COMPLETED));
-        CompletableFuture<Long> pendingTask =
-                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatus(userId, TaskStatus.PENDING));
-        CompletableFuture<Long> doingTask =
-                CompletableFuture.supplyAsync(() -> taskRepository.countAllByAssignedToAndStatus(userId, TaskStatus.DOING));
-        CompletableFuture.allOf(totalTask, completedTask, pendingTask, doingTask).join();
-
-        try {
-            Long total = totalTask.get();
-            Long completed = completedTask.get();
-            Long pending = pendingTask.get();
-            Long doing = doingTask.get();
-            Double completedPercent = total == 0 ? 0.0 : (completed * 100) / total;
-            TaskReportDTO taskReportDTO = new TaskReportDTO(total, completed, pending, doing, completedPercent);
-            return ResponseEntity.ok(taskReportDTO);
-        } catch (Exception e) {
-            throw new RuntimeException("Error while generating task report for userId=" + userId, e);
-        }
-    }
+    List<StatsResponse> getStats(Long userId);
 }

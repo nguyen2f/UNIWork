@@ -12,6 +12,6 @@ import java.util.concurrent.Executors;
 public class AsyncConfig {
     @Bean(name = "dashboardExecutor")
     public Executor dashboardExecutor() {
-        return Executors.newFixedThreadPool(4);
+        return Executors.newFixedThreadPool(2);
     }
 }

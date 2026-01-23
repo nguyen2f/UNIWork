@@ -1,0 +1,19 @@
+package com.uniwork.model.enumuration;
+
+public enum Role {
+    OWNER,
+    PROJECT_MANAGER,
+    MEMBER,
+    MOBILE_DEVELOPER,
+    TESTER,
+    IOT_ENGINEER,
+    BA,
+    DATA_ENGINEER,
+    BACKEND_DEVELOPER,
+    UIUX_DESIGNER,
+    AI_ENGINEER,
+    BI_ANALYST,
+    FULLSTACK_DEVELOPER,
+    DEVOPS,
+    FRONTEND_DEVELOPER;
+}

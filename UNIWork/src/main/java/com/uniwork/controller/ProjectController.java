@@ -1,45 +1,65 @@
 package com.uniwork.controller;
 
 
-import com.uniwork.entity.request.ProjectRequest;
 import com.uniwork.interceptors.Payload;
+import com.uniwork.model.dto.UserDTO;
+import com.uniwork.model.entity.Project;
+import com.uniwork.model.request.ProjectRequest;
+import com.uniwork.model.response.ResponseFactory;
 import com.uniwork.service.ProjectService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
 @RequestMapping("/project")
+@PreAuthorize("hasAuthority('PERM_MANAGE_PROJECTS')")
 public class ProjectController {
 
     @Autowired
     private ProjectService projectService;
 
-    @GetMapping("/get-all")
-    public ResponseEntity getAllProjects(@RequestAttribute Payload payload,
+    @GetMapping("/all")
+    public ResponseEntity getAllProjects(@RequestAttribute(required = false) Payload payload,
                                          @RequestParam(required = false) Integer priority,
                                          @RequestParam(required = false) Integer status) {
         log.info("Getting all projects for userId: {}", payload.getUserId());
-        return projectService.getAllProjectsByUserId(payload.getUserId(), priority, status);
+        List<Project> projects = projectService.getAllProjectsByUserId(payload.getUserId(), priority, status);
+        return ResponseFactory.success(projects);
     }
 
-    @GetMapping("/get-detail/{projectId}")
-    public ResponseEntity getProjectDetail(@PathVariable Long projectId, @RequestAttribute Payload payload) {
+    @GetMapping("/detail/{projectId}")
+    public ResponseEntity getProjectDetail(@PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
         log.info("Getting project detail for projectId: {} and userId: {}", projectId, payload.getUserId());
-        return projectService.getProjectDetail(projectId, payload.getUserId());
+        Project project = projectService.getProjectDetail(projectId, payload.getUserId());
+        return ResponseFactory.success(project);
     }
 
-    @PostMapping("/create-project")
-    public ResponseEntity createProject(@RequestBody ProjectRequest projectRequest, @RequestAttribute Payload payload) {
+    @PreAuthorize("hasAuthority('PERM_CREATE_PROJECT')")
+    @PostMapping("/create")
+    public ResponseEntity createProject(@RequestBody ProjectRequest projectRequest, @RequestAttribute(required = false) Payload payload) {
         log.info("Creating project with request: {}", projectRequest);
-        return projectService.createProject(projectRequest, payload.getUserId());
+        Project project = projectService.createProject(projectRequest, payload.getUserId());
+        return ResponseFactory.success(project);
     }
 
-    @PostMapping("/update-project/{projectId}")
-    public ResponseEntity updateProject(@PathVariable Long projectId, @RequestBody ProjectRequest projectRequest, @RequestAttribute Payload payload) {
+    @PreAuthorize("hasAuthority('PERM_UPDATE_PROJECT')")
+    @PostMapping("/{projectId}/update")
+    public ResponseEntity updateProject(@PathVariable Long projectId, @RequestBody ProjectRequest projectRequest, @RequestAttribute(required = false) Payload payload) {
         log.info("Updating project with ID: {} and request: {}", projectId, projectRequest);
-        return projectService.updateProject(projectId, projectRequest, payload.getUserId());
+        Project project = projectService.updateProject(projectId, projectRequest, payload.getUserId());
+        return ResponseFactory.success(project);
+    }
+
+    @GetMapping("/{projectId}/members")
+    public ResponseEntity getProjectMembers(@PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
+        log.info("Getting members for projectId: {} and userId: {}", projectId, payload.getUserId());
+        List<UserDTO> members = projectService.findAllMembersByProjectId(projectId);
+        return ResponseFactory.success(members);
     }
 }
