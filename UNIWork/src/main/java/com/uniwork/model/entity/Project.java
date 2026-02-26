@@ -1,6 +1,7 @@
 package com.uniwork.model.entity;
 
 import com.uniwork.model.enumuration.Priority;
+import com.uniwork.model.enumuration.ProjectMethod;
 import com.uniwork.model.enumuration.ProjectStatus;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -15,6 +16,8 @@ public class Project {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long projectId;
+    @Enumerated(EnumType.STRING)
+    private ProjectMethod method; // AGILE or WATERFALL
     private String name;
     private String description;
     @Column(name = "priority")

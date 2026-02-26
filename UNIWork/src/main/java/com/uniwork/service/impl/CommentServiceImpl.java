@@ -2,7 +2,7 @@ package com.uniwork.service.impl;
 
 import com.uniwork.model.dto.CommentDTO;
 import com.uniwork.model.entity.Comment;
-import com.uniwork.model.request.AddComment;
+import com.uniwork.model.request.AddCommentRequest;
 import com.uniwork.repository.CommentRepository;
 import com.uniwork.service.CommentService;
 import org.springframework.stereotype.Service;
@@ -19,12 +19,12 @@ public class CommentServiceImpl implements CommentService {
         this.commentRepository = commentRepository;
     }
 
-    public Comment addComment(Long userId, AddComment addComment) {
+    public Comment addComment(Long userId, AddCommentRequest addCommentRequest) {
         Comment comment = new Comment();
         comment.setAuthorId(userId);
-        comment.setPosterId(addComment.getPosterId());
-        comment.setTaskId(addComment.getTaskId());
-        comment.setContent(addComment.getContent());
+        comment.setPosterId(addCommentRequest.getPosterId());
+        comment.setTaskId(addCommentRequest.getTaskId());
+        comment.setContent(addCommentRequest.getContent());
         comment.setCreatedDate(LocalDateTime.now());
         return commentRepository.save(comment);
     }

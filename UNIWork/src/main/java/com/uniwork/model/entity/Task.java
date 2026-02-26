@@ -16,10 +16,15 @@ public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long taskId;
-    private Long projectId; // Reference to the project this task belongs to
-    private Long assignedTo;
-    private Long createdBy; // Reference to the user who created the task
     private Long parentId; // For sub-tasks, reference to the parent task
+    private Long projectId; // Reference to the project this task belongs to
+    private Long departmentId;
+    private Long stageId; // nullable
+
+    private Long assignedTo;
+    private Long createdBy;// Reference to the user who created the task
+    private Long managedBy; // Reference to the user who is managing the task (could be a team lead or manager)
+
     private String title;
     private String description;
     @Column(name = "priority")
@@ -29,9 +34,10 @@ public class Task {
     private LocalDateTime dueDate;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
+
     private Long updatedBy;
     private Boolean completed;
-    private String tags; // List of tags associated with the task
-    private Long departmentId;
+    private String tags;
+
 
 }

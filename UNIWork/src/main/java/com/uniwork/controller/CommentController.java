@@ -2,7 +2,7 @@ package com.uniwork.controller;
 
 import com.uniwork.model.dto.CommentDTO;
 import com.uniwork.model.entity.Comment;
-import com.uniwork.model.request.AddComment;
+import com.uniwork.model.request.AddCommentRequest;
 import com.uniwork.model.response.ResponseFactory;
 import com.uniwork.interceptors.Payload;
 import com.uniwork.service.CommentService;
@@ -24,8 +24,8 @@ public class CommentController {
     private CommentService commentService;
 
     @PostMapping("/add")
-    public ResponseEntity addComment(@RequestAttribute(required = false) Payload payload, @RequestBody AddComment addComment) {
-        Comment comment =  commentService.addComment(payload.getUserId(), addComment);
+    public ResponseEntity addComment(@RequestAttribute(required = false) Payload payload, @RequestBody AddCommentRequest addCommentRequest) {
+        Comment comment =  commentService.addComment(payload.getUserId(), addCommentRequest);
         return ResponseFactory.success(comment);
     }
 

@@ -5,7 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-public class AddComment {
+public class AddCommentRequest {
     private Long taskId;
     private Long posterId;
     private Long authorId;

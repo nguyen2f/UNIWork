@@ -32,6 +32,5 @@ public class User {
 
     // Avatar (Cloudinary)
     private String avatarUrl;
-
     private String avatarPublicId;
 }
