@@ -1,12 +1,13 @@
 package com.uniwork.model.entity;
 
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 
 @Data
+@Entity
+@Table(name = "reports")
 public class Report {
 
     @Id
@@ -17,5 +18,8 @@ public class Report {
     private String type;
     private String url;
     private LocalDateTime createdDate;
+
+    @Column(name = "is_deleted", columnDefinition = "TINYINT(1)")
+    private Boolean isDeleted = false;
 
 }

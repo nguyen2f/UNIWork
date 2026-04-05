@@ -17,5 +17,6 @@ public class ProjectRequest {
     private String client;
     private String department;
     private String riskLevel;
+    private String method; // AGILE, WATERFALL, or STANDARD (default)
 }
 

@@ -1,14 +1,12 @@
 package com.uniwork.model.entity;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 
 @Entity
@@ -16,6 +14,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@SQLRestriction("is_deleted = false")
 public class ChatRoomMember {
 
     @Id
@@ -25,5 +24,8 @@ public class ChatRoomMember {
     private Long roomId;
 
     private Long userId;
-}
 
+    @Column(name = "is_deleted", columnDefinition = "TINYINT(1)")
+    @Builder.Default
+    private Boolean isDeleted = false;
+}

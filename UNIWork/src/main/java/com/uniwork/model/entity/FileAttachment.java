@@ -2,12 +2,14 @@ package com.uniwork.model.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Data
 @Table(name = "file_attachments")
+@SQLRestriction("is_deleted = false")
 public class FileAttachment {
 
     @Id
@@ -22,4 +24,7 @@ public class FileAttachment {
     private String contentType; // application/pdf, image/png
     private Long fileSize;
     private LocalDateTime uploadDate; // Date when the file was uploaded
+
+    @Column(name = "is_deleted", columnDefinition = "TINYINT(1)")
+    private Boolean isDeleted = false;
 }

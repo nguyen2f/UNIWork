@@ -3,12 +3,14 @@ package com.uniwork.model.entity;
 import com.uniwork.model.enumuration.SystemRole;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
 @Data
 @Entity
 @Table(name = "users")
+@SQLRestriction("is_deleted = false")
 public class User {
 
     @Id
@@ -32,5 +34,9 @@ public class User {
 
     // Avatar (Cloudinary)
     private String avatarUrl;
+
     private String avatarPublicId;
+
+    @Column(name = "is_deleted", columnDefinition = "TINYINT(1)")
+    private Boolean isDeleted = false;
 }

@@ -3,12 +3,14 @@ package com.uniwork.model.entity;
 import com.uniwork.model.enumuration.Priority;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
 @Data
 @Entity
 @Table(name = "events")
+@SQLRestriction("is_deleted = false")
 public class Event {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,5 +24,8 @@ public class Event {
     private String location;
     private Priority priority;
     private Long createdBy;
+
+    @Column(name = "is_deleted", columnDefinition = "TINYINT(1)")
+    private Boolean isDeleted = false;
 
 }

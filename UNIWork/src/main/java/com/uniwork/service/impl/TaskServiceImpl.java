@@ -5,11 +5,13 @@ import com.uniwork.exceptions.ErrorCode;
 import com.uniwork.model.dto.*;
 import com.uniwork.model.entity.FileAttachment;
 import com.uniwork.model.entity.Project;
+import com.uniwork.model.entity.Stage;
 import com.uniwork.model.entity.Task;
 import com.uniwork.model.enumuration.*;
 import com.uniwork.model.projection.TaskDetailProjection;
 import com.uniwork.model.request.AssignMemberRequest;
 import com.uniwork.model.request.TaskRequest;
+import com.uniwork.repository.StageRepository;
 import com.uniwork.repository.TaskRepository;
 import com.uniwork.service.*;
 import com.uniwork.util.BeanCopyUtils;
@@ -40,6 +42,8 @@ public class TaskServiceImpl implements TaskService {
     private NotificationService notificationService;
     @Autowired
     private CommentService commentService;
+    @Autowired
+    private StageRepository stageRepository;
 
     public List<TaskDTO> getAllTasksByProjectId(Long projectId) {
         Project project = projectService.getProjectById(projectId);
@@ -86,10 +90,18 @@ public class TaskServiceImpl implements TaskService {
     public List<Task> createTask(Long userId, TaskRequest taskRequest) {
 
         Project project = projectService.getProjectById(taskRequest.getProjectId());
+        if (project == null) {
+            throw new CoreException(ErrorCode.PROJECT_NOT_FOUND, "Can not find this project");
+        }
+
+        // Validate and resolve stageId
+        Long stageId = resolveStageId(taskRequest.getStageId(), project);
+
         List<Long> memberIds = taskRequest.getAssignedTo();
 
         Task parentTask = new Task();
         parentTask.setProjectId(project.getProjectId());
+        parentTask.setStageId(stageId);
         parentTask.setAssignedTo(null);
         parentTask.setCreatedBy(userId);
         parentTask.setParentId(null);
@@ -125,6 +137,7 @@ public class TaskServiceImpl implements TaskService {
 
             Task childTask = new Task();
             childTask.setProjectId(project.getProjectId());
+            childTask.setStageId(stageId);
             childTask.setAssignedTo(memberId);
             childTask.setCreatedBy(userId);
             childTask.setParentId(savedParentTask.getTaskId());
@@ -159,7 +172,7 @@ public class TaskServiceImpl implements TaskService {
         task.setUpdatedBy(userId);
         task.setStatus(TaskStatus.fromCode(taskRequest.getStatus()));
 
-        BeanCopyUtils.copyNonNullProperties(taskRequest, task, "taskId", "createdBy", "createdDate", "projectId");
+        BeanCopyUtils.copyNonNullProperties(taskRequest, task, "taskId", "createdBy", "createdDate", "projectId", "stageId", "isDeleted");
 
         Task updatedTask = taskRepository.save(task);
         return updatedTask;
@@ -168,12 +181,25 @@ public class TaskServiceImpl implements TaskService {
     public Task deleteTask(Long userId, Long taskId) {
         Task task = taskRepository.findById(taskId).orElse(null);
         if (task == null) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Can not find this task");
+            throw new CoreException(ErrorCode.TASK_NOT_FOUND, "Can not find this task");
         }
-        if (task.getAssignedTo() != userId) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "You can not delete this task");
+        // Soft delete — set isDeleted = true instead of removing from DB
+        task.setIsDeleted(true);
+        task.setUpdatedDate(LocalDateTime.now());
+        task.setUpdatedBy(userId);
+        taskRepository.save(task);
+
+        // Also soft-delete child tasks if this is a parent task
+        if (task.getParentId() == null) {
+            List<Task> childTasks = taskRepository.findByParentIdOrderByTaskIdDesc(taskId);
+            for (Task child : childTasks) {
+                child.setIsDeleted(true);
+                child.setUpdatedDate(LocalDateTime.now());
+                child.setUpdatedBy(userId);
+            }
+            taskRepository.saveAll(childTasks);
         }
-        taskRepository.delete(task);
+
         return task;
     }
 
@@ -187,5 +213,33 @@ public class TaskServiceImpl implements TaskService {
     private Boolean checkSubTaskDone(Long taskId) {
         List<Task> subTasks = taskRepository.findByParentIdOrderByTaskIdDesc(taskId);
         return subTasks.stream().allMatch(Task::getCompleted);
+    }
+
+    /**
+     * Resolve the stageId for a task:
+     * - If stageId is provided, validate it belongs to the project and is in PLANNED or ACTIVE status
+     * - If stageId is not provided, use the currently ACTIVE stage of the project
+     */
+    private Long resolveStageId(Long stageId, Project project) {
+        if (stageId != null) {
+            Stage stage = stageRepository.findById(stageId)
+                    .orElseThrow(() -> new CoreException(ErrorCode.STAGE_NOT_FOUND));
+
+            if (!stage.getProjectId().equals(project.getProjectId())) {
+                throw new CoreException(ErrorCode.STAGE_INVALID_STATE, "Stage does not belong to this project");
+            }
+
+            // Only allow assigning tasks to PLANNED or ACTIVE stages
+            if (stage.getStatus() == StageStatus.COMPLETED || stage.getStatus() == StageStatus.CANCELLED) {
+                throw new CoreException(ErrorCode.STAGE_INVALID_STATE, "Cannot add tasks to a COMPLETED or CANCELLED stage");
+            }
+
+            return stageId;
+        }
+
+        // Default: use the currently ACTIVE stage
+        return stageRepository.findByProjectIdAndStatus(project.getProjectId(), StageStatus.ACTIVE)
+                .map(Stage::getStageId)
+                .orElseThrow(() -> new CoreException(ErrorCode.STAGE_NOT_FOUND, "No active stage found for this project"));
     }
 }

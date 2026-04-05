@@ -2,6 +2,7 @@ package com.uniwork.service.impl;
 
 import com.uniwork.model.dto.UserDTO;
 import com.uniwork.model.enumuration.Priority;
+import com.uniwork.model.enumuration.ProjectMethod;
 import com.uniwork.model.enumuration.ProjectStatus;
 import com.uniwork.model.enumuration.Role;
 import com.uniwork.model.request.ProjectRequest;
@@ -15,6 +16,7 @@ import com.uniwork.repository.ProjectRepository;
 import com.uniwork.repository.UserRepository;
 import com.uniwork.service.AuthService;
 import com.uniwork.service.ProjectService;
+import com.uniwork.service.StageService;
 import com.uniwork.service.UserService;
 import com.uniwork.util.BeanCopyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +41,8 @@ public class ProjectServiceImpl implements ProjectService {
     private UserService userService;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private StageService stageService;
 
     public Project getProjectById(Long projectId) {
         return projectRepository.findProjectByProjectId(projectId);
@@ -82,16 +86,36 @@ public class ProjectServiceImpl implements ProjectService {
         project.setRiskLevel(projectRequest.getRiskLevel());
         project.setCategory(projectRequest.getCategory());
         project.setPriority(Priority.fromCode(projectRequest.getPriority()) != null ? Priority.fromCode(projectRequest.getPriority()) : Priority.HIGH);
+
+        // Set project methodology (default to STANDARD if not specified)
+        ProjectMethod method = resolveProjectMethod(projectRequest.getMethod());
+        project.setMethod(method);
+
         projectRepository.save(project);
 
+        // Create owner as project member
         ProjectMember projectMember = new ProjectMember();
         projectMember.setProjectId(project.getProjectId());
         projectMember.setUserId(userId);
         projectMember.setRole(Role.OWNER);
         projectMember.setStatus(true);
         projectMemberRepository.save(projectMember);
-        return project;
 
+        // Initialize default stages based on methodology
+        stageService.initDefaultStages(project.getProjectId(), method);
+
+        return project;
+    }
+
+    private ProjectMethod resolveProjectMethod(String methodStr) {
+        if (methodStr == null || methodStr.isBlank()) {
+            return ProjectMethod.STANDARD;
+        }
+        try {
+            return ProjectMethod.valueOf(methodStr.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ProjectMethod.STANDARD;
+        }
     }
 
     public Project updateProject(Long projectId, ProjectRequest projectRequest, Long userId) {

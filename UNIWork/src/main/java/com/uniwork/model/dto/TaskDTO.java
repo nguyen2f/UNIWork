@@ -33,6 +33,10 @@ public class TaskDTO {
 
     private Long taskParentId;
 
+    // Stage info
+    private Long stageId;
+    private String stageName;
+
     public TaskDTO(TaskDetailProjection p) {
         this.taskId = p.getTaskId();
         this.projectId = p.getProjectId();
@@ -49,7 +53,8 @@ public class TaskDTO {
         this.tags = p.getTags();
         this.assigneeName = p.getAssigneeName();
         this.taskParentId = p.getTaskParentId();
+        this.stageId = p.getStageId();
+        this.stageName = p.getStageName();
     }
 
 }
-

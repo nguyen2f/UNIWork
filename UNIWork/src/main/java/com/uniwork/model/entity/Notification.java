@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
@@ -17,6 +18,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@SQLRestriction("is_deleted = false")
 public class Notification {
 
     @Id
@@ -40,4 +42,8 @@ public class Notification {
     private boolean isRead = false;
 
     private LocalDateTime createdDate;
+
+    @Column(name = "is_deleted", columnDefinition = "TINYINT(1)")
+    @Builder.Default
+    private Boolean isDeleted = false;
 }

@@ -51,7 +51,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     Page<Task> findAllByAssignedToAndStatusIn(Long assignedTo, List<TaskStatus> statuses, Pageable pageable);
 
 
-    @Query(value = "SELECT COUNT(*) FROM tasks WHERE assigned_to = :assignedTo AND status = :status AND updated_date < due_date", nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM tasks WHERE assigned_to = :assignedTo AND status = :status AND updated_date < due_date AND is_deleted = false", nativeQuery = true)
     Long countTasksCompletedBeforeDeadline(@Param("assignedTo") Long assignedTo, @Param("status") TaskStatus status);
 
     Long countByAssignedToAndUpdatedDateBetweenAndStatus(Long assignedTo, LocalDateTime startDate, LocalDateTime endDate, TaskStatus status);
@@ -131,9 +131,12 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                     t.completed     AS completed,
                     t.tags          AS tags,
                     t.parentId      AS taskParentId,
-                u.name      AS assigneeName
+                    t.stageId       AS stageId,
+                u.name      AS assigneeName,
+                s.name      AS stageName
             FROM Task t
             LEFT JOIN User u ON t.assignedTo = u.userId
+            LEFT JOIN Stage s ON t.stageId = s.stageId
             WHERE t.projectId = :projectId
             """)
     List<TaskDetailProjection> findByProjectIdWithUser(Long projectId);
@@ -154,9 +157,12 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                                                t.completed     AS completed,
                                                t.tags          AS tags,
                                                t.parentId      AS taskParentId,
-                u.name      AS assigneeName
+                                               t.stageId       AS stageId,
+                u.name      AS assigneeName,
+                s.name      AS stageName
             FROM Task t
             LEFT JOIN User u ON t.assignedTo = u.userId
+            LEFT JOIN Stage s ON t.stageId = s.stageId
             WHERE t.taskId = :taskId
             """)
     TaskDetailProjection findByTaskId(@Param("taskId") Long taskId);
@@ -177,13 +183,54 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                                                t.completed     AS completed,
                                                t.tags          AS tags,
                                                t.parentId      AS taskParentId,
-                u.name      AS assigneeName
+                                               t.stageId       AS stageId,
+                u.name      AS assigneeName,
+                s.name      AS stageName
             FROM Task t
             LEFT JOIN User u ON t.assignedTo = u.userId
+            LEFT JOIN Stage s ON t.stageId = s.stageId
             WHERE t.parentId = :taskParentId
             """)
     List<TaskDetailProjection> findByParentId(@Param("taskParentId") Long taskParentId);
 
     List<Task> findByParentIdOrderByTaskIdDesc(Long taskId);
+
+    // =====================================================
+    // STAGE-RELATED QUERIES
+    // =====================================================
+
+    List<Task> findAllByStageId(Long stageId);
+
+    Long countByStageId(Long stageId);
+
+    Long countByStageIdAndStatus(Long stageId, TaskStatus status);
+
+    boolean existsByStageIdAndStatusNot(Long stageId, TaskStatus status);
+
+    @Query("""
+            SELECT 
+                t.taskId        AS taskId,
+                    t.projectId     AS projectId,
+                    t.assignedTo    AS assignedTo,
+                    t.createdBy     AS createdBy,
+                    t.title         AS title,
+                    t.description   AS description,
+                    t.priority      AS priority,
+                    t.status        AS status,
+                    t.dueDate       AS dueDate,
+                    t.createdDate  AS createdDate,
+                    t.updatedDate  AS updatedDate,
+                    t.completed     AS completed,
+                    t.tags          AS tags,
+                    t.parentId      AS taskParentId,
+                    t.stageId       AS stageId,
+                u.name      AS assigneeName,
+                s.name      AS stageName
+            FROM Task t
+            LEFT JOIN User u ON t.assignedTo = u.userId
+            LEFT JOIN Stage s ON t.stageId = s.stageId
+            WHERE t.stageId = :stageId
+            """)
+    List<TaskDetailProjection> findByStageIdWithUser(@Param("stageId") Long stageId);
 
 }

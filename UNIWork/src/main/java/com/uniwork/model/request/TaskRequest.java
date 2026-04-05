@@ -19,4 +19,5 @@ public class TaskRequest {
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
     private String tags;
+    private Long stageId; // Required — stage this task belongs to
 }

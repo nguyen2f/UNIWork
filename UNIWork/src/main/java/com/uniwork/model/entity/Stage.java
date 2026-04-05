@@ -4,12 +4,14 @@ import com.uniwork.model.enumuration.StageStatus;
 import com.uniwork.model.enumuration.StageType;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
 @Data
 @Entity
 @Table(name = "stages")
+@SQLRestriction("is_deleted = false")
 public class Stage {
 
     @Id
@@ -21,7 +23,7 @@ public class Stage {
     private String name;
 
     @Enumerated(EnumType.STRING)
-    private StageType type; // SPRINT or PHASE
+    private StageType type; // SPRINT, PHASE, or DEFAULT
 
     private Integer orderIndex; // Thứ tự trong project
 
@@ -34,4 +36,7 @@ public class Stage {
     // PLANNED, ACTIVE, COMPLETED, CANCELLED
 
     private Boolean active;
+
+    @Column(name = "is_deleted", columnDefinition = "TINYINT(1)")
+    private Boolean isDeleted = false;
 }

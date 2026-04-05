@@ -28,4 +28,8 @@ public interface TaskDetailProjection {
     // từ bảng users
     String getAssigneeName();
 
+    // Stage info
+    Long getStageId();
+    String getStageName();
+
 }

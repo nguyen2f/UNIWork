@@ -5,12 +5,14 @@ import com.uniwork.model.enumuration.Priority;
 import com.uniwork.model.enumuration.TaskStatus;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
 @Data
 @Entity
 @Table(name = "tasks")
+@SQLRestriction("is_deleted = false")
 public class Task {
 
     @Id
@@ -19,7 +21,7 @@ public class Task {
     private Long parentId; // For sub-tasks, reference to the parent task
     private Long projectId; // Reference to the project this task belongs to
     private Long departmentId;
-    private Long stageId; // nullable
+    private Long stageId; // Required — every task belongs to a stage
 
     private Long assignedTo;
     private Long createdBy;// Reference to the user who created the task
@@ -39,5 +41,7 @@ public class Task {
     private Boolean completed;
     private String tags;
 
+    @Column(name = "is_deleted", columnDefinition = "TINYINT(1)")
+    private Boolean isDeleted = false;
 
 }

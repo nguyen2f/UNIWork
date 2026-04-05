@@ -32,7 +32,8 @@ public class AuthorizationMatrix {
                     SystemPermission.MANAGE_CHATS,
                     SystemPermission.MANAGE_COMMENTS,
                     SystemPermission.MANAGE_TASKS,
-                    SystemPermission.MANAGE_USERS
+                    SystemPermission.MANAGE_USERS,
+                    SystemPermission.MANAGE_STAGES
             )
 
     );

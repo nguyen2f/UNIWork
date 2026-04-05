@@ -25,6 +25,10 @@ public enum SystemPermission {
 
     MANAGE_USERS,
     REMOVE_MEMBERS,
-    ASSIGN_MEMBERS
+    ASSIGN_MEMBERS,
+
+    MANAGE_STAGES,
+    CREATE_STAGE,
+    ACTIVATE_STAGE
 
 }

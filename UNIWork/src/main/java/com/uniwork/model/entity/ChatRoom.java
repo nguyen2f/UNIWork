@@ -3,11 +3,13 @@ package com.uniwork.model.entity;
 import com.uniwork.model.enumuration.ChatRoomType;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Data
+@SQLRestriction("is_deleted = false")
 public class ChatRoom {
 
     @Id
@@ -20,4 +22,7 @@ public class ChatRoom {
     private String name;
 
     private LocalDateTime createdAt;
+
+    @Column(name = "is_deleted", columnDefinition = "TINYINT(1)")
+    private Boolean isDeleted = false;
 }
