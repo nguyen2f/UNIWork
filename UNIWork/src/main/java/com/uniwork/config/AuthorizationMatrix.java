@@ -1,7 +1,7 @@
 package com.uniwork.config;
 
-import com.uniwork.model.enumuration.SystemPermission;
-import com.uniwork.model.enumuration.SystemRole;
+import com.uniwork.enums.SystemPermission;
+import com.uniwork.enums.SystemRole;
 import org.springframework.stereotype.Component;
 
 import java.util.EnumSet;

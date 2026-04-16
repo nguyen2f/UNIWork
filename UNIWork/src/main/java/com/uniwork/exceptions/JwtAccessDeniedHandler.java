@@ -1,7 +1,7 @@
 package com.uniwork.exceptions;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.uniwork.model.response.ApiResponse;
+import com.uniwork.common.response.ApiResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

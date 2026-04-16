@@ -1,6 +1,6 @@
 package com.uniwork.config;
 
-import com.uniwork.interceptors.AuthInterceptor;
+import com.uniwork.modules.auth.interceptor.AuthInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.Interceptor;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +20,7 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(authInterceptor).addPathPatterns("/**").excludePathPatterns("/user/register", "/user/login");
+        registry.addInterceptor(authInterceptor).addPathPatterns("/**").excludePathPatterns("/auth/login");
     }
 
     @Override

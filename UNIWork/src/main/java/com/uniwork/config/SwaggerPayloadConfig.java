@@ -1,6 +1,6 @@
 package com.uniwork.config;
 
-import com.uniwork.interceptors.Payload;
+import com.uniwork.modules.auth.dto.Payload;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Configuration;

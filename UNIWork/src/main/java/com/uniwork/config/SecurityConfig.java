@@ -2,8 +2,8 @@ package com.uniwork.config;
 
 import com.uniwork.exceptions.JwtAccessDeniedHandler;
 import com.uniwork.exceptions.JwtAuthenticationEntryPoint;
-import com.uniwork.filter.PayloadFilter;
-import com.uniwork.util.JwtAuthenticationFilter;
+import com.uniwork.modules.auth.filter.PayloadFilter;
+import com.uniwork.modules.auth.filter.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -67,8 +67,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/user/login",
-                                "/user/signup"
+                                "/auth/login"
                         ).permitAll()
                         .requestMatchers(
                                 "/ws-chat/**",
