@@ -1,21 +1,18 @@
 package com.uniwork.modules.task.service;
 
+import com.uniwork.enums.*;
 import com.uniwork.exceptions.CoreException;
 import com.uniwork.exceptions.ErrorCode;
-import com.uniwork.modules.task.dto.*;
-import com.uniwork.modules.project.dto.*;
-import com.uniwork.modules.user.dto.*;
-import com.uniwork.modules.chat.dto.*;
-import com.uniwork.modules.comment.dto.*;
-import com.uniwork.modules.file.dto.*;
-import com.uniwork.modules.notification.dto.*;
-import com.uniwork.modules.report.dto.*;
-import com.uniwork.modules.auth.dto.*;
-import com.uniwork.modules.file.entity.FileAttachment;
+import com.uniwork.modules.issue.entity.Issue;
+import com.uniwork.modules.issue.repository.IssueRepository;
+import com.uniwork.modules.task.dto.TaskDTO;
+import com.uniwork.modules.task.dto.TaskDetailDTO;
+import com.uniwork.modules.comment.dto.CommentDTO;
+import com.uniwork.modules.file.dto.FileAttachmentDTO;
+import com.uniwork.modules.notification.dto.NotificationDTO;
 import com.uniwork.modules.project.entity.Project;
 import com.uniwork.modules.stage.entity.Stage;
 import com.uniwork.modules.task.entity.Task;
-import com.uniwork.enums.*;
 import com.uniwork.modules.task.projection.TaskDetailProjection;
 import com.uniwork.modules.project.request.AssignMemberRequest;
 import com.uniwork.modules.task.request.TaskRequest;
@@ -23,9 +20,10 @@ import com.uniwork.modules.stage.repository.StageRepository;
 import com.uniwork.modules.task.repository.TaskRepository;
 import com.uniwork.modules.project.service.ProjectService;
 import com.uniwork.modules.file.service.FileAttachmentService;
-import com.uniwork.modules.user.service.UserService;
 import com.uniwork.modules.notification.service.NotificationService;
 import com.uniwork.modules.comment.service.CommentService;
+import com.uniwork.modules.issue.service.IssueService;
+import com.uniwork.modules.issue.dto.IssueDTO;
 import com.uniwork.common.utils.BeanCopyUtils;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,33 +46,35 @@ public class TaskServiceImpl implements TaskService {
     private FileAttachmentService fileAttachmentService;
 
     @Autowired
-    private UserService userService;
-
-    @Autowired
     private NotificationService notificationService;
     @Autowired
     private CommentService commentService;
     @Autowired
     private StageRepository stageRepository;
+    @Autowired
+    private IssueService issueService;
+    @Autowired
+    private IssueRepository issueRepository;
 
     public List<TaskDTO> getAllTasksByProjectId(Long projectId) {
         Project project = projectService.getProjectById(projectId);
         if (project == null) {
             throw new CoreException(ErrorCode.INTERNAL_ERROR, "Can not find this project");
         }
-        List<TaskDetailProjection> tasks = taskRepository.findByProjectIdWithUser(projectId);
 
-        List<TaskDTO> result = taskRepository
+        return taskRepository
                 .findByProjectIdWithUser(projectId)
                 .stream()
                 .map(TaskDTO::new)
                 .toList();
-        return result;
     }
 
     public TaskDetailDTO getTaskById(Long userId, Long taskId) {
         TaskDetailDTO dto = new TaskDetailDTO();
         TaskDetailProjection task = taskRepository.findByTaskId(taskId);
+        if (task == null) {
+            throw new CoreException(ErrorCode.TASK_NOT_FOUND, "Task not found");
+        }
         TaskDTO taskDTO = new TaskDTO(task);
         dto.setTask(taskDTO);
 
@@ -95,11 +95,16 @@ public class TaskServiceImpl implements TaskService {
 
         List<CommentDTO> comments = commentService.getAllCommentDTO(taskId);
         dto.setComments(comments);
+
+        // Load issues for this task
+        List<IssueDTO> issues = issueService.getIssuesByTaskId(taskId);
+        dto.setIssues(issues);
+
         return dto;
     }
 
     @Transactional
-    public List<Task> createTask(Long userId, TaskRequest taskRequest) {
+    public Task createTask(Long userId, TaskRequest taskRequest) {
 
         Project project = projectService.getProjectById(taskRequest.getProjectId());
         if (project == null) {
@@ -128,8 +133,7 @@ public class TaskServiceImpl implements TaskService {
 
         Task savedParentTask = taskRepository.save(parentTask);
 
-        List<Task> childTasks = new ArrayList<>();
-
+        List<Issue> childTasks = new ArrayList<>();
 
         NotificationDTO notificationDTO = NotificationDTO.builder()
                 .type(NotificationType.TASK_ASSIGNED)
@@ -141,60 +145,63 @@ public class TaskServiceImpl implements TaskService {
 
             if (!projectService.checkProjectMember(project.getProjectId(), memberId)) {
                 AssignMemberRequest assignMemberRequest = new AssignMemberRequest();
-                assignMemberRequest.setProjectId(project.getProjectId());
                 assignMemberRequest.setUserId(memberId);
                 assignMemberRequest.setRole(Role.MEMBER.toString());
-                userService.assignMemberToProject(assignMemberRequest);
+                projectService.assignMember(project.getProjectId(), assignMemberRequest);
             }
 
-            Task childTask = new Task();
+            Issue childTask = new Issue();
             childTask.setProjectId(project.getProjectId());
-            childTask.setStageId(stageId);
+            childTask.setTaskId(savedParentTask.getTaskId());
             childTask.setAssignedTo(memberId);
-            childTask.setCreatedBy(userId);
-            childTask.setParentId(savedParentTask.getTaskId());
+            childTask.setReportedBy(userId);
             childTask.setTitle(taskRequest.getTitle());
             childTask.setDescription(taskRequest.getDescription());
             childTask.setPriority(Priority.fromCode(taskRequest.getPriority()));
-            childTask.setStatus(TaskStatus.PENDING);
+            childTask.setStatus(IssueStatus.OPEN);
             childTask.setDueDate(taskRequest.getDueDate());
             childTask.setCreatedDate(LocalDateTime.now().withNano(0));
-            childTask.setCompleted(false);
-            childTask.setTags(taskRequest.getTags());
+//            childTask.set(false);
+//            childTask.setTags(taskRequest.getTags());
 
             childTasks.add(childTask);
 
             notificationService.sendNotification(memberId, notificationDTO);
         }
 
-        taskRepository.saveAll(childTasks);
+        issueRepository.saveAll(childTasks);
 
-        return childTasks;
+        return parentTask;
     }
 
     public Task updateTask(Long userId, Long taskId, TaskRequest taskRequest) {
-        Task task = taskRepository.findById(taskId).orElse(null);
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new CoreException(ErrorCode.TASK_NOT_FOUND, "Task not found"));
+
         if (task.getParentId() == null && !checkSubTaskDone(taskId)) {
             throw new CoreException(ErrorCode.INTERNAL_ERROR, "Not all subtasks have been done, so you cannot change the status");
         }
-        if (taskRequest.getStatus() == TaskStatus.COMPLETED.getCode() || taskRequest.getStatus() == TaskStatus.REVIEWING.getCode()) {
+        if (taskRequest.getStatus() != null &&
+                (taskRequest.getStatus() == TaskStatus.COMPLETED.getCode() || taskRequest.getStatus() == TaskStatus.REVIEWING.getCode())) {
             task.setCompleted(true);
         }
         task.setUpdatedDate(LocalDateTime.now());
         task.setUpdatedBy(userId);
-        task.setStatus(TaskStatus.fromCode(taskRequest.getStatus()));
 
-        BeanCopyUtils.copyNonNullProperties(taskRequest, task, "taskId", "createdBy", "createdDate", "projectId", "stageId", "isDeleted");
+        if (taskRequest.getStatus() != null) {
+            task.setStatus(TaskStatus.fromCode(taskRequest.getStatus()));
+        }
+
+        BeanCopyUtils.copyNonNullProperties(taskRequest, task, "taskId", "createdBy", "createdDate", "projectId", "stageId", "isDeleted", "status");
 
         Task updatedTask = taskRepository.save(task);
         return updatedTask;
     }
 
     public Task deleteTask(Long userId, Long taskId) {
-        Task task = taskRepository.findById(taskId).orElse(null);
-        if (task == null) {
-            throw new CoreException(ErrorCode.TASK_NOT_FOUND, "Can not find this task");
-        }
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new CoreException(ErrorCode.TASK_NOT_FOUND, "Can not find this task"));
+
         // Soft delete — set isDeleted = true instead of removing from DB
         task.setIsDeleted(true);
         task.setUpdatedDate(LocalDateTime.now());
@@ -215,11 +222,20 @@ public class TaskServiceImpl implements TaskService {
         return task;
     }
 
-    //    @Cacheable(value = "uniwork:task:assignedTo", key = "'userId:' +  #assignedTo")
+    @Override
+    public List<TaskDTO> getTasksByStageId(Long stageId) {
+        List<TaskDetailProjection> projections = taskRepository.findByStageIdWithUser(stageId);
+        return projections.stream().map(TaskDTO::new).toList();
+    }
 
-    public List<Task> getAllTasksByAssignedTo(Long assignedTo, Integer priority, Integer status) {
-        List<Task> tasks = taskRepository.findAllByAssignedToAndFilter(assignedTo, Priority.fromCode(priority), TaskStatus.fromCode(status));
-        return tasks;
+    @Override
+    public List<TaskDTO> getTasksByAssignedTo(Long assignedTo, Integer priority, Integer status) {
+        List<TaskDetailProjection> projections = taskRepository.findByAssignedToWithUser(
+                assignedTo,
+                priority != null ? Priority.fromCode(priority) : null,
+                status != null ? TaskStatus.fromCode(status) : null
+        );
+        return projections.stream().map(TaskDTO::new).toList();
     }
 
     private Boolean checkSubTaskDone(Long taskId) {

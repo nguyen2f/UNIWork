@@ -5,6 +5,7 @@ import com.uniwork.modules.file.entity.FileAttachment;
 import com.uniwork.modules.task.entity.Task;
 import com.uniwork.modules.comment.dto.CommentDTO;
 import com.uniwork.modules.file.dto.FileAttachmentDTO;
+import com.uniwork.modules.issue.dto.IssueDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,4 +20,5 @@ public class TaskDetailDTO {
     private List<TaskDTO> childTasks;
     private List<CommentDTO> comments;
     private List<FileAttachmentDTO> fileAttachments;
+    private List<IssueDTO> issues;
 }

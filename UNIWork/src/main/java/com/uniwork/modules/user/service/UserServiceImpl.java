@@ -1,18 +1,16 @@
 package com.uniwork.modules.user.service;
 
+import com.uniwork.modules.admin.request.AdminCreateDepartmentRequest;
+import com.uniwork.modules.company.entity.Department;
+import com.uniwork.modules.company.repository.DepartmentRepository;
 import com.uniwork.modules.user.dto.ProfileDTO;
 import com.uniwork.modules.task.entity.Task;
 import com.uniwork.enums.Role;
 import com.uniwork.enums.SystemRole;
 import com.uniwork.modules.user.projection.UserProfileProjection;
-import com.uniwork.modules.task.request.*;
 import com.uniwork.modules.project.request.*;
 import com.uniwork.modules.user.request.*;
 import com.uniwork.modules.auth.request.*;
-import com.uniwork.modules.stage.request.*;
-import com.uniwork.modules.comment.request.*;
-import com.uniwork.modules.event.request.*;
-import com.uniwork.modules.file.request.*;
 import com.uniwork.modules.user.dto.UserDTO;
 import com.uniwork.modules.project.entity.ProjectMember;
 import com.uniwork.modules.user.entity.User;
@@ -22,11 +20,12 @@ import com.uniwork.modules.task.repository.TaskRepository;
 import com.uniwork.modules.user.repository.UserRepository;
 import com.uniwork.modules.file.service.FileAttachmentService;
 import com.uniwork.modules.mail.service.MailService;
-import com.uniwork.modules.user.service.UserService;
 import com.uniwork.common.utils.BeanCopyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,6 +47,8 @@ public class UserServiceImpl implements UserService {
     @Autowired
     private TaskRepository taskRepository;
     @Autowired
+    private DepartmentRepository departmentRepository;
+    @Autowired
     private PasswordEncoder passwordEncoder;
     @Autowired
     private MailService mailService;
@@ -66,7 +67,7 @@ public class UserServiceImpl implements UserService {
         user.setPassword(encodedPassword);
         user.setEmail(registerRequest.getEmail());
         user.setCreatedDate(LocalDateTime.now());
-        user.setSystemRole(SystemRole.EMPLOYEE);
+        user.setSystemRole(SystemRole.EMPLOYEE.name());
         user.setActive(true);
 
         mailService.sendRegisterMail(registerRequest.getEmail(), registerRequest.getName());
@@ -88,16 +89,12 @@ public class UserServiceImpl implements UserService {
 
     public ProjectMember assignMemberToProject(AssignMemberRequest assignMemberRequest) {
         Long userId = assignMemberRequest.getUserId();
-        Long projectId = assignMemberRequest.getProjectId();
         String role = assignMemberRequest.getRole();
 
         ProjectMember projectMember = new ProjectMember();
-        projectMember.setProjectId(projectId);
         projectMember.setUserId(userId);
         projectMember.setRole(Role.valueOf(role));
         projectMember.setStatus(true);
-
-        mailService.sendAssignMail(assignMemberRequest.getEmail(), assignMemberRequest.getProjectName(), role);
 
         return projectMemberRepository.save(projectMember);
 
@@ -145,16 +142,7 @@ public class UserServiceImpl implements UserService {
 
     @Cacheable(value = "uniwork:user:list", key = "'active'")
     public List<UserDTO> getAllMembersActive() {
-        List<UserDTO> users = userRepository.findAll().stream()
-                .map(user -> new UserDTO(
-                        user.getUserId(),
-                        user.getName(),
-                        user.getEmail(),
-                        user.getPhone(),
-                        user.getDepartment()
-                ))
-                .collect(Collectors.toList());
-        return users;
+        return userRepository.findAllUserDTO();
     }
 
     public ProfileDTO getUserById(Long userId) {
@@ -203,31 +191,34 @@ public class UserServiceImpl implements UserService {
         user.setPassword(encodedPassword);
         user.setEmail(request.getEmail());
         user.setCreatedDate(LocalDateTime.now());
-        
+        user.setDepartmentId(request.getDepartmentId());
         SystemRole role = request.getSystemRole();
         if (role == null) {
             role = SystemRole.EMPLOYEE;
         }
-        user.setSystemRole(role);
+        user.setSystemRole(role.name());
         user.setActive(true);
         
         return userRepository.save(user);
     }
 
     @Override
-    public org.springframework.data.domain.Page<ProfileDTO> getAllUsersPaginated(org.springframework.data.domain.Pageable pageable) {
-        return userRepository.findAll(pageable).map(user -> ProfileDTO.builder()
-                .userId(user.getUserId())
-                .name(user.getName())
-                .phone(user.getPhone())
-                .email(user.getEmail())
-                .bio(user.getBio())
-                .address(user.getAddress())
-                .department(user.getDepartment())
-                .active(user.getActive())
-                .systemRole(user.getSystemRole() != null ? user.getSystemRole().name() : null)
-                .avatarUrl(user.getAvatarUrl())
-                .avatarPublicId(user.getAvatarPublicId())
-                .build());
+    public Page<User> getAllUsers(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
+
+    @Override
+    public Page<ProfileDTO> getAllUsersPaginated(Pageable pageable) {
+        return userRepository.findAllProfileDTO(pageable);
+    }
+
+    @Override
+    @CacheEvict(value = "uniwork:department:list", key = "'active'")
+    public Department createDepartmentByAdmin(AdminCreateDepartmentRequest request) {
+        Department department = new Department();
+        department.setDepartmentName(request.getDepartmentName());
+        department.setLocation(request.getLocation());
+        return departmentRepository.save(department);
+    }
+
 }

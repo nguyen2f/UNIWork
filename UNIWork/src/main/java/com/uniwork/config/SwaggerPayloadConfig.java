@@ -24,7 +24,7 @@ public class SwaggerPayloadConfig implements WebMvcConfigurer {
                         || uri.startsWith("/api-docs")) {
 
                     Payload payload = new Payload();
-                    payload.setUserId(1L); // 👈 mock userId (tuỳ chỉnh tuỳ bạn)
+                    payload.setUserId(1L);
                     request.setAttribute("payload", payload);
                 }
 

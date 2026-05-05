@@ -15,7 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/event")
+@RequestMapping("/events")
 @Slf4j
 @PreAuthorize("hasAuthority('PERM_MANAGE_EVENTS')")
 public class EventController {

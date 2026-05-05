@@ -238,4 +238,34 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             """)
     List<TaskDetailProjection> findByStageIdWithUser(@Param("stageId") Long stageId);
 
+    @Query("""
+            SELECT 
+                t.taskId        AS taskId,
+                    t.projectId     AS projectId,
+                    t.assignedTo    AS assignedTo,
+                    t.createdBy     AS createdBy,
+                    t.title         AS title,
+                    t.description   AS description,
+                    t.priority      AS priority,
+                    t.status        AS status,
+                    t.dueDate       AS dueDate,
+                    t.createdDate  AS createdDate,
+                    t.updatedDate  AS updatedDate,
+                    t.completed     AS completed,
+                    t.tags          AS tags,
+                    t.parentId      AS taskParentId,
+                    t.stageId       AS stageId,
+                u.name      AS assigneeName,
+                s.name      AS stageName
+            FROM Task t
+            LEFT JOIN User u ON t.assignedTo = u.userId
+            LEFT JOIN Stage s ON t.stageId = s.stageId
+            WHERE t.assignedTo = :assignedTo
+              AND (:priority IS NULL OR t.priority = :priority)
+              AND (:status IS NULL OR t.status = :status)
+            """)
+    List<TaskDetailProjection> findByAssignedToWithUser(@Param("assignedTo") Long assignedTo,
+                                                         @Param("priority") Priority priority,
+                                                         @Param("status") TaskStatus status);
+
 }

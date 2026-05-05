@@ -24,7 +24,7 @@ import java.util.List;
 
 @PreAuthorize("hasAuthority('PERM_MANAGE_REPORTS')")
 @RestController
-@RequestMapping("/report")
+@RequestMapping("/reports")
 @Slf4j
 public class ReportController {
 

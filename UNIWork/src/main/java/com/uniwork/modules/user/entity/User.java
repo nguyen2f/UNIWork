@@ -23,12 +23,12 @@ public class User {
     private LocalDateTime updatedDate;
     private String address;
     private String phone;
-    private String department;
+//    private String department;
     private String bio;
     private Boolean active;
 
-    @Enumerated(EnumType.STRING)
-    private SystemRole systemRole;
+//    @Enumerated(EnumType.STRING)
+    private String systemRole;
 
     private Long departmentId;
 

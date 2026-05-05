@@ -23,7 +23,9 @@ public enum ErrorCode {
     STAGE_HAS_UNDONE_TASKS("STAGE_004", "All tasks must be completed before completing the stage", HttpStatus.BAD_REQUEST),
     STAGE_HAS_TASKS("STAGE_005", "Stage still has tasks, move them before deleting", HttpStatus.BAD_REQUEST),
 
-    PROJECT_NOT_FOUND("PRJ_001", "Project not found", HttpStatus.NOT_FOUND);
+    PROJECT_NOT_FOUND("PRJ_001", "Project not found", HttpStatus.NOT_FOUND),
+
+    ISSUE_NOT_FOUND("ISSUE_001", "Issue not found", HttpStatus.NOT_FOUND);
 
 
 

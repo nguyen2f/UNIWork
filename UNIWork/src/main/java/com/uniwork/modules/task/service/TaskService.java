@@ -13,12 +13,14 @@ public interface TaskService {
 
     TaskDetailDTO getTaskById(Long userId, Long taskId);
 
-    List<Task> createTask(Long userId, TaskRequest taskRequest);
+    Task createTask(Long userId, TaskRequest taskRequest);
 
     Task updateTask(Long userId, Long taskId, TaskRequest taskRequest);
 
     Task deleteTask(Long userId, Long taskId);
 
-    List<Task> getAllTasksByAssignedTo(Long assignedTo, Integer priority, Integer status);
+    List<TaskDTO> getTasksByAssignedTo(Long assignedTo, Integer priority, Integer status);
+
+    List<TaskDTO> getTasksByStageId(Long stageId);
 
 }

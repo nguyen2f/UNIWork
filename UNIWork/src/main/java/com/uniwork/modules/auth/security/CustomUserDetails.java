@@ -1,6 +1,7 @@
 package com.uniwork.modules.auth.security;
 
 import com.uniwork.config.AuthorizationMatrix;
+import com.uniwork.enums.SystemRole;
 import com.uniwork.modules.user.entity.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -22,7 +23,7 @@ public class CustomUserDetails implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorizationMatrix
-                .getPermission(user.getSystemRole())
+                .getPermission(SystemRole.fromValue(user.getSystemRole()))
                 .stream()
                 .map(permission ->  new SimpleGrantedAuthority("PERM_" + permission.name()))
                 .toList();

@@ -28,6 +28,7 @@ public class StageDetailDTO {
     private Long completedTasks;
     private Long pendingTasks;
     private Long doingTasks;
+    private Double progressPercent;
 
     // Tasks in this stage
     private List<TaskDTO> tasks;

@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/chat")
+@RequestMapping("/chats")
 @Slf4j
 @PreAuthorize("hasAuthority('PERM_MANAGE_CHATS')")
 public class ChatController {

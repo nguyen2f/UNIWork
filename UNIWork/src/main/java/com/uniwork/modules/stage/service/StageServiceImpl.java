@@ -3,6 +3,7 @@ package com.uniwork.modules.stage.service;
 import com.uniwork.exceptions.CoreException;
 import com.uniwork.exceptions.ErrorCode;
 import com.uniwork.modules.stage.dto.StageDetailDTO;
+import com.uniwork.modules.stage.dto.StageSummaryDTO;
 import com.uniwork.modules.task.dto.TaskDTO;
 import com.uniwork.modules.project.entity.Project;
 import com.uniwork.modules.stage.entity.Stage;
@@ -23,6 +24,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -80,6 +82,28 @@ public class StageServiceImpl implements StageService {
 
         BeanCopyUtils.copyNonNullProperties(request, stage, "stageId", "projectId", "type", "orderIndex", "status", "active", "isDeleted");
         return stageRepository.save(stage);
+    }
+
+    // =====================================================
+    // DELETE STAGE (soft delete)
+    // =====================================================
+
+    @Override
+    public void deleteStage(Long stageId) {
+        Stage stage = stageRepository.findById(stageId)
+                .orElseThrow(() -> new CoreException(ErrorCode.STAGE_NOT_FOUND));
+
+        // Cannot delete an ACTIVE stage with tasks
+        if (stage.getStatus() == StageStatus.ACTIVE) {
+            Long taskCount = taskRepository.countByStageId(stageId);
+            if (taskCount > 0) {
+                throw new CoreException(ErrorCode.STAGE_INVALID_STATE,
+                        "Cannot delete an ACTIVE stage with tasks. Move or complete tasks first.");
+            }
+        }
+
+        stage.setIsDeleted(true);
+        stageRepository.save(stage);
     }
 
     // =====================================================
@@ -152,6 +176,32 @@ public class StageServiceImpl implements StageService {
     }
 
     // =====================================================
+    // GET STAGES SUMMARY (lightweight list view)
+    // =====================================================
+
+    @Override
+    public List<StageSummaryDTO> getStagesSummary(Long projectId) {
+        List<Stage> stages = stageRepository.findByProjectIdOrderByOrderIndexAsc(projectId);
+        return stages.stream().map(stage -> {
+            Long totalTasks = taskRepository.countByStageId(stage.getStageId());
+            Long completedTasks = taskRepository.countByStageIdAndStatus(stage.getStageId(), TaskStatus.COMPLETED);
+            double progress = totalTasks > 0 ? (double) completedTasks / totalTasks * 100 : 0;
+
+            return StageSummaryDTO.builder()
+                    .stageId(stage.getStageId())
+                    .projectId(stage.getProjectId())
+                    .name(stage.getName())
+                    .type(stage.getType() != null ? stage.getType().name() : null)
+                    .orderIndex(stage.getOrderIndex())
+                    .status(stage.getStatus() != null ? stage.getStatus().name() : null)
+                    .totalTasks(totalTasks)
+                    .completedTasks(completedTasks)
+                    .progressPercent(Math.round(progress * 100.0) / 100.0)
+                    .build();
+        }).toList();
+    }
+
+    // =====================================================
     // GET STAGE DETAIL (with tasks)
     // =====================================================
 
@@ -172,6 +222,7 @@ public class StageServiceImpl implements StageService {
         dto.setCompletedTasks(completedTasks);
         dto.setPendingTasks(pendingTasks);
         dto.setDoingTasks(doingTasks);
+        dto.setProgressPercent(totalTasks > 0 ? Math.round((double) completedTasks / totalTasks * 10000.0) / 100.0 : 0.0);
 
         // Tasks list
         List<TaskDetailProjection> projections = taskRepository.findByStageIdWithUser(stageId);

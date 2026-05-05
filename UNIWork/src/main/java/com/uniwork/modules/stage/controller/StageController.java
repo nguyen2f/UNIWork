@@ -2,6 +2,7 @@ package com.uniwork.modules.stage.controller;
 
 import com.uniwork.modules.auth.dto.Payload;
 import com.uniwork.modules.stage.dto.StageDetailDTO;
+import com.uniwork.modules.stage.dto.StageSummaryDTO;
 import com.uniwork.modules.stage.entity.Stage;
 import com.uniwork.modules.stage.request.MoveTasksRequest;
 import com.uniwork.modules.stage.request.StageRequest;
@@ -17,7 +18,7 @@ import java.util.List;
 
 @Slf4j
 @RestController
-@RequestMapping("/project/{projectId}/stage")
+@RequestMapping("/projects/{projectId}/stages")
 @PreAuthorize("hasAuthority('PERM_MANAGE_STAGES')")
 public class StageController {
 
@@ -25,14 +26,14 @@ public class StageController {
     private StageService stageService;
 
     // =====================================================
-    // GET ALL STAGES OF A PROJECT
+    // GET ALL STAGES OF A PROJECT (summary view)
     // =====================================================
 
-    @GetMapping("/all")
+    @GetMapping
     public ResponseEntity getAllStages(@PathVariable Long projectId,
                                        @RequestAttribute(required = false) Payload payload) {
         log.info("Getting all stages for projectId: {}", projectId);
-        List<Stage> stages = stageService.getStagesByProject(projectId);
+        List<StageSummaryDTO> stages = stageService.getStagesSummary(projectId);
         return ResponseFactory.success(stages);
     }
 
@@ -54,7 +55,7 @@ public class StageController {
     // =====================================================
 
     @PreAuthorize("hasAuthority('PERM_CREATE_STAGE')")
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity createStage(@PathVariable Long projectId,
                                        @RequestBody StageRequest stageRequest,
                                        @RequestAttribute(required = false) Payload payload) {
@@ -68,7 +69,7 @@ public class StageController {
     // =====================================================
 
     @PreAuthorize("hasAuthority('PERM_CREATE_STAGE')")
-    @PostMapping("/{stageId}/update")
+    @PutMapping("/{stageId}")
     public ResponseEntity updateStage(@PathVariable Long projectId,
                                        @PathVariable Long stageId,
                                        @RequestBody StageRequest stageRequest,
@@ -76,6 +77,20 @@ public class StageController {
         log.info("Updating stage: {} for projectId: {}", stageId, projectId);
         Stage stage = stageService.updateStage(stageId, stageRequest);
         return ResponseFactory.success(stage);
+    }
+
+    // =====================================================
+    // DELETE STAGE (soft delete)
+    // =====================================================
+
+    @PreAuthorize("hasAuthority('PERM_CREATE_STAGE')")
+    @DeleteMapping("/{stageId}")
+    public ResponseEntity deleteStage(@PathVariable Long projectId,
+                                       @PathVariable Long stageId,
+                                       @RequestAttribute(required = false) Payload payload) {
+        log.info("Deleting stage: {} for projectId: {}", stageId, projectId);
+        stageService.deleteStage(stageId);
+        return ResponseFactory.success("Stage deleted successfully");
     }
 
     // =====================================================

@@ -1,8 +1,12 @@
 package com.uniwork.modules.user.repository;
 
+import com.uniwork.modules.user.dto.ProfileDTO;
+import com.uniwork.modules.user.dto.UserDTO;
 import com.uniwork.modules.user.entity.User;
 import com.uniwork.modules.report.projection.ReportUserStatsProjection;
 import com.uniwork.modules.user.projection.UserProfileProjection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -45,12 +49,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
                     u.email AS email, 
                     u.bio AS bio, 
                     u.address AS address, 
-                    u.department AS department, 
+                    d.departmentName AS department, 
                     u.active AS active,
                     u.systemRole AS systemRole,
                     u.avatarUrl AS avatarUrl,
                     u.avatarPublicId AS avatarPublicId 
                 FROM User u
+                LEFT JOIN Department d ON u.departmentId = d.departmentId
                 WHERE u.userId = :userId
             """)
     UserProfileProjection getUserProfile(@Param("userId") Long userId);
@@ -67,4 +72,22 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("select u.name from User u where u.userId = :userId")
     String findUserNameByUserId(@Param("userId") Long userId);
 
+    @Query("""
+    SELECT NEW com.uniwork.modules.user.dto.UserDTO(
+        u.userId, u.name, u.email, u.phone,
+        d.departmentName
+    )
+    FROM User u
+    LEFT JOIN Department d ON u.departmentId = d.departmentId""")
+    List<UserDTO> findAllUserDTO();
+
+    @Query("""
+    SELECT NEW com.uniwork.modules.user.dto.ProfileDTO(
+        u.userId, u.name, u.phone, u.email,
+        u.bio, u.address, d.departmentName,
+        u.active, u.systemRole, u.avatarUrl, u.avatarPublicId
+    )
+    FROM User u
+    LEFT JOIN Department d ON u.departmentId = d.departmentId""")
+    Page<ProfileDTO> findAllProfileDTO(Pageable pageable);
 }

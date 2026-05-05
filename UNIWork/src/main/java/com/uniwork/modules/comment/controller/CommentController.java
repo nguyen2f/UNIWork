@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequestMapping("/comment")
+@RequestMapping("/comments")
 @RestController
 @Slf4j
 @PreAuthorize("hasAuthority('PERM_MANAGE_COMMENTS')")
