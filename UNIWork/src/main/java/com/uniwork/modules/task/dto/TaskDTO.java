@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -17,6 +16,7 @@ public class TaskDTO {
     private Long projectId;
     private Long assignedTo;
     private Long createdBy;
+    private Long managedBy;
 
     private String title;
     private String description;
@@ -30,6 +30,8 @@ public class TaskDTO {
 
     private String tags;
     private String assigneeName;
+    private String createdByName;
+    private String managedByName;
 
     private Long taskParentId;
 
@@ -37,11 +39,18 @@ public class TaskDTO {
     private Long stageId;
     private String stageName;
 
+    // Project info
+    private String projectName;
+
+    // Issue count
+    private Long issueCount;
+
     public TaskDTO(TaskDetailProjection p) {
         this.taskId = p.getTaskId();
         this.projectId = p.getProjectId();
         this.assignedTo = p.getAssignedTo();
         this.createdBy = p.getCreatedBy();
+        this.managedBy = p.getManagedBy();
         this.title = p.getTitle();
         this.description = p.getDescription();
         this.priority = p.getPriority();
@@ -52,9 +61,13 @@ public class TaskDTO {
         this.updatedDate = p.getUpdatedDate();
         this.tags = p.getTags();
         this.assigneeName = p.getAssigneeName();
+        this.createdByName = p.getCreatedByName();
+        this.managedByName = p.getManagedByName();
         this.taskParentId = p.getTaskParentId();
         this.stageId = p.getStageId();
         this.stageName = p.getStageName();
+        this.projectName = p.getProjectName();
+        this.issueCount = p.getIssueCount();
     }
 
 }

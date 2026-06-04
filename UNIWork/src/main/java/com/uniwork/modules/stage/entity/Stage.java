@@ -22,6 +22,10 @@ public class Stage {
 
     private String name;
 
+    private String description;
+
+    private String goal; // Mục tiêu của stage/sprint/phase
+
     @Enumerated(EnumType.STRING)
     private StageType type; // SPRINT, PHASE, or DEFAULT
 

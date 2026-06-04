@@ -1,4 +1,4 @@
-package com.uniwork.modules.stage.dto;
+package com.uniwork.modules.report.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -8,25 +8,27 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
-public class StageSummaryDTO {
-
+public class StageReportDTO {
     private Long stageId;
-    private Long projectId;
-    private String name;
-    private String type;
+    private String stageName;
+    private String stageType;
+    private String stageStatus;
     private Integer orderIndex;
-    private String status;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
 
-    // Task statistics
+    // Task stats
     private Long totalTasks;
     private Long completedTasks;
+    private Long pendingTasks;
+    private Long doingTasks;
     private Double progressPercent;
 
-    // Issue statistics
+    // Issue stats
     private Long totalIssues;
+    private Long openIssues;
+    private Long resolvedIssues;
 }

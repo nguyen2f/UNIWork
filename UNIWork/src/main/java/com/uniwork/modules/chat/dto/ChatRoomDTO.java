@@ -12,7 +12,13 @@ public class ChatRoomDTO {
     private Long roomId;
     private ChatRoomType type;
     private String name;
-    private Long otherUserId;    // 🔥 cho chat 1–1
+    private Long otherUserId;    // cho chat 1-1
     private LocalDateTime createdAt;
+
+    // Last message preview
+    private String lastMessage;
+    private LocalDateTime lastMessageTime;
+    private Long lastMessageSenderId;
+    private String lastMessageSenderName;
 }
 

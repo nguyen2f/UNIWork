@@ -1,10 +1,17 @@
 package com.uniwork.enums;
 
 public enum NotificationType {
-    GROUP_ADDED("You have been added to a new group."),
-    MESSAGE("You have a new message."),
-    TASK_CREATED("You have a new message."),
-    TASK_ASSIGNED("You have a new notification.");
+    GROUP_ADDED("Bạn đã được thêm vào một nhóm mới."),
+    MESSAGE("Bạn có một tin nhắn mới."),
+    TASK_CREATED("Một nhiệm vụ mới đã được tạo."),
+    TASK_ASSIGNED("Bạn vừa được giao một nhiệm vụ."),
+    TASK_STATUS_CHANGED("Trạng thái nhiệm vụ đã được cập nhật."),
+    ISSUE_ASSIGNED("Bạn vừa được giao một issue."),
+    ISSUE_STATUS_CHANGED("Trạng thái issue đã được cập nhật."),
+    PROJECT_UPDATED("Dự án đã được cập nhật."),
+    PROJECT_MEMBER_ADDED("Bạn đã được thêm vào một dự án."),
+    STAGE_COMPLETED("Một giai đoạn đã hoàn thành."),
+    STAGE_ACTIVATED("Một giai đoạn đã được kích hoạt.");
 
     private final String defaultMessage;
 
@@ -13,7 +20,7 @@ public enum NotificationType {
     }
 
     public String getDefaultMessage() {
-        return  defaultMessage;
+        return defaultMessage;
     }
 
 }

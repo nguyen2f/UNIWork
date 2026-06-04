@@ -8,6 +8,7 @@ public interface TaskDetailProjection {
     Long getProjectId();
     Long getAssignedTo();
     Long getCreatedBy();
+    Long getManagedBy();
 
     String getTitle();
     String getDescription();
@@ -27,9 +28,17 @@ public interface TaskDetailProjection {
 
     // từ bảng users
     String getAssigneeName();
+    String getCreatedByName();
+    String getManagedByName();
 
     // Stage info
     Long getStageId();
     String getStageName();
+
+    // Project info
+    String getProjectName();
+
+    // Issue count
+    Long getIssueCount();
 
 }

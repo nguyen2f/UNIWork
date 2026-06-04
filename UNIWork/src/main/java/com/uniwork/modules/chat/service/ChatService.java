@@ -27,4 +27,10 @@ public interface ChatService {
 
     @Transactional
     ChatRoom renameGroupChat(Long userId, Long roomId, String newName);
+
+    @Transactional
+    void addMemberToGroup(Long userId, Long roomId, Long newMemberId);
+
+    @Transactional
+    void removeMemberFromGroup(Long userId, Long roomId, Long targetUserId);
 }

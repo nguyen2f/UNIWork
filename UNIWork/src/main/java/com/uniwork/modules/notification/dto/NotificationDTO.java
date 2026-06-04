@@ -18,5 +18,6 @@ public class NotificationDTO {
     private NotificationType type;
     private NotificationEntityType entityType;
     private Long entityId;
+    private String title;
     private LocalDateTime createdAt;
 }

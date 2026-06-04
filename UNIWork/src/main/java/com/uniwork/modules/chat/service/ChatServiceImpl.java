@@ -1,17 +1,14 @@
 package com.uniwork.modules.chat.service;
 
-import com.uniwork.modules.task.dto.*;
-import com.uniwork.modules.project.dto.*;
-import com.uniwork.modules.user.dto.*;
-import com.uniwork.modules.chat.dto.*;
-import com.uniwork.modules.comment.dto.*;
-import com.uniwork.modules.file.dto.*;
-import com.uniwork.modules.notification.dto.*;
-import com.uniwork.modules.report.dto.*;
-import com.uniwork.modules.auth.dto.*;
+import com.uniwork.modules.chat.dto.ChatMessageDTO;
+import com.uniwork.modules.chat.dto.ChatMessageResponseDTO;
+import com.uniwork.modules.chat.dto.ChatRoomDTO;
+import com.uniwork.modules.chat.dto.ChatRoomRenameEvent;
+import com.uniwork.modules.chat.dto.CreateGroupDTO;
 import com.uniwork.modules.chat.entity.ChatRoom;
 import com.uniwork.modules.chat.entity.ChatRoomMember;
 import com.uniwork.modules.chat.entity.Message;
+import com.uniwork.modules.chat.projection.MessageProjection;
 import com.uniwork.enums.ChatRoomType;
 import com.uniwork.enums.NotificationEntityType;
 import com.uniwork.enums.NotificationType;
@@ -19,7 +16,7 @@ import com.uniwork.modules.chat.repository.ChatRoomMemberRepository;
 import com.uniwork.modules.chat.repository.ChatRoomRepository;
 import com.uniwork.modules.chat.repository.MessageRepository;
 import com.uniwork.modules.user.repository.UserRepository;
-import com.uniwork.modules.chat.service.ChatService;
+import com.uniwork.modules.notification.dto.NotificationDTO;
 import com.uniwork.modules.notification.service.NotificationService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -84,13 +81,21 @@ public class ChatServiceImpl implements ChatService {
 
         simpMessagingTemplate.convertAndSend("/topic/chat/" + roomId, response);
 
-//
-//        NotificationDTO notificationDTO = NotificationDTO
-//                .builder()
-//                .entityType(NotificationEntityType.CHAT_ROOM)
-//                .type(NotificationType.MESSAGE)
-//                .build();
-//        notificationService.sendNotification(senderId, notificationDTO);
+        // Send notification to other members
+        List<ChatRoomMember> members = chatRoomMemberRepository.findByRoomId(roomId);
+        NotificationDTO notificationDTO = NotificationDTO.builder()
+                .entityType(NotificationEntityType.CHAT_ROOM)
+                .type(NotificationType.MESSAGE)
+                .entityId(roomId)
+                .title(senderName + " sent a message")
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        members.forEach(member -> {
+            if (!member.getUserId().equals(senderId)) {
+                notificationService.sendNotification(member.getUserId(), notificationDTO);
+            }
+        });
     }
 
     @Transactional
@@ -152,6 +157,7 @@ public class ChatServiceImpl implements ChatService {
                 .type(NotificationType.GROUP_ADDED)
                 .entityType(NotificationEntityType.CHAT_ROOM)
                 .entityId(room.getId())
+                .title("You have been added to group: " + dto.getName())
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -182,6 +188,16 @@ public class ChatServiceImpl implements ChatService {
                         String otherName = userRepository.getUserNamesInChatRoom(room.getId(), userId);
                         builder.name(otherName);
                     }
+
+                    // Fetch last message preview
+                    MessageProjection lastMsg = messageRepository.findLastMessageByRoomId(room.getId());
+                    if (lastMsg != null) {
+                        builder.lastMessage(lastMsg.getContent());
+                        builder.lastMessageTime(lastMsg.getCreatedAt());
+                        builder.lastMessageSenderId(lastMsg.getSenderId());
+                        builder.lastMessageSenderName(lastMsg.getSenderName());
+                    }
+
                     return builder.build();
                 })
                 .toList();
@@ -195,7 +211,7 @@ public class ChatServiceImpl implements ChatService {
             throw new RuntimeException("User not in this room");
         }
 
-        return messageRepository.findMessagesWithSenderName(roomId, pageable).map(message -> ChatMessageResponseDTO.from(message));
+        return messageRepository.findMessagesWithSenderName(roomId, pageable).map(ChatMessageResponseDTO::from);
     }
 
     @Transactional
@@ -217,6 +233,53 @@ public class ChatServiceImpl implements ChatService {
         simpMessagingTemplate.convertAndSend("/topic/chat-room/" + roomId + "/rename", event);
 
         return room;
+    }
+
+    @Transactional
+    public void addMemberToGroup(Long userId, Long roomId, Long newMemberId) {
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Chat room not found"));
+
+        if (room.getType() != ChatRoomType.GROUP) {
+            throw new RuntimeException("Cannot add members to a direct chat");
+        }
+
+        if (chatRoomMemberRepository.existsByRoomIdAndUserId(roomId, newMemberId)) {
+            throw new RuntimeException("User is already a member of this room");
+        }
+
+        ChatRoomMember member = ChatRoomMember.builder()
+                .roomId(roomId)
+                .userId(newMemberId)
+                .build();
+        chatRoomMemberRepository.save(member);
+
+        NotificationDTO notificationDTO = NotificationDTO.builder()
+                .type(NotificationType.GROUP_ADDED)
+                .entityType(NotificationEntityType.CHAT_ROOM)
+                .entityId(roomId)
+                .title("You have been added to group: " + room.getName())
+                .createdAt(LocalDateTime.now())
+                .build();
+        notificationService.sendNotification(newMemberId, notificationDTO);
+    }
+
+    @Transactional
+    public void removeMemberFromGroup(Long userId, Long roomId, Long targetUserId) {
+        ChatRoom room = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new RuntimeException("Chat room not found"));
+
+        if (room.getType() != ChatRoomType.GROUP) {
+            throw new RuntimeException("Cannot remove members from a direct chat");
+        }
+
+        ChatRoomMember member = chatRoomMemberRepository.findByRoomIdAndUserId(roomId, targetUserId);
+        if (member == null) {
+            throw new RuntimeException("User is not a member of this room");
+        }
+
+        member.setIsDeleted(true);
+        chatRoomMemberRepository.save(member);
     }
 
 

@@ -14,8 +14,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     List<Message> findByRoomIdOrderByCreatedAtAsc(Long roomId);
 
-//    Page<Message> findByRoomIdOrderByCreatedAtDesc(Long roomId, Pageable pageable);
-
     @Query("SELECT m, u.name FROM Message m LEFT JOIN User u ON u.userId = m.senderId WHERE m.roomId = :roomId ORDER BY m.createdAt DESC")
     Page<Message> findByRoomIdOrderByCreatedAtDesc(@Param("roomId") Long roomId, Pageable pageable);
 
@@ -23,5 +21,14 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             "FROM Message m LEFT JOIN User u ON u.userId = m.senderId " +
             "WHERE m.roomId = :roomId ORDER BY m.createdAt DESC")
     Page<MessageProjection> findMessagesWithSenderName(@Param("roomId") Long roomId, Pageable pageable);
+
+    @Query("""
+            SELECT m.id AS id, m.roomId AS roomId, m.senderId AS senderId, m.content AS content, m.createdAt AS createdAt, u.name AS senderName
+            FROM Message m LEFT JOIN User u ON u.userId = m.senderId
+            WHERE m.roomId = :roomId
+            ORDER BY m.createdAt DESC
+            LIMIT 1
+            """)
+    MessageProjection findLastMessageByRoomId(@Param("roomId") Long roomId);
 
 }

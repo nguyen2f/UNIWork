@@ -55,20 +55,38 @@ public class ChatController {
     }
 
     @PostMapping("/direct")
-    public Long createDirectChat(@RequestParam Long user1,
-                                 @RequestParam Long user2) {
-        return chatService.createDirectChat(user1, user2);
+    public ResponseEntity createDirectChat(@RequestParam Long user1,
+                                            @RequestParam Long user2) {
+        Long roomId = chatService.createDirectChat(user1, user2);
+        return ResponseFactory.success(roomId);
     }
 
     @PostMapping("/group")
-    public Long createGroupChat(@RequestAttribute Payload payload, @RequestBody CreateGroupDTO dto) {
-        return chatService.createGroupChat(dto, payload.getUserId());
+    public ResponseEntity createGroupChat(@RequestAttribute Payload payload, @RequestBody CreateGroupDTO dto) {
+        Long roomId = chatService.createGroupChat(dto, payload.getUserId());
+        return ResponseFactory.success(roomId);
     }
 
     @PutMapping("/{roomId}/rename")
     public ResponseEntity renameGroupChat(@PathVariable Long roomId, @RequestAttribute Payload payload, @RequestParam String newName) {
         ChatRoom chatRoom = chatService.renameGroupChat(payload.getUserId(), roomId, newName);
         return ResponseFactory.success(chatRoom);
+    }
+
+    @PostMapping("/{roomId}/members")
+    public ResponseEntity addMemberToGroup(@PathVariable Long roomId,
+                                            @RequestParam Long memberId,
+                                            @RequestAttribute Payload payload) {
+        chatService.addMemberToGroup(payload.getUserId(), roomId, memberId);
+        return ResponseFactory.success("Member added successfully");
+    }
+
+    @DeleteMapping("/{roomId}/members/{userId}")
+    public ResponseEntity removeMemberFromGroup(@PathVariable Long roomId,
+                                                 @PathVariable Long userId,
+                                                 @RequestAttribute Payload payload) {
+        chatService.removeMemberFromGroup(payload.getUserId(), roomId, userId);
+        return ResponseFactory.success("Member removed successfully");
     }
 
 }

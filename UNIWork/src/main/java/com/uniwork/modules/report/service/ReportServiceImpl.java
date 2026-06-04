@@ -1,18 +1,14 @@
 package com.uniwork.modules.report.service;
 
-import com.uniwork.modules.report.dto.ProjectReportDTO;
+import com.uniwork.modules.report.dto.*;
 import com.uniwork.modules.task.dto.TaskPerformanceDTO;
-import com.uniwork.modules.report.dto.TaskReportDTO;
+import com.uniwork.enums.IssueStatus;
 import com.uniwork.enums.ProjectStatus;
 import com.uniwork.enums.TaskStatus;
 import com.uniwork.modules.event.entity.Event;
 import com.uniwork.modules.project.entity.Project;
 import com.uniwork.modules.task.entity.Task;
-import com.uniwork.modules.task.projection.*;
-import com.uniwork.modules.user.projection.*;
-import com.uniwork.modules.chat.projection.*;
-import com.uniwork.modules.comment.projection.*;
-import com.uniwork.modules.file.projection.*;
+import com.uniwork.modules.stage.entity.Stage;
 import com.uniwork.modules.report.projection.*;
 import com.uniwork.modules.report.response.StatsResponse;
 import com.uniwork.modules.task.repository.TaskRepository;
@@ -20,8 +16,11 @@ import com.uniwork.modules.project.repository.ProjectMemberRepository;
 import com.uniwork.modules.project.repository.ProjectRepository;
 import com.uniwork.modules.event.repository.EventRepository;
 import com.uniwork.modules.user.repository.UserRepository;
-import com.uniwork.modules.report.service.ReportService;
-import org.springframework.cache.annotation .Cacheable;
+import com.uniwork.modules.issue.repository.IssueRepository;
+import com.uniwork.modules.issue.projection.ReportIssueProjection;
+import com.uniwork.modules.issue.projection.IssueDetailProjection;
+import com.uniwork.modules.stage.repository.StageRepository;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -29,6 +28,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,13 +43,20 @@ public class ReportServiceImpl implements ReportService {
     private final ProjectRepository projectRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final IssueRepository issueRepository;
+    private final StageRepository stageRepository;
 
-    public ReportServiceImpl(TaskRepository taskRepository, ProjectMemberRepository projectMemberRepository, ProjectRepository projectRepository, EventRepository eventRepository, UserRepository userRepository) {
+    public ReportServiceImpl(TaskRepository taskRepository, ProjectMemberRepository projectMemberRepository,
+                             ProjectRepository projectRepository, EventRepository eventRepository,
+                             UserRepository userRepository, IssueRepository issueRepository,
+                             StageRepository stageRepository) {
         this.taskRepository = taskRepository;
         this.projectMemberRepository = projectMemberRepository;
         this.projectRepository = projectRepository;
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
+        this.issueRepository = issueRepository;
+        this.stageRepository = stageRepository;
     }
 
     public long countProjectsByUserId(Long userId) {
@@ -128,7 +135,7 @@ public class ReportServiceImpl implements ReportService {
         Map<Long, Project> projectMap = projectMapFuture.join();
         Map<Long, ReportProjectProjection> reportMap = reportProjectionMapFuture.join();
 
-        // ✅ Gom project cần update để batch save
+        // Gom project cần update để batch save
         List<Project> projectsToUpdate = new ArrayList<>();
 
         List<ProjectReportDTO> result = projectIds.stream()
@@ -153,10 +160,10 @@ public class ReportServiceImpl implements ReportService {
                     Long memberCount =
                             projection != null ? projection.getTotalMembers() : 0L;
 
-                    // ✅ Tính status động
+                    // Tính status động
                     ProjectStatus status = ProjectStatus.fromProgress(completedPercent, total, pending, doing);
 
-                    // ✅ Nếu status khác DB thì update
+                    // Nếu status khác DB thì update
                     if (project != null && (project.getStatus() == null || !project.getStatus().equals(status))) {
                         project.setStatus(status);
                         projectsToUpdate.add(project);
@@ -174,7 +181,7 @@ public class ReportServiceImpl implements ReportService {
                 })
                 .toList();
 
-        // ✅ Batch update một lần
+        // Batch update một lần
         if (!projectsToUpdate.isEmpty()) {
             projectRepository.saveAll(projectsToUpdate);
         }
@@ -184,24 +191,33 @@ public class ReportServiceImpl implements ReportService {
 
 
     public TaskReportDTO getTaskReport(Long userId, Long begin, Long end) {
-
         ReportTaskProjection p = taskRepository.getTaskReport(userId);
+        ReportIssueProjection ip = issueRepository.getIssueReport(userId);
 
         long total = p != null ? p.getTotalTasks() - p.getCancelledTasks() : 0;
         long completed = p != null ? p.getCompletedTasks() + p.getReviewingTasks(): 0;
         long pending = p != null ? p.getPendingTasks() : 0;
         long doing = p != null ? p.getDoingTasks() : 0;
-
         double completedPercent = total == 0 ? 0 : (completed * 100.0) / total;
+
+        long totalIssues = ip != null ? ip.getTotalIssues() : 0;
+        long completedIssues = ip != null ? ip.getCompletedIssues() : 0;
+        long pendingIssues = ip != null ? ip.getPendingIssues() : 0;
+        long doingIssues = ip != null ? ip.getDoingIssues() : 0;
+        double issuesCompletedPercent = totalIssues == 0 ? 0 : (completedIssues * 100.0) / totalIssues;
 
         return new TaskReportDTO(
                 total,
                 completed,
                 pending,
                 doing,
-                completedPercent
+                completedPercent,
+                totalIssues,
+                completedIssues,
+                pendingIssues,
+                doingIssues,
+                issuesCompletedPercent
         );
-
     }
 
     public List<Task> getPendingTask(Long userId, Long begin, Long end) {
@@ -216,6 +232,12 @@ public class ReportServiceImpl implements ReportService {
         CompletableFuture<Page<Task>> pendingTask =
                 CompletableFuture.supplyAsync(() -> taskRepository.findAllByAssignedToAndStatusIn(userId, pendingStatuses, pageable));
         return pendingTask.join();
+    }
+
+    @Override
+    public Page<IssueDetailProjection> getPendingIssues(Long userId, Long begin, Long end, Pageable pageable) {
+        List<IssueStatus> pendingStatuses = List.of(IssueStatus.OPEN, IssueStatus.IN_PROGRESS, IssueStatus.REOPENED);
+        return issueRepository.findByAssignedToAndStatusInWithDetails(userId, pendingStatuses, pageable);
     }
 
     public TaskPerformanceDTO getTasksPerformance(Long userId, Long begin, Long end) {
@@ -276,5 +298,200 @@ public class ReportServiceImpl implements ReportService {
         }
     }
 
+    // =====================================================
+    // NEW REPORT APIs
+    // =====================================================
+
+    @Override
+    public SingleProjectReportDTO getProjectDetailReport(Long userId, Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        // Task stats
+        ReportProjectProjection taskStats = taskRepository.reportProjects(List.of(projectId))
+                .stream().findFirst().orElse(null);
+
+        long totalTasks = taskStats != null ? taskStats.getTotalTasks() : 0;
+        long completedTasks = taskStats != null ? taskStats.getCompletedTasks() : 0;
+        long pendingTasks = taskStats != null ? taskStats.getPendingTasks() : 0;
+        long doingTasks = taskStats != null ? taskStats.getDoingTasks() : 0;
+        long reviewingTasks = taskStats != null ? taskStats.getReviewingTasks() : 0;
+        long cancelledTasks = taskStats != null ? taskStats.getCancelledTasks() : 0;
+        long effectiveTotal = totalTasks - cancelledTasks;
+        double taskCompletedPercent = effectiveTotal == 0 ? 0 : Math.round((completedTasks * 100.0) / effectiveTotal);
+
+        // Issue stats
+        Long totalIssues = issueRepository.countByProjectId(projectId);
+        Long openIssues = issueRepository.countByProjectIdAndStatus(projectId, IssueStatus.OPEN);
+        Long inProgressIssues = issueRepository.countByProjectIdAndStatus(projectId, IssueStatus.IN_PROGRESS);
+        Long resolvedIssues = issueRepository.countByProjectIdAndStatus(projectId, IssueStatus.RESOLVED);
+        Long closedIssues = issueRepository.countByProjectIdAndStatus(projectId, IssueStatus.CLOSED);
+
+        // Member count
+        Long totalMembers = taskStats != null ? taskStats.getTotalMembers() : 0L;
+
+        // Stage stats
+        List<Stage> stages = stageRepository.findByProjectIdOrderByOrderIndexAsc(projectId);
+        long totalStages = stages.size();
+        long completedStages = stages.stream().filter(s -> s.getStatus() == com.uniwork.enums.StageStatus.COMPLETED).count();
+        long activeStages = stages.stream().filter(s -> s.getStatus() == com.uniwork.enums.StageStatus.ACTIVE).count();
+
+        return SingleProjectReportDTO.builder()
+                .projectId(project.getProjectId())
+                .projectName(project.getName())
+                .projectStatus(project.getStatus() != null ? project.getStatus().name() : null)
+                .projectMethod(project.getMethod() != null ? project.getMethod().name() : null)
+                .startDate(project.getStartDate())
+                .endDate(project.getEndDate())
+                .totalTasks(effectiveTotal)
+                .completedTasks(completedTasks)
+                .pendingTasks(pendingTasks)
+                .doingTasks(doingTasks)
+                .reviewingTasks(reviewingTasks)
+                .cancelledTasks(cancelledTasks)
+                .taskCompletedPercent(taskCompletedPercent)
+                .totalIssues(totalIssues)
+                .openIssues(openIssues)
+                .inProgressIssues(inProgressIssues)
+                .resolvedIssues(resolvedIssues)
+                .closedIssues(closedIssues)
+                .totalMembers(totalMembers)
+                .totalStages(totalStages)
+                .completedStages(completedStages)
+                .activeStages(activeStages)
+                .build();
+    }
+
+    @Override
+    public List<MemberWorkloadDTO> getMemberWorkload(Long userId) {
+        List<Long> projectIds = projectMemberRepository.findProjectIdsByUserId(userId);
+        if (projectIds.isEmpty()) return List.of();
+
+        // Get task workload
+        Map<Long, ReportMemberWorkloadProjection> taskWorkloadMap = taskRepository.getMemberWorkload(projectIds)
+                .stream()
+                .collect(Collectors.toMap(ReportMemberWorkloadProjection::getUserId, p -> p, (a, b) -> a));
+
+        // Get issue workload
+        Map<Long, ReportMemberIssueWorkloadProjection> issueWorkloadMap = issueRepository.getMemberIssueWorkload(projectIds)
+                .stream()
+                .collect(Collectors.toMap(ReportMemberIssueWorkloadProjection::getUserId, p -> p, (a, b) -> a));
+
+        // Merge all user IDs
+        java.util.Set<Long> allUserIds = new java.util.HashSet<>();
+        allUserIds.addAll(taskWorkloadMap.keySet());
+        allUserIds.addAll(issueWorkloadMap.keySet());
+
+        return allUserIds.stream().map(uid -> {
+            ReportMemberWorkloadProjection tw = taskWorkloadMap.get(uid);
+            ReportMemberIssueWorkloadProjection iw = issueWorkloadMap.get(uid);
+
+            long totalTasks = tw != null ? tw.getTotalTasks() : 0;
+            long completedTasks = tw != null ? tw.getCompletedTasks() : 0;
+            long pendTasks = tw != null ? tw.getPendingTasks() : 0;
+            long doTasks = tw != null ? tw.getDoingTasks() : 0;
+            long totalIssues = iw != null ? iw.getTotalIssues() : 0;
+            long completedIssues = iw != null ? iw.getCompletedIssues() : 0;
+            long pendIssues = iw != null ? iw.getPendingIssues() : 0;
+            double rate = totalTasks == 0 ? 0 : Math.round((completedTasks * 100.0) / totalTasks);
+            String userName = tw != null ? tw.getUserName() : (iw != null ? iw.getUserName() : "Unknown");
+
+            return MemberWorkloadDTO.builder()
+                    .userId(uid)
+                    .userName(userName)
+                    .totalTasks(totalTasks)
+                    .completedTasks(completedTasks)
+                    .pendingTasks(pendTasks)
+                    .doingTasks(doTasks)
+                    .totalIssues(totalIssues)
+                    .completedIssues(completedIssues)
+                    .pendingIssues(pendIssues)
+                    .taskCompletionRate(rate)
+                    .build();
+        }).toList();
+    }
+
+    @Override
+    public List<OverdueItemDTO> getOverdueItems(Long userId) {
+        List<OverdueItemDTO> result = new ArrayList<>();
+        LocalDateTime now = LocalDateTime.now();
+
+        // Overdue tasks
+        List<ReportOverdueTaskProjection> overdueTasks = taskRepository.findOverdueTasks(userId);
+        for (ReportOverdueTaskProjection t : overdueTasks) {
+            long daysOverdue = t.getDueDate() != null ? ChronoUnit.DAYS.between(t.getDueDate(), now) : 0;
+            result.add(OverdueItemDTO.builder()
+                    .id(t.getTaskId())
+                    .type("TASK")
+                    .title(t.getTitle())
+                    .status(t.getStatus())
+                    .priority(t.getPriority())
+                    .dueDate(t.getDueDate())
+                    .daysOverdue(daysOverdue)
+                    .assigneeName(t.getAssigneeName())
+                    .assignedTo(t.getAssignedTo())
+                    .projectId(t.getProjectId())
+                    .projectName(t.getProjectName())
+                    .build());
+        }
+
+        // Overdue issues
+        List<ReportOverdueIssueProjection> overdueIssues = issueRepository.findOverdueIssues(userId);
+        for (ReportOverdueIssueProjection i : overdueIssues) {
+            long daysOverdue = i.getDueDate() != null ? ChronoUnit.DAYS.between(i.getDueDate(), now) : 0;
+            result.add(OverdueItemDTO.builder()
+                    .id(i.getIssueId())
+                    .type("ISSUE")
+                    .title(i.getTitle())
+                    .status(i.getStatus())
+                    .priority(i.getPriority())
+                    .dueDate(i.getDueDate())
+                    .daysOverdue(daysOverdue)
+                    .assigneeName(i.getAssigneeName())
+                    .assignedTo(i.getAssignedTo())
+                    .projectId(i.getProjectId())
+                    .projectName(i.getProjectName())
+                    .build());
+        }
+
+        // Sort by daysOverdue descending
+        result.sort((a, b) -> Long.compare(b.getDaysOverdue(), a.getDaysOverdue()));
+        return result;
+    }
+
+    @Override
+    public List<StageReportDTO> getStageReport(Long userId, Long projectId) {
+        List<Stage> stages = stageRepository.findByProjectIdOrderByOrderIndexAsc(projectId);
+
+        return stages.stream().map(stage -> {
+            Long totalTasks = taskRepository.countByStageId(stage.getStageId());
+            Long completedTasks = taskRepository.countByStageIdAndStatus(stage.getStageId(), TaskStatus.COMPLETED);
+            Long pendingTasks = taskRepository.countByStageIdAndStatus(stage.getStageId(), TaskStatus.PENDING);
+            Long doingTasks = taskRepository.countByStageIdAndStatus(stage.getStageId(), TaskStatus.DOING);
+            double progress = totalTasks > 0 ? Math.round((double) completedTasks / totalTasks * 10000.0) / 100.0 : 0.0;
+
+            Long totalIssues = issueRepository.countByStageId(stage.getStageId());
+            Long openIssues = issueRepository.countOpenByStageId(stage.getStageId());
+            Long resolvedIssues = issueRepository.countResolvedByStageId(stage.getStageId());
+
+            return StageReportDTO.builder()
+                    .stageId(stage.getStageId())
+                    .stageName(stage.getName())
+                    .stageType(stage.getType() != null ? stage.getType().name() : null)
+                    .stageStatus(stage.getStatus() != null ? stage.getStatus().name() : null)
+                    .orderIndex(stage.getOrderIndex())
+                    .startDate(stage.getStartDate())
+                    .endDate(stage.getEndDate())
+                    .totalTasks(totalTasks)
+                    .completedTasks(completedTasks)
+                    .pendingTasks(pendingTasks)
+                    .doingTasks(doingTasks)
+                    .progressPercent(progress)
+                    .totalIssues(totalIssues)
+                    .openIssues(openIssues)
+                    .resolvedIssues(resolvedIssues)
+                    .build();
+        }).toList();
+    }
 
 }

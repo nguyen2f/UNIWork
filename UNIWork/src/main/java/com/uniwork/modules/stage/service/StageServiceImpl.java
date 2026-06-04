@@ -18,7 +18,7 @@ import com.uniwork.modules.stage.request.StageRequest;
 import com.uniwork.modules.project.repository.ProjectRepository;
 import com.uniwork.modules.stage.repository.StageRepository;
 import com.uniwork.modules.task.repository.TaskRepository;
-import com.uniwork.modules.stage.service.StageService;
+import com.uniwork.modules.issue.repository.IssueRepository;
 import com.uniwork.common.utils.BeanCopyUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +36,7 @@ public class StageServiceImpl implements StageService {
     private final StageRepository stageRepository;
     private final ProjectRepository projectRepository;
     private final TaskRepository taskRepository;
+    private final IssueRepository issueRepository;
 
     // =====================================================
     // CREATE STAGE
@@ -58,6 +59,8 @@ public class StageServiceImpl implements StageService {
         Stage stage = new Stage();
         stage.setProjectId(projectId);
         stage.setName(request.getName());
+        stage.setDescription(request.getDescription());
+        stage.setGoal(request.getGoal());
         stage.setOrderIndex(nextOrder);
         stage.setStartDate(request.getStartDate());
         stage.setEndDate(request.getEndDate());
@@ -187,6 +190,8 @@ public class StageServiceImpl implements StageService {
             Long completedTasks = taskRepository.countByStageIdAndStatus(stage.getStageId(), TaskStatus.COMPLETED);
             double progress = totalTasks > 0 ? (double) completedTasks / totalTasks * 100 : 0;
 
+            Long totalIssues = issueRepository.countByStageId(stage.getStageId());
+
             return StageSummaryDTO.builder()
                     .stageId(stage.getStageId())
                     .projectId(stage.getProjectId())
@@ -194,9 +199,12 @@ public class StageServiceImpl implements StageService {
                     .type(stage.getType() != null ? stage.getType().name() : null)
                     .orderIndex(stage.getOrderIndex())
                     .status(stage.getStatus() != null ? stage.getStatus().name() : null)
+                    .startDate(stage.getStartDate())
+                    .endDate(stage.getEndDate())
                     .totalTasks(totalTasks)
                     .completedTasks(completedTasks)
                     .progressPercent(Math.round(progress * 100.0) / 100.0)
+                    .totalIssues(totalIssues)
                     .build();
         }).toList();
     }
@@ -223,6 +231,14 @@ public class StageServiceImpl implements StageService {
         dto.setPendingTasks(pendingTasks);
         dto.setDoingTasks(doingTasks);
         dto.setProgressPercent(totalTasks > 0 ? Math.round((double) completedTasks / totalTasks * 10000.0) / 100.0 : 0.0);
+
+        // Issue stats
+        Long totalIssues = issueRepository.countByStageId(stageId);
+        Long openIssues = issueRepository.countOpenByStageId(stageId);
+        Long resolvedIssues = issueRepository.countResolvedByStageId(stageId);
+        dto.setTotalIssues(totalIssues);
+        dto.setOpenIssues(openIssues);
+        dto.setResolvedIssues(resolvedIssues);
 
         // Tasks list
         List<TaskDetailProjection> projections = taskRepository.findByStageIdWithUser(stageId);

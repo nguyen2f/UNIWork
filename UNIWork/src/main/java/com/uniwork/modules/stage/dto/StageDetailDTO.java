@@ -17,6 +17,8 @@ public class StageDetailDTO {
     private Long stageId;
     private Long projectId;
     private String name;
+    private String description;
+    private String goal;
     private String type;
     private Integer orderIndex;
     private LocalDateTime startDate;
@@ -30,6 +32,11 @@ public class StageDetailDTO {
     private Long doingTasks;
     private Double progressPercent;
 
+    // Issue statistics
+    private Long totalIssues;
+    private Long openIssues;
+    private Long resolvedIssues;
+
     // Tasks in this stage
     private List<TaskDTO> tasks;
 
@@ -37,6 +44,8 @@ public class StageDetailDTO {
         this.stageId = stage.getStageId();
         this.projectId = stage.getProjectId();
         this.name = stage.getName();
+        this.description = stage.getDescription();
+        this.goal = stage.getGoal();
         this.type = stage.getType() != null ? stage.getType().name() : null;
         this.orderIndex = stage.getOrderIndex();
         this.startDate = stage.getStartDate();

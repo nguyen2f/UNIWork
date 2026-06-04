@@ -121,79 +121,103 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
 
     @Query("""
-            SELECT 
+            SELECT
                 t.taskId        AS taskId,
-                    t.projectId     AS projectId,
-                    t.assignedTo    AS assignedTo,
-                    t.createdBy     AS createdBy,
-                    t.title         AS title,
-                    t.description   AS description,
-                    t.priority      AS priority,
-                    t.status        AS status,
-                    t.dueDate       AS dueDate,
-                    t.createdDate  AS createdDate,
-                    t.updatedDate  AS updatedDate,
-                    t.completed     AS completed,
-                    t.tags          AS tags,
-                    t.parentId      AS taskParentId,
-                    t.stageId       AS stageId,
-                u.name      AS assigneeName,
-                s.name      AS stageName
+                t.projectId     AS projectId,
+                t.assignedTo    AS assignedTo,
+                t.createdBy     AS createdBy,
+                t.managedBy     AS managedBy,
+                t.title         AS title,
+                t.description   AS description,
+                t.priority      AS priority,
+                t.status        AS status,
+                t.dueDate       AS dueDate,
+                t.createdDate   AS createdDate,
+                t.updatedDate   AS updatedDate,
+                t.completed     AS completed,
+                t.tags          AS tags,
+                t.parentId      AS taskParentId,
+                t.stageId       AS stageId,
+                u.name          AS assigneeName,
+                creator.name    AS createdByName,
+                manager.name    AS managedByName,
+                s.name          AS stageName,
+                p.name          AS projectName,
+                (SELECT COUNT(i) FROM Issue i WHERE i.taskId = t.taskId AND i.isDeleted = false) AS issueCount
             FROM Task t
             LEFT JOIN User u ON t.assignedTo = u.userId
+            LEFT JOIN User creator ON t.createdBy = creator.userId
+            LEFT JOIN User manager ON t.managedBy = manager.userId
             LEFT JOIN Stage s ON t.stageId = s.stageId
+            LEFT JOIN Project p ON t.projectId = p.projectId
             WHERE t.projectId = :projectId
             """)
     List<TaskDetailProjection> findByProjectIdWithUser(Long projectId);
 
     @Query("""
-            SELECT 
+            SELECT
                 t.taskId        AS taskId,
-                                               t.projectId     AS projectId,
-                                               t.assignedTo    AS assignedTo,
-                                               t.createdBy     AS createdBy,
-                                               t.title         AS title,
-                                               t.description   AS description,
-                                               t.priority      AS priority,
-                                               t.status        AS status,
-                                               t.dueDate       AS dueDate,
-                                               t.createdDate  AS createdDate,
-                                               t.updatedDate  AS updatedDate,
-                                               t.completed     AS completed,
-                                               t.tags          AS tags,
-                                               t.parentId      AS taskParentId,
-                                               t.stageId       AS stageId,
-                u.name      AS assigneeName,
-                s.name      AS stageName
+                t.projectId     AS projectId,
+                t.assignedTo    AS assignedTo,
+                t.createdBy     AS createdBy,
+                t.managedBy     AS managedBy,
+                t.title         AS title,
+                t.description   AS description,
+                t.priority      AS priority,
+                t.status        AS status,
+                t.dueDate       AS dueDate,
+                t.createdDate   AS createdDate,
+                t.updatedDate   AS updatedDate,
+                t.completed     AS completed,
+                t.tags          AS tags,
+                t.parentId      AS taskParentId,
+                t.stageId       AS stageId,
+                u.name          AS assigneeName,
+                creator.name    AS createdByName,
+                manager.name    AS managedByName,
+                s.name          AS stageName,
+                p.name          AS projectName,
+                (SELECT COUNT(i) FROM Issue i WHERE i.taskId = t.taskId AND i.isDeleted = false) AS issueCount
             FROM Task t
             LEFT JOIN User u ON t.assignedTo = u.userId
+            LEFT JOIN User creator ON t.createdBy = creator.userId
+            LEFT JOIN User manager ON t.managedBy = manager.userId
             LEFT JOIN Stage s ON t.stageId = s.stageId
+            LEFT JOIN Project p ON t.projectId = p.projectId
             WHERE t.taskId = :taskId
             """)
     TaskDetailProjection findByTaskId(@Param("taskId") Long taskId);
 
     @Query("""
-            SELECT 
+            SELECT
                 t.taskId        AS taskId,
-                                               t.projectId     AS projectId,
-                                               t.assignedTo    AS assignedTo,
-                                               t.createdBy     AS createdBy,
-                                               t.title         AS title,
-                                               t.description   AS description,
-                                               t.priority      AS priority,
-                                               t.status        AS status,
-                                               t.dueDate       AS dueDate,
-                                               t.createdDate  AS createdDate,
-                                               t.updatedDate  AS updatedDate,
-                                               t.completed     AS completed,
-                                               t.tags          AS tags,
-                                               t.parentId      AS taskParentId,
-                                               t.stageId       AS stageId,
-                u.name      AS assigneeName,
-                s.name      AS stageName
+                t.projectId     AS projectId,
+                t.assignedTo    AS assignedTo,
+                t.createdBy     AS createdBy,
+                t.managedBy     AS managedBy,
+                t.title         AS title,
+                t.description   AS description,
+                t.priority      AS priority,
+                t.status        AS status,
+                t.dueDate       AS dueDate,
+                t.createdDate   AS createdDate,
+                t.updatedDate   AS updatedDate,
+                t.completed     AS completed,
+                t.tags          AS tags,
+                t.parentId      AS taskParentId,
+                t.stageId       AS stageId,
+                u.name          AS assigneeName,
+                creator.name    AS createdByName,
+                manager.name    AS managedByName,
+                s.name          AS stageName,
+                p.name          AS projectName,
+                (SELECT COUNT(i) FROM Issue i WHERE i.taskId = t.taskId AND i.isDeleted = false) AS issueCount
             FROM Task t
             LEFT JOIN User u ON t.assignedTo = u.userId
+            LEFT JOIN User creator ON t.createdBy = creator.userId
+            LEFT JOIN User manager ON t.managedBy = manager.userId
             LEFT JOIN Stage s ON t.stageId = s.stageId
+            LEFT JOIN Project p ON t.projectId = p.projectId
             WHERE t.parentId = :taskParentId
             """)
     List<TaskDetailProjection> findByParentId(@Param("taskParentId") Long taskParentId);
@@ -213,53 +237,69 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     boolean existsByStageIdAndStatusNot(Long stageId, TaskStatus status);
 
     @Query("""
-            SELECT 
+            SELECT
                 t.taskId        AS taskId,
-                    t.projectId     AS projectId,
-                    t.assignedTo    AS assignedTo,
-                    t.createdBy     AS createdBy,
-                    t.title         AS title,
-                    t.description   AS description,
-                    t.priority      AS priority,
-                    t.status        AS status,
-                    t.dueDate       AS dueDate,
-                    t.createdDate  AS createdDate,
-                    t.updatedDate  AS updatedDate,
-                    t.completed     AS completed,
-                    t.tags          AS tags,
-                    t.parentId      AS taskParentId,
-                    t.stageId       AS stageId,
-                u.name      AS assigneeName,
-                s.name      AS stageName
+                t.projectId     AS projectId,
+                t.assignedTo    AS assignedTo,
+                t.createdBy     AS createdBy,
+                t.managedBy     AS managedBy,
+                t.title         AS title,
+                t.description   AS description,
+                t.priority      AS priority,
+                t.status        AS status,
+                t.dueDate       AS dueDate,
+                t.createdDate   AS createdDate,
+                t.updatedDate   AS updatedDate,
+                t.completed     AS completed,
+                t.tags          AS tags,
+                t.parentId      AS taskParentId,
+                t.stageId       AS stageId,
+                u.name          AS assigneeName,
+                creator.name    AS createdByName,
+                manager.name    AS managedByName,
+                s.name          AS stageName,
+                p.name          AS projectName,
+                (SELECT COUNT(i) FROM Issue i WHERE i.taskId = t.taskId AND i.isDeleted = false) AS issueCount
             FROM Task t
             LEFT JOIN User u ON t.assignedTo = u.userId
+            LEFT JOIN User creator ON t.createdBy = creator.userId
+            LEFT JOIN User manager ON t.managedBy = manager.userId
             LEFT JOIN Stage s ON t.stageId = s.stageId
+            LEFT JOIN Project p ON t.projectId = p.projectId
             WHERE t.stageId = :stageId
             """)
     List<TaskDetailProjection> findByStageIdWithUser(@Param("stageId") Long stageId);
 
     @Query("""
-            SELECT 
+            SELECT
                 t.taskId        AS taskId,
-                    t.projectId     AS projectId,
-                    t.assignedTo    AS assignedTo,
-                    t.createdBy     AS createdBy,
-                    t.title         AS title,
-                    t.description   AS description,
-                    t.priority      AS priority,
-                    t.status        AS status,
-                    t.dueDate       AS dueDate,
-                    t.createdDate  AS createdDate,
-                    t.updatedDate  AS updatedDate,
-                    t.completed     AS completed,
-                    t.tags          AS tags,
-                    t.parentId      AS taskParentId,
-                    t.stageId       AS stageId,
-                u.name      AS assigneeName,
-                s.name      AS stageName
+                t.projectId     AS projectId,
+                t.assignedTo    AS assignedTo,
+                t.createdBy     AS createdBy,
+                t.managedBy     AS managedBy,
+                t.title         AS title,
+                t.description   AS description,
+                t.priority      AS priority,
+                t.status        AS status,
+                t.dueDate       AS dueDate,
+                t.createdDate   AS createdDate,
+                t.updatedDate   AS updatedDate,
+                t.completed     AS completed,
+                t.tags          AS tags,
+                t.parentId      AS taskParentId,
+                t.stageId       AS stageId,
+                u.name          AS assigneeName,
+                creator.name    AS createdByName,
+                manager.name    AS managedByName,
+                s.name          AS stageName,
+                p.name          AS projectName,
+                (SELECT COUNT(i) FROM Issue i WHERE i.taskId = t.taskId AND i.isDeleted = false) AS issueCount
             FROM Task t
             LEFT JOIN User u ON t.assignedTo = u.userId
+            LEFT JOIN User creator ON t.createdBy = creator.userId
+            LEFT JOIN User manager ON t.managedBy = manager.userId
             LEFT JOIN Stage s ON t.stageId = s.stageId
+            LEFT JOIN Project p ON t.projectId = p.projectId
             WHERE t.assignedTo = :assignedTo
               AND (:priority IS NULL OR t.priority = :priority)
               AND (:status IS NULL OR t.status = :status)
@@ -267,5 +307,46 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<TaskDetailProjection> findByAssignedToWithUser(@Param("assignedTo") Long assignedTo,
                                                          @Param("priority") Priority priority,
                                                          @Param("status") TaskStatus status);
+
+    // =====================================================
+    // REPORT QUERIES
+    // =====================================================
+
+    @Query("""
+            SELECT
+                t.taskId AS taskId,
+                t.title AS title,
+                t.status AS status,
+                t.priority AS priority,
+                t.dueDate AS dueDate,
+                t.assignedTo AS assignedTo,
+                u.name AS assigneeName,
+                t.projectId AS projectId,
+                p.name AS projectName
+            FROM Task t
+            LEFT JOIN User u ON t.assignedTo = u.userId
+            LEFT JOIN Project p ON t.projectId = p.projectId
+            WHERE t.assignedTo = :userId
+              AND t.dueDate < CURRENT_TIMESTAMP
+              AND t.status NOT IN (3, 4)
+            ORDER BY t.dueDate ASC
+            """)
+    List<ReportOverdueTaskProjection> findOverdueTasks(@Param("userId") Long userId);
+
+    @Query("""
+            SELECT
+                t.assignedTo AS userId,
+                u.name AS userName,
+                COUNT(t.taskId) AS totalTasks,
+                SUM(CASE WHEN t.status = 3 THEN 1 ELSE 0 END) AS completedTasks,
+                SUM(CASE WHEN t.status = 0 THEN 1 ELSE 0 END) AS pendingTasks,
+                SUM(CASE WHEN t.status = 1 THEN 1 ELSE 0 END) AS doingTasks
+            FROM Task t
+            LEFT JOIN User u ON t.assignedTo = u.userId
+            WHERE t.projectId IN :projectIds
+              AND t.assignedTo IS NOT NULL
+            GROUP BY t.assignedTo, u.name
+            """)
+    List<ReportMemberWorkloadProjection> getMemberWorkload(@Param("projectIds") List<Long> projectIds);
 
 }

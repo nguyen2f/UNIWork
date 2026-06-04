@@ -13,6 +13,8 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
 
     List<ChatRoomMember> findByUserId(Long userId);
 
+    List<ChatRoomMember> findByRoomId(Long roomId);
+
     @Query("""
             select m.roomId
                 from ChatRoomMember m
@@ -24,6 +26,6 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
             """)
     Optional<Long> findDirectRoom(Long user1, Long user2);
 
-
+    ChatRoomMember findByRoomIdAndUserId(Long roomId, Long userId);
 
 }

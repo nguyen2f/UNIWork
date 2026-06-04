@@ -27,6 +27,12 @@ public class NotificationController {
         return ResponseFactory.success(notificationList);
     }
 
+    @GetMapping("/unread-count")
+    public ResponseEntity getUnreadCount(@RequestAttribute Payload payload) {
+        Long count = notificationService.getUnreadCount(payload.getUserId());
+        return ResponseFactory.success(count);
+    }
+
     @PatchMapping("/{notiId}/read")
     public ResponseEntity markAsRead(@PathVariable Long notiId,
                                      @RequestAttribute Payload payload) {
@@ -38,6 +44,13 @@ public class NotificationController {
     public ResponseEntity markAsReadAll(@RequestAttribute Payload payload) {
         notificationService.markAsReadAll(payload.getUserId());
         return ResponseFactory.success("Mark as read all");
+    }
+
+    @DeleteMapping("/{notiId}")
+    public ResponseEntity deleteNotification(@PathVariable Long notiId,
+                                              @RequestAttribute Payload payload) {
+        notificationService.deleteNotification(notiId, payload.getUserId());
+        return ResponseFactory.success("Notification deleted");
     }
 
 }
