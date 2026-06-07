@@ -23,4 +23,6 @@ public interface TaskService {
 
     List<TaskDTO> getTasksByStageId(Long stageId);
 
+    Task updateTaskStatus(Long userId, Long taskId, TaskRequest taskRequest);
+
 }

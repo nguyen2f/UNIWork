@@ -39,6 +39,37 @@ public class TaskServiceImpl implements TaskService {
     @Autowired
     private ProjectService projectService;
 
+    /**
+     * @param userId
+     * @param taskId
+     * @param taskRequest
+     * @return
+     */
+    @Override
+    public Task updateTaskStatus(Long userId, Long taskId, TaskRequest taskRequest) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new CoreException(ErrorCode.TASK_NOT_FOUND, "Task not found"));
+
+        if (task.getParentId() == null && !checkSubTaskDone(taskId)) {
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Not all subtasks have been done, so you cannot change the status");
+        }
+        if (taskRequest.getStatus() != null &&
+                (taskRequest.getStatus() == TaskStatus.COMPLETED.getCode() || taskRequest.getStatus() == TaskStatus.REVIEWING.getCode())) {
+            task.setCompleted(true);
+        }
+        task.setUpdatedDate(LocalDateTime.now());
+        task.setUpdatedBy(userId);
+
+        if (taskRequest.getStatus() != null) {
+            task.setStatus(TaskStatus.fromCode(taskRequest.getStatus()));
+        }
+
+        BeanCopyUtils.copyNonNullProperties(taskRequest, task, "taskId", "createdBy", "createdDate", "projectId", "stageId", "isDeleted", "status");
+
+        Task updatedTask = taskRepository.save(task);
+        return updatedTask;
+    }
+
     @Autowired
     private TaskRepository taskRepository;
 

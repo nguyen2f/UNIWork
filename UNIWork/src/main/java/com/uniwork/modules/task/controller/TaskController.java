@@ -116,4 +116,13 @@ public class TaskController {
         FileAttachment fileAttachment = fileAttachmentService.uploadFileAttachment(payload.getUserId(), taskId, file);
         return ResponseFactory.success(fileAttachment);
     }
+
+    @PostMapping("/{taskId}/status")
+    public ResponseEntity updateTaskStatus(@PathVariable Long taskId,
+                                      @RequestBody TaskRequest taskRequest,
+                                      @RequestAttribute(required = false) Payload payload) {
+        log.info("Updating task ID: {}", taskId);
+        Task task = taskService.updateTaskStatus(payload.getUserId(), taskId, taskRequest);
+        return ResponseFactory.success(task);
+    }
 }

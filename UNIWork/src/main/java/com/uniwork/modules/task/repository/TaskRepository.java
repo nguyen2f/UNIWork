@@ -81,15 +81,21 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<ReportProjectProjection> reportProjects(@Param("projectIds") List<Long> projectIds);
 
     @Query("""
-            SELECT 
-                    COUNT(t.taskId) AS totalTasks,
-                    SUM(CASE WHEN t.status = 3 THEN 1 ELSE 0 END) AS completedTasks,
-                    SUM(CASE WHEN t.status = 0 THEN 1 ELSE 0 END) AS pendingTasks,
-                    SUM(CASE WHEN t.status = 2 THEN 1 ELSE 0 END) AS reviewingTasks,
-                    SUM(CASE WHEN t.status = 4 THEN 1 ELSE 0 END) AS cancelledTasks,
-                    SUM(CASE WHEN t.status = 1 THEN 1 ELSE 0 END) AS doingTasks
-                FROM Task t
-                WHERE t.assignedTo = :userId""")
+        SELECT 
+            COUNT(t.taskId) AS totalTasks,
+            COALESCE(SUM(CASE 
+                WHEN t.status = com.uniwork.enums.TaskStatus.COMPLETED THEN 1 ELSE 0 END), 0) AS completedTasks,
+            COALESCE(SUM(CASE 
+                WHEN t.status = com.uniwork.enums.TaskStatus.PENDING THEN 1 ELSE 0 END), 0) AS pendingTasks,
+            COALESCE(SUM(CASE 
+                WHEN t.status = com.uniwork.enums.TaskStatus.REVIEWING THEN 1 ELSE 0 END), 0) AS reviewingTasks,
+            COALESCE(SUM(CASE 
+                WHEN t.status = com.uniwork.enums.TaskStatus.CANCELLED THEN 1 ELSE 0 END), 0) AS cancelledTasks,
+            COALESCE(SUM(CASE 
+                WHEN t.status = com.uniwork.enums.TaskStatus.DOING THEN 1 ELSE 0 END), 0) AS doingTasks
+        FROM Task t
+        WHERE t.assignedTo = :userId
+    """)
     ReportTaskProjection getTaskReport(@Param("userId") Long userId);
 
     @Query("""
@@ -328,7 +334,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             LEFT JOIN Project p ON t.projectId = p.projectId
             WHERE t.assignedTo = :userId
               AND t.dueDate < CURRENT_TIMESTAMP
-              AND t.status NOT IN (3, 4)
+              AND t.status NOT IN (com.uniwork.enums.TaskStatus.COMPLETED, com.uniwork.enums.TaskStatus.CANCELLED)
             ORDER BY t.dueDate ASC
             """)
     List<ReportOverdueTaskProjection> findOverdueTasks(@Param("userId") Long userId);
