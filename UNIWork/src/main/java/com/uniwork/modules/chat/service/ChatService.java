@@ -1,9 +1,6 @@
 package com.uniwork.modules.chat.service;
 
-import com.uniwork.modules.chat.dto.ChatMessageDTO;
-import com.uniwork.modules.chat.dto.ChatMessageResponseDTO;
-import com.uniwork.modules.chat.dto.ChatRoomDTO;
-import com.uniwork.modules.chat.dto.CreateGroupDTO;
+import com.uniwork.modules.chat.dto.*;
 import com.uniwork.modules.chat.entity.ChatRoom;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -33,4 +30,6 @@ public interface ChatService {
 
     @Transactional
     void removeMemberFromGroup(Long userId, Long roomId, Long targetUserId);
+
+    void typeMessage(TypingEvent event);
 }

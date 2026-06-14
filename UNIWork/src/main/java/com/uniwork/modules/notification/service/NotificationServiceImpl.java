@@ -1,6 +1,7 @@
 package com.uniwork.modules.notification.service;
 
 import com.uniwork.modules.notification.dto.NotificationDTO;
+import com.uniwork.modules.notification.dto.NotificationWSEvent;
 import com.uniwork.modules.notification.entity.Notification;
 import com.uniwork.modules.notification.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,7 +70,23 @@ public class NotificationServiceImpl implements NotificationService {
 
         notificationRepository.save(notification);
 
-        messagingTemplate.convertAndSend("/topic/notifications/" + recipientId, dto);
+        NotificationWSEvent wsEvent = NotificationWSEvent.builder()
+            .notiId(notification.getNotiId())       // ← CẦN THIẾT cho markAsRead
+            .recipientId(recipientId)
+            .entityType(notification.getEntityType())
+            .entityId(notification.getEntityId())
+            .type(notification.getType())
+            .title(notification.getTitle())
+            .message(notification.getMessage())
+            .read(false)
+            .createdDate(notification.getCreatedDate())
+            .build();
+
+        messagingTemplate.convertAndSendToUser(
+            recipientId.toString(),   // principal name
+            "/queue/notifications",   // user-specific queue
+            wsEvent
+        );
     }
 
 }

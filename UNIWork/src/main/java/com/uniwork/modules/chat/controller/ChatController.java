@@ -1,10 +1,7 @@
 package com.uniwork.modules.chat.controller;
 
 import com.uniwork.modules.auth.dto.Payload;
-import com.uniwork.modules.chat.dto.ChatMessageDTO;
-import com.uniwork.modules.chat.dto.ChatMessageResponseDTO;
-import com.uniwork.modules.chat.dto.ChatRoomDTO;
-import com.uniwork.modules.chat.dto.CreateGroupDTO;
+import com.uniwork.modules.chat.dto.*;
 import com.uniwork.modules.chat.entity.ChatRoom;
 import com.uniwork.common.response.PageMetadata;
 import com.uniwork.common.response.ResponseFactory;
@@ -18,22 +15,27 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
 @RequestMapping("/chats")
 @Slf4j
-@PreAuthorize("hasAuthority('PERM_MANAGE_CHATS')")
+//@PreAuthorize("hasAuthority('PERM_MANAGE_CHATS')")
 public class ChatController {
 
     @Autowired
     private ChatService chatService;
 
     @MessageMapping("/send")
-    public void sendMessage(ChatMessageDTO message) {
-        log.info("send message");
+    public void sendMessage(ChatMessageDTO message, Principal principal) {
+        // ✅ Dùng userId từ authenticated principal, không tin FE
+        Long authenticatedUserId = Long.parseLong(principal.getName());
+        message.setSenderId(authenticatedUserId);  // Override FE value
+
         chatService.sendMessage(message);
     }
+
 
     @GetMapping("")
     public ResponseEntity getAllMessages(@RequestAttribute Payload payload) {
@@ -87,6 +89,16 @@ public class ChatController {
                                                  @RequestAttribute Payload payload) {
         chatService.removeMemberFromGroup(payload.getUserId(), roomId, userId);
         return ResponseFactory.success("Member removed successfully");
+    }
+
+    // ========= ChatController.java =========
+    @MessageMapping("/typing")
+    public void handleTyping(TypingEvent event, Principal principal) {
+        Long userId = Long.parseLong(principal.getName());
+        event.setUserId(userId);
+
+        chatService.typeMessage(event);
+
     }
 
 }

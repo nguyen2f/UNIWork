@@ -1,10 +1,6 @@
 package com.uniwork.modules.chat.service;
 
-import com.uniwork.modules.chat.dto.ChatMessageDTO;
-import com.uniwork.modules.chat.dto.ChatMessageResponseDTO;
-import com.uniwork.modules.chat.dto.ChatRoomDTO;
-import com.uniwork.modules.chat.dto.ChatRoomRenameEvent;
-import com.uniwork.modules.chat.dto.CreateGroupDTO;
+import com.uniwork.modules.chat.dto.*;
 import com.uniwork.modules.chat.entity.ChatRoom;
 import com.uniwork.modules.chat.entity.ChatRoomMember;
 import com.uniwork.modules.chat.entity.Message;
@@ -70,6 +66,13 @@ public class ChatServiceImpl implements ChatService {
 
         String senderName = userRepository.findUserNameByUserId(senderId);
 
+        ChatListUpdateEvent listEvent = ChatListUpdateEvent.builder()
+                                        .roomId(roomId)
+                                        .lastMessage(message.getContent())
+                                        .lastMessageTime(message.getCreatedAt())
+                                        .lastMessageSenderId(senderId)
+                                        .lastMessageSenderName(senderName)
+                                        .build();
         ChatMessageResponseDTO response =
                 ChatMessageResponseDTO.builder()
                         .messageId(message.getId())
@@ -94,6 +97,7 @@ public class ChatServiceImpl implements ChatService {
         members.forEach(member -> {
             if (!member.getUserId().equals(senderId)) {
                 notificationService.sendNotification(member.getUserId(), notificationDTO);
+                simpMessagingTemplate.convertAndSend("/topic/user/" + member.getUserId() + "/chat-update", listEvent);
             }
         });
     }
@@ -262,6 +266,15 @@ public class ChatServiceImpl implements ChatService {
                 .createdAt(LocalDateTime.now())
                 .build();
         notificationService.sendNotification(newMemberId, notificationDTO);
+    }
+
+    /**
+     * @param event
+     */
+    @Override
+    public void typeMessage(TypingEvent event) {
+        // Broadcast typing status to room
+        simpMessagingTemplate.convertAndSend("/topic/chat/" + event.getRoomId() + "/typing",event );
     }
 
     @Transactional
