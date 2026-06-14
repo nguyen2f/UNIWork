@@ -1,6 +1,6 @@
-<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0" version="29.2.10">
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0">
   <diagram name="Page-1" id="LLpskVTNyjd0eYGFW1nT">
-    <mxGraphModel dx="2836" dy="2797" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2043" dy="2220" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -240,7 +240,7 @@
         <mxCell id="i8Fer9K6hplxqZVJZMMF-99" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Assign member" vertex="1">
           <mxGeometry height="80" width="120" x="410" y="-560" as="geometry" />
         </mxCell>
-        <mxCell id="i8Fer9K6hplxqZVJZMMF-100" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Create task" vertex="1">
+        <mxCell id="i8Fer9K6hplxqZVJZMMF-100" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Create task &amp;amp; issue" vertex="1">
           <mxGeometry height="80" width="120" x="560" y="-600" as="geometry" />
         </mxCell>
         <mxCell id="i8Fer9K6hplxqZVJZMMF-108" edge="1" parent="1" source="i8Fer9K6hplxqZVJZMMF-100" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" target="i8Fer9K6hplxqZVJZMMF-85" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;">
@@ -272,7 +272,7 @@
         <mxCell id="i8Fer9K6hplxqZVJZMMF-117" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View gantt chart" vertex="1">
           <mxGeometry height="80" width="120" x="330" y="-1040" as="geometry" />
         </mxCell>
-        <mxCell id="i8Fer9K6hplxqZVJZMMF-118" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View task detail" vertex="1">
+        <mxCell id="i8Fer9K6hplxqZVJZMMF-118" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View task/issue detail" vertex="1">
           <mxGeometry height="80" width="120" x="530" y="-1040" as="geometry" />
         </mxCell>
         <mxCell id="i8Fer9K6hplxqZVJZMMF-119" edge="1" parent="1" source="i8Fer9K6hplxqZVJZMMF-84" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" target="i8Fer9K6hplxqZVJZMMF-118" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;">
@@ -297,10 +297,10 @@
         <mxCell id="i8Fer9K6hplxqZVJZMMF-123" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Admin" vertex="1">
           <mxGeometry height="60" width="30" x="1540" y="-729" as="geometry" />
         </mxCell>
-        <mxCell id="i8Fer9K6hplxqZVJZMMF-124" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View task" vertex="1">
+        <mxCell id="i8Fer9K6hplxqZVJZMMF-124" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View task/issue" vertex="1">
           <mxGeometry height="80" width="120" x="1189.5" y="-800" as="geometry" />
         </mxCell>
-        <mxCell id="i8Fer9K6hplxqZVJZMMF-125" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Update task status" vertex="1">
+        <mxCell id="i8Fer9K6hplxqZVJZMMF-125" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Update task/issue status" vertex="1">
           <mxGeometry height="80" width="120" x="1191" y="-699" as="geometry" />
         </mxCell>
         <mxCell id="i8Fer9K6hplxqZVJZMMF-127" edge="1" parent="1" source="i8Fer9K6hplxqZVJZMMF-122" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="i8Fer9K6hplxqZVJZMMF-125" value="">
@@ -336,7 +336,7 @@
         <mxCell id="i8Fer9K6hplxqZVJZMMF-132" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Member" vertex="1">
           <mxGeometry height="60" width="30" x="980" y="-819" as="geometry" />
         </mxCell>
-        <mxCell id="i8Fer9K6hplxqZVJZMMF-133" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Create task" vertex="1">
+        <mxCell id="i8Fer9K6hplxqZVJZMMF-133" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Create task/issue" vertex="1">
           <mxGeometry height="70" width="121" x="1189.5" y="-600" as="geometry" />
         </mxCell>
         <mxCell id="i8Fer9K6hplxqZVJZMMF-134" edge="1" parent="1" source="i8Fer9K6hplxqZVJZMMF-122" style="endArrow=classic;html=1;rounded=0;" target="i8Fer9K6hplxqZVJZMMF-124" value="">
@@ -354,7 +354,7 @@
         <mxCell id="i8Fer9K6hplxqZVJZMMF-141" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View Kanban&amp;nbsp;&lt;div&gt;board&amp;nbsp;&lt;/div&gt;" vertex="1">
           <mxGeometry height="80" width="120" x="1071" y="-899" as="geometry" />
         </mxCell>
-        <mxCell id="i8Fer9K6hplxqZVJZMMF-142" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View task detail" vertex="1">
+        <mxCell id="i8Fer9K6hplxqZVJZMMF-142" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View task/issue detail" vertex="1">
           <mxGeometry height="80" width="120" x="1230" y="-919" as="geometry" />
         </mxCell>
         <mxCell id="i8Fer9K6hplxqZVJZMMF-143" edge="1" parent="1" source="i8Fer9K6hplxqZVJZMMF-124" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" target="i8Fer9K6hplxqZVJZMMF-142" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;">
@@ -401,8 +401,8 @@
             <mxPoint x="1120" y="-610" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="i8Fer9K6hplxqZVJZMMF-156" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Assign task to member" vertex="1">
-          <mxGeometry height="80" width="120" x="1370" y="-570" as="geometry" />
+        <mxCell id="i8Fer9K6hplxqZVJZMMF-156" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Assign task/issue to member" vertex="1">
+          <mxGeometry height="80" width="120" x="1370" y="-560" as="geometry" />
         </mxCell>
         <mxCell id="i8Fer9K6hplxqZVJZMMF-157" edge="1" parent="1" source="i8Fer9K6hplxqZVJZMMF-156" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" target="i8Fer9K6hplxqZVJZMMF-133" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;">
           <mxGeometry relative="1" width="160" x="-0.1584" y="1" as="geometry">
@@ -412,7 +412,7 @@
             <mxPoint x="1380" y="-383" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="i8Fer9K6hplxqZVJZMMF-158" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Create subtask&amp;nbsp;" vertex="1">
+        <mxCell id="i8Fer9K6hplxqZVJZMMF-158" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Create issue" vertex="1">
           <mxGeometry height="80" width="120" x="1040.5" y="-560" as="geometry" />
         </mxCell>
         <mxCell id="i8Fer9K6hplxqZVJZMMF-159" edge="1" parent="1" source="i8Fer9K6hplxqZVJZMMF-158" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" target="i8Fer9K6hplxqZVJZMMF-133" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;">
