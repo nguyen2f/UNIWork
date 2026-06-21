@@ -83,6 +83,8 @@ public class StageServiceImpl implements StageService {
         Stage stage = stageRepository.findById(stageId)
                 .orElseThrow(() -> new CoreException(ErrorCode.STAGE_NOT_FOUND));
 
+        stage.setStartDate(request.getStartDate());
+        stage.setEndDate(request.getEndDate());
         BeanCopyUtils.copyNonNullProperties(request, stage, "stageId", "projectId", "type", "orderIndex", "status", "active", "isDeleted");
         return stageRepository.save(stage);
     }

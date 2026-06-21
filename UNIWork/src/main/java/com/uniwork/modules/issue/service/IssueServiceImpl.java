@@ -56,6 +56,7 @@ public class IssueServiceImpl implements IssueService {
         Issue issue = new Issue();
         issue.setTaskId(task.getTaskId());
         issue.setProjectId(task.getProjectId());
+        issue.setStageId(task.getStageId());
         issue.setReportedBy(userId);
         issue.setAssignedTo(request.getAssignedTo());
         issue.setTitle(request.getTitle());

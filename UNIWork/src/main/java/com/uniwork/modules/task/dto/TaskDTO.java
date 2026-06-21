@@ -33,7 +33,7 @@ public class TaskDTO {
     private String createdByName;
     private String managedByName;
 
-    private Long taskParentId;
+//    private Long taskParentId;
 
     // Stage info
     private Long stageId;
@@ -63,7 +63,7 @@ public class TaskDTO {
         this.assigneeName = p.getAssigneeName();
         this.createdByName = p.getCreatedByName();
         this.managedByName = p.getManagedByName();
-        this.taskParentId = p.getTaskParentId();
+//        this.taskParentId = p.getTaskParentId();
         this.stageId = p.getStageId();
         this.stageName = p.getStageName();
         this.projectName = p.getProjectName();

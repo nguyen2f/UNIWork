@@ -11,6 +11,8 @@ import com.uniwork.modules.file.service.FileAttachmentServiceImpl;
 import com.uniwork.modules.task.service.TaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -115,6 +117,21 @@ public class TaskController {
         log.info("Uploading file for task ID: {}", taskId);
         FileAttachment fileAttachment = fileAttachmentService.uploadFileAttachment(payload.getUserId(), taskId, file);
         return ResponseFactory.success(fileAttachment);
+    }
+
+    @GetMapping("/{taskId}/files")
+    public ResponseEntity<?> getFiles(@PathVariable Long taskId) {
+        List<FileAttachment> files = fileAttachmentService.findByTaskId(taskId);
+        return ResponseFactory.success(files);
+    }
+
+    @GetMapping("/files/{fileId}/download")
+    public ResponseEntity<?> downloadFile(@PathVariable Long fileId) {
+        FileAttachment file = fileAttachmentService.findById(fileId);
+
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .header(HttpHeaders.LOCATION, file.getFileUrl())
+                .build();
     }
 
     @PostMapping("/{taskId}/status")

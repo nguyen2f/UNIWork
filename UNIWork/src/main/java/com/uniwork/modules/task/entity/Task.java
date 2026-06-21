@@ -18,7 +18,7 @@ public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long taskId;
-    private Long parentId; // For sub-tasks, reference to the parent task
+//    private Long parentId; // For sub-tasks, reference to the parent task
     private Long projectId; // Reference to the project this task belongs to
     private Long departmentId;
     private Long stageId; // Required — every task belongs to a stage

@@ -50,8 +50,8 @@ public class TaskServiceImpl implements TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new CoreException(ErrorCode.TASK_NOT_FOUND, "Task not found"));
 
-        if (task.getParentId() == null && !checkSubTaskDone(taskId)) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Not all subtasks have been done, so you cannot change the status");
+        if (!checkIssuesDone(taskId)) {
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Not all issue have been done, so you cannot change the status");
         }
         if (taskRequest.getStatus() != null &&
                 (taskRequest.getStatus() == TaskStatus.COMPLETED.getCode() || taskRequest.getStatus() == TaskStatus.REVIEWING.getCode())) {
@@ -112,17 +112,18 @@ public class TaskServiceImpl implements TaskService {
         List<FileAttachmentDTO> attachments = fileAttachmentService.getAllFileAttachment(taskId);
         dto.setFileAttachments(attachments);
 
-        if (taskDTO.getTaskParentId() == null) {
-            List<TaskDetailProjection> taskDetailProjectionList =
-                    taskRepository.findByParentId(taskDTO.getTaskId());
-
-            List<TaskDTO> childTasks = taskDetailProjectionList
-                    .stream()
-                    .map(TaskDTO::new)
-                    .toList();
-
-            dto.setChildTasks(childTasks);
-        }
+//        if (true) {
+//
+//            List<TaskDetailProjection> taskDetailProjectionList =
+//                    taskRepository.findByParentId(taskDTO.getTaskId());
+//
+//            List<TaskDTO> childTasks = taskDetailProjectionList
+//                    .stream()
+//                    .map(TaskDTO::new)
+//                    .toList();
+//
+//            dto.setChildTasks(childTasks);
+//        }
 
         List<CommentDTO> comments = commentService.getAllCommentDTO(taskId);
         dto.setComments(comments);
@@ -152,7 +153,6 @@ public class TaskServiceImpl implements TaskService {
         parentTask.setStageId(stageId);
         parentTask.setAssignedTo(null);
         parentTask.setCreatedBy(userId);
-        parentTask.setParentId(null);
         parentTask.setTitle(taskRequest.getTitle());
         parentTask.setDescription(taskRequest.getDescription());
         parentTask.setPriority(Priority.fromCode(taskRequest.getPriority()));
@@ -183,6 +183,7 @@ public class TaskServiceImpl implements TaskService {
 
             Issue childTask = new Issue();
             childTask.setProjectId(project.getProjectId());
+            childTask.setStageId(stageId);
             childTask.setTaskId(savedParentTask.getTaskId());
             childTask.setAssignedTo(memberId);
             childTask.setReportedBy(userId);
@@ -209,8 +210,8 @@ public class TaskServiceImpl implements TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new CoreException(ErrorCode.TASK_NOT_FOUND, "Task not found"));
 
-        if (task.getParentId() == null && !checkSubTaskDone(taskId)) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Not all subtasks have been done, so you cannot change the status");
+        if (!checkIssuesDone(taskId) && taskRequest.getStatus() != task.getStatus().getCode()) {
+            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Not all issues have been done, so you cannot change the status");
         }
         if (taskRequest.getStatus() != null &&
                 (taskRequest.getStatus() == TaskStatus.COMPLETED.getCode() || taskRequest.getStatus() == TaskStatus.REVIEWING.getCode())) {
@@ -218,6 +219,10 @@ public class TaskServiceImpl implements TaskService {
         }
         task.setUpdatedDate(LocalDateTime.now());
         task.setUpdatedBy(userId);
+        if (taskRequest.getAssignedTo() != null && !taskRequest.getAssignedTo().isEmpty()) {
+            task.setAssignedTo(taskRequest.getAssignedTo().get(0));
+        }
+        task.setManagedBy(userId);
 
         if (taskRequest.getStatus() != null) {
             task.setStatus(TaskStatus.fromCode(taskRequest.getStatus()));
@@ -240,15 +245,13 @@ public class TaskServiceImpl implements TaskService {
         taskRepository.save(task);
 
         // Also soft-delete child tasks if this is a parent task
-        if (task.getParentId() == null) {
-            List<Task> childTasks = taskRepository.findByParentIdOrderByTaskIdDesc(taskId);
-            for (Task child : childTasks) {
-                child.setIsDeleted(true);
-                child.setUpdatedDate(LocalDateTime.now());
-                child.setUpdatedBy(userId);
-            }
-            taskRepository.saveAll(childTasks);
+        List<Issue> childIssues = issueRepository.findAllByTaskId(taskId);
+        for (Issue child : childIssues) {
+            child.setIsDeleted(true);
+            child.setUpdatedDate(LocalDateTime.now());
+            child.setUpdatedBy(userId);
         }
+        issueRepository.saveAll(childIssues);
 
         return task;
     }
@@ -269,9 +272,10 @@ public class TaskServiceImpl implements TaskService {
         return projections.stream().map(TaskDTO::new).toList();
     }
 
-    private Boolean checkSubTaskDone(Long taskId) {
-        List<Task> subTasks = taskRepository.findByParentIdOrderByTaskIdDesc(taskId);
-        return subTasks.stream().allMatch(Task::getCompleted);
+    private Boolean checkIssuesDone(Long taskId) {
+        List<Issue> issues = issueRepository.findAllByTaskId(taskId);
+        return issues.stream()
+                       .allMatch(issue -> issue.getStatus() == IssueStatus.CLOSED);
     }
 
     /**

@@ -25,4 +25,6 @@ public interface FileAttachmentRepository extends JpaRepository<FileAttachment,L
             nativeQuery = true)
     List<FileAttachmentProjection> findAllByTaskId(@Param("taskId") Long taskId);
 
+    List<FileAttachment> findByTaskId(Long taskId);
+
 }

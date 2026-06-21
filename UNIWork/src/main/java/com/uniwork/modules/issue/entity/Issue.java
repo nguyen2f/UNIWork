@@ -21,6 +21,7 @@ public class Issue {
 
     private Long taskId;       // Reference to the parent task
     private Long projectId;    // Reference to the project (denormalized for easy querying)
+    private Long stageId;
 
     private Long reportedBy;   // User who reported the issue
     private Long assignedTo;   // User who is assigned to fix the issue

@@ -78,7 +78,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         d.departmentName
     )
     FROM User u
-    LEFT JOIN Department d ON u.departmentId = d.departmentId""")
+    LEFT JOIN Department d ON u.departmentId = d.departmentId WHERE u.systemRole <> 'ADMIN'""")
     List<UserDTO> findAllUserDTO();
 
     @Query("""
@@ -88,6 +88,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
         u.active, u.systemRole, u.avatarUrl, u.avatarPublicId
     )
     FROM User u
-    LEFT JOIN Department d ON u.departmentId = d.departmentId""")
+    LEFT JOIN Department d ON u.departmentId = d.departmentId WHERE u.systemRole <> 'ADMIN'""")
     Page<ProfileDTO> findAllProfileDTO(Pageable pageable);
 }

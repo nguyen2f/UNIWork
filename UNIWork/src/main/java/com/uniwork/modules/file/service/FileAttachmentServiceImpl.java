@@ -93,4 +93,12 @@ public class FileAttachmentServiceImpl implements FileAttachmentService {
         }
     }
 
+    public List<FileAttachment> findByTaskId(Long taskId) {
+        return fileAttachmentRepository.findByTaskId(taskId);
+    }
+
+    public FileAttachment findById(Long fileAttachmentId) {
+        return fileAttachmentRepository.findById(fileAttachmentId).orElseThrow(() -> new RuntimeException("File not found"));
+    }
+
 }
