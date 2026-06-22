@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0">
   <diagram name="Page-1" id="LLpskVTNyjd0eYGFW1nT">
-    <mxGraphModel dx="2270" dy="2337" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2919" dy="2670" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -67,19 +67,19 @@
           <mxGeometry height="60" width="30" x="659" y="310" as="geometry" />
         </mxCell>
         <mxCell id="oOCcLrobtps6k0QdSRkq-107" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Manage projects" vertex="1">
-          <mxGeometry height="80" width="120" x="354" y="60" as="geometry" />
+          <mxGeometry height="80" width="120" x="354" y="70" as="geometry" />
         </mxCell>
         <mxCell id="oOCcLrobtps6k0QdSRkq-108" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Manage tasks" vertex="1">
-          <mxGeometry height="80" width="120" x="349" y="180" as="geometry" />
+          <mxGeometry height="80" width="120" x="354" y="180" as="geometry" />
         </mxCell>
         <mxCell id="oOCcLrobtps6k0QdSRkq-109" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Manage user" vertex="1">
-          <mxGeometry height="80" width="120" x="349" y="590" as="geometry" />
+          <mxGeometry height="80" width="120" x="354" y="590" as="geometry" />
         </mxCell>
         <mxCell id="oOCcLrobtps6k0QdSRkq-110" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Manage reports &amp;amp; workflows" vertex="1">
-          <mxGeometry height="80" width="120" x="349" y="390" as="geometry" />
+          <mxGeometry height="80" width="120" x="354" y="390" as="geometry" />
         </mxCell>
         <mxCell id="oOCcLrobtps6k0QdSRkq-111" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Manage notifications &amp;amp; comments" vertex="1">
-          <mxGeometry height="80" width="120" x="349" y="490" as="geometry" />
+          <mxGeometry height="80" width="120" x="354" y="494.5" as="geometry" />
         </mxCell>
         <mxCell id="oOCcLrobtps6k0QdSRkq-112" edge="1" parent="1" source="oOCcLrobtps6k0QdSRkq-104" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="oOCcLrobtps6k0QdSRkq-108" value="">
           <mxGeometry height="50" relative="1" width="50" as="geometry">
@@ -154,7 +154,7 @@
           </mxGeometry>
         </mxCell>
         <mxCell id="i_LhrdnTxtgHmk7P9j8N-1" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Manage files &amp;amp; resources" vertex="1">
-          <mxGeometry height="80" width="120" x="349" y="290" as="geometry" />
+          <mxGeometry height="80" width="120" x="354" y="290" as="geometry" />
         </mxCell>
         <mxCell id="i_LhrdnTxtgHmk7P9j8N-2" edge="1" parent="1" source="oOCcLrobtps6k0QdSRkq-106" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="i_LhrdnTxtgHmk7P9j8N-1" value="">
           <mxGeometry height="50" relative="1" width="50" as="geometry">
@@ -269,11 +269,8 @@
             <mxPoint x="756" y="-610" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="i8Fer9K6hplxqZVJZMMF-117" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View gantt chart" vertex="1">
-          <mxGeometry height="80" width="120" x="330" y="-1040" as="geometry" />
-        </mxCell>
-        <mxCell id="i8Fer9K6hplxqZVJZMMF-118" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View task/issue detail" vertex="1">
-          <mxGeometry height="80" width="120" x="530" y="-1040" as="geometry" />
+        <mxCell id="i8Fer9K6hplxqZVJZMMF-118" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View stages/ tasks/issues detail" vertex="1">
+          <mxGeometry height="80" width="120" x="410" y="-1020" as="geometry" />
         </mxCell>
         <mxCell id="i8Fer9K6hplxqZVJZMMF-119" edge="1" parent="1" source="i8Fer9K6hplxqZVJZMMF-84" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" target="i8Fer9K6hplxqZVJZMMF-118" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;">
           <mxGeometry relative="1" width="160" x="-0.1551" y="1" as="geometry">
@@ -281,14 +278,6 @@
             <Array as="points" />
             <mxPoint x="675" y="-856" as="sourcePoint" />
             <mxPoint x="610" y="-900" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="i8Fer9K6hplxqZVJZMMF-120" edge="1" parent="1" source="i8Fer9K6hplxqZVJZMMF-84" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" target="i8Fer9K6hplxqZVJZMMF-117" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;">
-          <mxGeometry relative="1" width="160" x="-0.1551" y="1" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points" />
-            <mxPoint x="400" y="-870" as="sourcePoint" />
-            <mxPoint x="454" y="-940" as="targetPoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="i8Fer9K6hplxqZVJZMMF-122" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Manager" vertex="1">
@@ -351,11 +340,8 @@
             <mxPoint x="1220" y="-810" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="i8Fer9K6hplxqZVJZMMF-141" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View Kanban&amp;nbsp;&lt;div&gt;board&amp;nbsp;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="80" width="120" x="1071" y="-899" as="geometry" />
-        </mxCell>
         <mxCell id="i8Fer9K6hplxqZVJZMMF-142" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="View task/issue detail" vertex="1">
-          <mxGeometry height="80" width="120" x="1230" y="-919" as="geometry" />
+          <mxGeometry height="80" width="120" x="1140" y="-910" as="geometry" />
         </mxCell>
         <mxCell id="i8Fer9K6hplxqZVJZMMF-143" edge="1" parent="1" source="i8Fer9K6hplxqZVJZMMF-124" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" target="i8Fer9K6hplxqZVJZMMF-142" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;">
           <mxGeometry relative="1" width="160" x="-0.1551" y="1" as="geometry">
@@ -365,19 +351,11 @@
             <mxPoint x="1400" y="-880" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="i8Fer9K6hplxqZVJZMMF-144" edge="1" parent="1" source="i8Fer9K6hplxqZVJZMMF-124" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" target="i8Fer9K6hplxqZVJZMMF-141" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;">
-          <mxGeometry relative="1" width="160" x="-0.1551" y="1" as="geometry">
-            <mxPoint as="offset" />
-            <Array as="points" />
-            <mxPoint x="1190" y="-850" as="sourcePoint" />
-            <mxPoint x="1244" y="-920" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
         <mxCell id="i8Fer9K6hplxqZVJZMMF-147" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Manage attachments" vertex="1">
-          <mxGeometry height="80" width="120" x="1390" y="-979" as="geometry" />
+          <mxGeometry height="80" width="120" x="1330" y="-980" as="geometry" />
         </mxCell>
         <mxCell id="i8Fer9K6hplxqZVJZMMF-148" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="Manage comments" vertex="1">
-          <mxGeometry height="69" width="115" x="1390" y="-850" as="geometry" />
+          <mxGeometry height="69" width="115" x="1335" y="-864" as="geometry" />
         </mxCell>
         <mxCell id="i8Fer9K6hplxqZVJZMMF-149" edge="1" parent="1" source="i8Fer9K6hplxqZVJZMMF-148" style="endArrow=open;endSize=12;dashed=1;html=1;rounded=0;" target="i8Fer9K6hplxqZVJZMMF-142" value="&amp;lt;&amp;lt;extend&amp;gt;&amp;gt;">
           <mxGeometry relative="1" width="160" x="-0.1584" y="1" as="geometry">
