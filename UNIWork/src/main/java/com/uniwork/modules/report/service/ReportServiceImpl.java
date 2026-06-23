@@ -494,4 +494,309 @@ public class ReportServiceImpl implements ReportService {
         }).toList();
     }
 
+    // =====================================================
+    // ANALYTICS APIs
+    // =====================================================
+
+    @Override
+    public CompletionTrendDTO getCompletionTrend(Long userId, String granularity, LocalDateTime from, LocalDateTime to) {
+        List<ReportTimeSeriesProjection> taskData;
+        List<ReportTimeSeriesProjection> issueData;
+
+        switch (granularity.toUpperCase()) {
+            case "MONTHLY" -> {
+                taskData = taskRepository.getTaskCompletionByMonth(userId, from, to);
+                issueData = issueRepository.getIssueCompletionByMonth(userId, from, to);
+            }
+            case "YEARLY" -> {
+                taskData = taskRepository.getTaskCompletionByYear(userId, from, to);
+                issueData = issueRepository.getIssueCompletionByYear(userId, from, to);
+            }
+            default -> { // DAILY
+                taskData = taskRepository.getTaskCompletionByDay(userId, from, to);
+                issueData = issueRepository.getIssueCompletionByDay(userId, from, to);
+            }
+        }
+
+        List<TimeSeriesDataPoint> dataPoints = mergeTimeSeries(taskData, issueData);
+        long totalTasks = dataPoints.stream().mapToLong(TimeSeriesDataPoint::getTasks).sum();
+        long totalIssues = dataPoints.stream().mapToLong(TimeSeriesDataPoint::getIssues).sum();
+
+        return CompletionTrendDTO.builder()
+                .granularity(granularity.toUpperCase())
+                .from(from.toString())
+                .to(to.toString())
+                .totalTasksCompleted(totalTasks)
+                .totalIssuesCompleted(totalIssues)
+                .dataPoints(dataPoints)
+                .build();
+    }
+
+    @Override
+    public CreationTrendDTO getCreationTrend(Long userId, String granularity, LocalDateTime from, LocalDateTime to) {
+        List<ReportTimeSeriesProjection> taskData;
+        List<ReportTimeSeriesProjection> issueData;
+
+        switch (granularity.toUpperCase()) {
+            case "MONTHLY" -> {
+                taskData = taskRepository.getTaskCreationByMonth(userId, from, to);
+                issueData = issueRepository.getIssueCreationByMonth(userId, from, to);
+            }
+            case "YEARLY" -> {
+                taskData = taskRepository.getTaskCreationByYear(userId, from, to);
+                issueData = issueRepository.getIssueCreationByYear(userId, from, to);
+            }
+            default -> { // DAILY
+                taskData = taskRepository.getTaskCreationByDay(userId, from, to);
+                issueData = issueRepository.getIssueCreationByDay(userId, from, to);
+            }
+        }
+
+        List<TimeSeriesDataPoint> dataPoints = mergeTimeSeries(taskData, issueData);
+        long totalTasks = dataPoints.stream().mapToLong(TimeSeriesDataPoint::getTasks).sum();
+        long totalIssues = dataPoints.stream().mapToLong(TimeSeriesDataPoint::getIssues).sum();
+
+        return CreationTrendDTO.builder()
+                .granularity(granularity.toUpperCase())
+                .from(from.toString())
+                .to(to.toString())
+                .totalTasksCreated(totalTasks)
+                .totalIssuesCreated(totalIssues)
+                .dataPoints(dataPoints)
+                .build();
+    }
+
+    @Override
+    public AnalyticsSummaryDTO getAnalyticsSummary(Long userId) {
+        // Counts
+        CompletableFuture<Long> totalTasksFuture = CompletableFuture.supplyAsync(() -> taskRepository.countAllByUser(userId));
+        CompletableFuture<Long> completedTasksFuture = CompletableFuture.supplyAsync(() -> taskRepository.countCompletedByUser(userId));
+        CompletableFuture<Long> totalIssuesFuture = CompletableFuture.supplyAsync(() -> issueRepository.countAllByUser(userId));
+        CompletableFuture<Long> completedIssuesFuture = CompletableFuture.supplyAsync(() -> issueRepository.countCompletedByUser(userId));
+        CompletableFuture<Long> overdueTasksFuture = CompletableFuture.supplyAsync(() -> taskRepository.countOverdueTasks(userId));
+        CompletableFuture<Long> overdueIssuesFuture = CompletableFuture.supplyAsync(() -> issueRepository.countOverdueIssues(userId));
+        CompletableFuture<Long> totalProjectsFuture = CompletableFuture.supplyAsync(() -> projectMemberRepository.countByUserId(userId));
+
+        // Averages
+        CompletableFuture<ReportAvgCompletionProjection> avgTaskFuture = CompletableFuture.supplyAsync(() -> taskRepository.getAvgTaskCompletionTime(userId));
+        CompletableFuture<ReportAvgCompletionProjection> avgIssueFuture = CompletableFuture.supplyAsync(() -> issueRepository.getAvgIssueResolutionTime(userId));
+
+        // Distributions
+        CompletableFuture<List<ReportStatusCountProjection>> taskStatusFuture = CompletableFuture.supplyAsync(() -> taskRepository.getTaskStatusDistribution(userId));
+        CompletableFuture<List<ReportStatusCountProjection>> issueStatusFuture = CompletableFuture.supplyAsync(() -> issueRepository.getIssueStatusDistribution(userId));
+        CompletableFuture<List<ReportPriorityCountProjection>> taskPriorityFuture = CompletableFuture.supplyAsync(() -> taskRepository.getTaskPriorityDistribution(userId));
+        CompletableFuture<List<ReportPriorityCountProjection>> issuePriorityFuture = CompletableFuture.supplyAsync(() -> issueRepository.getIssuePriorityDistribution(userId));
+
+        CompletableFuture.allOf(
+                totalTasksFuture, completedTasksFuture, totalIssuesFuture, completedIssuesFuture,
+                overdueTasksFuture, overdueIssuesFuture, totalProjectsFuture,
+                avgTaskFuture, avgIssueFuture,
+                taskStatusFuture, issueStatusFuture, taskPriorityFuture, issuePriorityFuture
+        ).join();
+
+        long totalTasks = totalTasksFuture.join();
+        long completedTasks = completedTasksFuture.join();
+        long totalIssues = totalIssuesFuture.join();
+        long completedIssues = completedIssuesFuture.join();
+        long overdueTasks = overdueTasksFuture.join();
+        long overdueIssues = overdueIssuesFuture.join();
+        long totalProjects = totalProjectsFuture.join();
+
+        double taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks * 100.0) / totalTasks * 100.0) / 100.0 : 0;
+        double issueCompletionRate = totalIssues > 0 ? Math.round((completedIssues * 100.0) / totalIssues * 100.0) / 100.0 : 0;
+        long totalActive = (totalTasks - completedTasks) + (totalIssues - completedIssues);
+        double overdueRate = totalActive > 0 ? Math.round(((overdueTasks + overdueIssues) * 100.0) / totalActive * 100.0) / 100.0 : 0;
+
+        ReportAvgCompletionProjection avgTask = avgTaskFuture.join();
+        ReportAvgCompletionProjection avgIssue = avgIssueFuture.join();
+        Double avgTaskDays = avgTask != null ? avgTask.getAvgDays() : null;
+        Double avgIssueDays = avgIssue != null ? avgIssue.getAvgDays() : null;
+
+        List<StatusDistributionDTO> taskStatusDist = toStatusDistribution(taskStatusFuture.join());
+        List<StatusDistributionDTO> issueStatusDist = toStatusDistribution(issueStatusFuture.join());
+        List<PriorityDistributionDTO> taskPriorityDist = toPriorityDistribution(taskPriorityFuture.join());
+        List<PriorityDistributionDTO> issuePriorityDist = toPriorityDistribution(issuePriorityFuture.join());
+
+        return AnalyticsSummaryDTO.builder()
+                .totalTasks(totalTasks)
+                .totalIssues(totalIssues)
+                .totalProjects(totalProjects)
+                .completedTasks(completedTasks)
+                .completedIssues(completedIssues)
+                .taskCompletionRate(taskCompletionRate)
+                .issueCompletionRate(issueCompletionRate)
+                .overdueTasks(overdueTasks)
+                .overdueIssues(overdueIssues)
+                .overdueRate(overdueRate)
+                .avgTaskCompletionDays(avgTaskDays)
+                .avgIssueResolutionDays(avgIssueDays)
+                .taskStatusDistribution(taskStatusDist)
+                .issueStatusDistribution(issueStatusDist)
+                .taskPriorityDistribution(taskPriorityDist)
+                .issuePriorityDistribution(issuePriorityDist)
+                .build();
+    }
+
+    @Override
+    public ProjectAnalyticsDTO getProjectAnalytics(Long userId, Long projectId) {
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime startOfWeek = now.with(DayOfWeek.MONDAY).toLocalDate().atStartOfDay();
+        LocalDateTime startOfMonth = now.withDayOfMonth(1).toLocalDate().atStartOfDay();
+
+        // Task stats
+        ReportProjectProjection taskStats = taskRepository.reportProjects(List.of(projectId))
+                .stream().findFirst().orElse(null);
+
+        long totalTasks = taskStats != null ? taskStats.getTotalTasks() : 0;
+        long completedTasks = taskStats != null ? taskStats.getCompletedTasks() : 0;
+        double taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks * 100.0) / totalTasks * 100.0) / 100.0 : 0;
+
+        // Issue stats
+        Long totalIssues = issueRepository.countByProjectId(projectId);
+        Long resolvedIssues = issueRepository.countByProjectIdAndStatus(projectId, IssueStatus.RESOLVED)
+                + issueRepository.countByProjectIdAndStatus(projectId, IssueStatus.CLOSED);
+        double issueResolutionRate = totalIssues > 0 ? Math.round((resolvedIssues * 100.0) / totalIssues * 100.0) / 100.0 : 0;
+
+        // Velocity
+        Long tasksCompletedThisWeek = taskRepository.countCompletedTasksInPeriod(projectId, startOfWeek, now);
+        Long tasksCompletedThisMonth = taskRepository.countCompletedTasksInPeriod(projectId, startOfMonth, now);
+        Long issuesResolvedThisWeek = issueRepository.countResolvedIssuesInPeriod(projectId, startOfWeek, now);
+        Long issuesResolvedThisMonth = issueRepository.countResolvedIssuesInPeriod(projectId, startOfMonth, now);
+
+        // Days remaining
+        Long daysRemaining = null;
+        if (project.getEndDate() != null) {
+            long days = java.time.temporal.ChronoUnit.DAYS.between(now, project.getEndDate());
+            daysRemaining = Math.max(0, days);
+        }
+
+        // Daily velocity = completed tasks / days elapsed since project start
+        double dailyTaskVelocity = 0;
+        if (project.getStartDate() != null) {
+            long daysElapsed = java.time.temporal.ChronoUnit.DAYS.between(project.getStartDate(), now);
+            if (daysElapsed > 0) {
+                dailyTaskVelocity = Math.round((completedTasks * 100.0) / daysElapsed) / 100.0;
+            }
+        }
+
+        // Distributions
+        List<StatusDistributionDTO> taskStatusDist = toStatusDistribution(taskRepository.getTaskStatusDistributionByProject(projectId));
+        List<StatusDistributionDTO> issueStatusDist = toStatusDistribution(issueRepository.getIssueStatusDistributionByProject(projectId));
+
+        return ProjectAnalyticsDTO.builder()
+                .projectId(projectId)
+                .projectName(project.getName())
+                .totalTasks(totalTasks)
+                .completedTasks(completedTasks)
+                .taskCompletionRate(taskCompletionRate)
+                .totalIssues(totalIssues)
+                .resolvedIssues(resolvedIssues)
+                .issueResolutionRate(issueResolutionRate)
+                .tasksCompletedThisWeek(tasksCompletedThisWeek)
+                .tasksCompletedThisMonth(tasksCompletedThisMonth)
+                .issuesResolvedThisWeek(issuesResolvedThisWeek)
+                .issuesResolvedThisMonth(issuesResolvedThisMonth)
+                .projectStartDate(project.getStartDate())
+                .projectEndDate(project.getEndDate())
+                .daysRemaining(daysRemaining)
+                .dailyTaskVelocity(dailyTaskVelocity)
+                .taskStatusDistribution(taskStatusDist)
+                .issueStatusDistribution(issueStatusDist)
+                .build();
+    }
+
+    @Override
+    public List<StatusDistributionDTO> getTaskStatusDistribution(Long userId, Long projectId) {
+        List<ReportStatusCountProjection> data;
+        if (projectId != null) {
+            data = taskRepository.getTaskStatusDistributionByProject(projectId);
+        } else {
+            data = taskRepository.getTaskStatusDistribution(userId);
+        }
+        return toStatusDistribution(data);
+    }
+
+    @Override
+    public List<StatusDistributionDTO> getIssueStatusDistribution(Long userId, Long projectId) {
+        List<ReportStatusCountProjection> data;
+        if (projectId != null) {
+            data = issueRepository.getIssueStatusDistributionByProject(projectId);
+        } else {
+            data = issueRepository.getIssueStatusDistribution(userId);
+        }
+        return toStatusDistribution(data);
+    }
+
+    @Override
+    public List<PriorityDistributionDTO> getTaskPriorityDistribution(Long userId) {
+        return toPriorityDistribution(taskRepository.getTaskPriorityDistribution(userId));
+    }
+
+    @Override
+    public List<PriorityDistributionDTO> getIssuePriorityDistribution(Long userId) {
+        return toPriorityDistribution(issueRepository.getIssuePriorityDistribution(userId));
+    }
+
+    // =====================================================
+    // HELPER METHODS
+    // =====================================================
+
+    private List<TimeSeriesDataPoint> mergeTimeSeries(
+            List<ReportTimeSeriesProjection> taskData,
+            List<ReportTimeSeriesProjection> issueData) {
+
+        // Index issue data by label
+        Map<String, Long> issueMap = issueData.stream()
+                .collect(Collectors.toMap(
+                        ReportTimeSeriesProjection::getLabel,
+                        ReportTimeSeriesProjection::getIssueCount,
+                        (a, b) -> a + b
+                ));
+
+        // Collect all labels
+        java.util.Set<String> allLabels = new java.util.LinkedHashSet<>();
+        taskData.forEach(d -> allLabels.add(d.getLabel()));
+        issueData.forEach(d -> allLabels.add(d.getLabel()));
+
+        // Index task data by label
+        Map<String, Long> taskMap = taskData.stream()
+                .collect(Collectors.toMap(
+                        ReportTimeSeriesProjection::getLabel,
+                        ReportTimeSeriesProjection::getTaskCount,
+                        (a, b) -> a + b
+                ));
+
+        return allLabels.stream()
+                .sorted()
+                .map(label -> TimeSeriesDataPoint.builder()
+                        .label(label)
+                        .tasks(taskMap.getOrDefault(label, 0L))
+                        .issues(issueMap.getOrDefault(label, 0L))
+                        .build())
+                .toList();
+    }
+
+    private List<StatusDistributionDTO> toStatusDistribution(List<ReportStatusCountProjection> data) {
+        long total = data.stream().mapToLong(ReportStatusCountProjection::getCount).sum();
+        return data.stream().map(d -> StatusDistributionDTO.builder()
+                .status(d.getStatus())
+                .count(d.getCount())
+                .percentage(total > 0 ? Math.round((d.getCount() * 100.0) / total * 100.0) / 100.0 : 0)
+                .build()
+        ).toList();
+    }
+
+    private List<PriorityDistributionDTO> toPriorityDistribution(List<ReportPriorityCountProjection> data) {
+        long total = data.stream().mapToLong(ReportPriorityCountProjection::getCount).sum();
+        return data.stream().map(d -> PriorityDistributionDTO.builder()
+                .priority(d.getPriority())
+                .count(d.getCount())
+                .percentage(total > 0 ? Math.round((d.getCount() * 100.0) / total * 100.0) / 100.0 : 0)
+                .build()
+        ).toList();
+    }
+
 }

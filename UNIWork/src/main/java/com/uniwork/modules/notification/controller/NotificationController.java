@@ -15,7 +15,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/notifications")
-@PreAuthorize("hasAuthority('PERM_MANAGE_NOTIFICATIONS')")
+//@PreAuthorize("hasAuthority('PERM_MANAGE_NOTIFICATIONS')")
 public class NotificationController {
 
     @Autowired

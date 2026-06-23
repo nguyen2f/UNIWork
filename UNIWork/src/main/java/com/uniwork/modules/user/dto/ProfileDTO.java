@@ -1,7 +1,6 @@
 package com.uniwork.modules.user.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.uniwork.enums.SystemRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

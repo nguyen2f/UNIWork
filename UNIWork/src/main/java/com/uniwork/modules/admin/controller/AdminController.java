@@ -6,7 +6,6 @@ import com.uniwork.modules.admin.request.AdminCreateDepartmentRequest;
 import com.uniwork.modules.admin.request.AdminCreateUserRequest;
 import com.uniwork.modules.company.entity.Department;
 import com.uniwork.modules.company.service.DepartmentService;
-import com.uniwork.modules.user.dto.ProfileDTO;
 import com.uniwork.modules.user.entity.User;
 import com.uniwork.modules.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;

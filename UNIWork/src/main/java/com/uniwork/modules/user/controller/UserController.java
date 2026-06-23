@@ -1,21 +1,16 @@
 package com.uniwork.modules.user.controller;
 
+import com.uniwork.common.response.ResponseFactory;
 import com.uniwork.modules.auth.dto.Payload;
+import com.uniwork.modules.auth.util.JwtUtil;
+import com.uniwork.modules.project.entity.ProjectMember;
+import com.uniwork.modules.project.request.AssignMemberRequest;
+import com.uniwork.modules.project.request.RemoveMemberRequest;
 import com.uniwork.modules.user.dto.ProfileDTO;
 import com.uniwork.modules.user.dto.UserDTO;
-import com.uniwork.modules.project.entity.ProjectMember;
 import com.uniwork.modules.user.entity.User;
-import com.uniwork.modules.task.request.*;
-import com.uniwork.modules.project.request.*;
-import com.uniwork.modules.user.request.*;
-import com.uniwork.modules.auth.request.*;
-import com.uniwork.modules.stage.request.*;
-import com.uniwork.modules.comment.request.*;
-import com.uniwork.modules.event.request.*;
-import com.uniwork.modules.file.request.*;
-import com.uniwork.common.response.ResponseFactory;
+import com.uniwork.modules.user.request.UpdateProfileRequest;
 import com.uniwork.modules.user.service.UserService;
-import com.uniwork.modules.auth.util.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @RestController

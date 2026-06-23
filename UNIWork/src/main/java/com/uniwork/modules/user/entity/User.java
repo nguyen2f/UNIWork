@@ -1,6 +1,5 @@
 package com.uniwork.modules.user.entity;
 
-import com.uniwork.enums.SystemRole;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.SQLRestriction;

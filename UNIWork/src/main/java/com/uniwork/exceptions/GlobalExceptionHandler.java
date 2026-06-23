@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<?> handleUnexpected(Exception ex) {
-        ex.printStackTrace(); // giữ log
+        ex.printStackTrace();
 
         ErrorCode errorCode;
 

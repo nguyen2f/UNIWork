@@ -236,5 +236,217 @@ public interface IssueRepository extends JpaRepository<Issue, Long> {
               AND i.status = 0
             """)
     Long countOpenByStageId(@Param("stageId") Long stageId);
-}
 
+    // =====================================================
+    // ANALYTICS QUERIES
+    // =====================================================
+
+    // --- Completion Trends (issues resolved/closed, grouped by date) ---
+
+    @Query(value = """
+            SELECT DATE_FORMAT(i.updated_date, '%Y-%m-%d') AS label,
+                   0 AS taskCount,
+                   COUNT(*) AS issueCount
+            FROM issues i
+            WHERE i.status IN (2, 3)
+              AND i.is_deleted = false
+              AND i.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+              AND i.updated_date BETWEEN :from AND :to
+            GROUP BY DATE_FORMAT(i.updated_date, '%Y-%m-%d')
+            ORDER BY label ASC
+            """, nativeQuery = true)
+    List<com.uniwork.modules.report.projection.ReportTimeSeriesProjection> getIssueCompletionByDay(
+            @Param("userId") Long userId,
+            @Param("from") java.time.LocalDateTime from,
+            @Param("to") java.time.LocalDateTime to);
+
+    @Query(value = """
+            SELECT DATE_FORMAT(i.updated_date, '%Y-%m') AS label,
+                   0 AS taskCount,
+                   COUNT(*) AS issueCount
+            FROM issues i
+            WHERE i.status IN (2, 3)
+              AND i.is_deleted = false
+              AND i.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+              AND i.updated_date BETWEEN :from AND :to
+            GROUP BY DATE_FORMAT(i.updated_date, '%Y-%m')
+            ORDER BY label ASC
+            """, nativeQuery = true)
+    List<com.uniwork.modules.report.projection.ReportTimeSeriesProjection> getIssueCompletionByMonth(
+            @Param("userId") Long userId,
+            @Param("from") java.time.LocalDateTime from,
+            @Param("to") java.time.LocalDateTime to);
+
+    @Query(value = """
+            SELECT DATE_FORMAT(i.updated_date, '%Y') AS label,
+                   0 AS taskCount,
+                   COUNT(*) AS issueCount
+            FROM issues i
+            WHERE i.status IN (2, 3)
+              AND i.is_deleted = false
+              AND i.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+              AND i.updated_date BETWEEN :from AND :to
+            GROUP BY DATE_FORMAT(i.updated_date, '%Y')
+            ORDER BY label ASC
+            """, nativeQuery = true)
+    List<com.uniwork.modules.report.projection.ReportTimeSeriesProjection> getIssueCompletionByYear(
+            @Param("userId") Long userId,
+            @Param("from") java.time.LocalDateTime from,
+            @Param("to") java.time.LocalDateTime to);
+
+    // --- Creation Trends ---
+
+    @Query(value = """
+            SELECT DATE_FORMAT(i.created_date, '%Y-%m-%d') AS label,
+                   0 AS taskCount,
+                   COUNT(*) AS issueCount
+            FROM issues i
+            WHERE i.is_deleted = false
+              AND i.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+              AND i.created_date BETWEEN :from AND :to
+            GROUP BY DATE_FORMAT(i.created_date, '%Y-%m-%d')
+            ORDER BY label ASC
+            """, nativeQuery = true)
+    List<com.uniwork.modules.report.projection.ReportTimeSeriesProjection> getIssueCreationByDay(
+            @Param("userId") Long userId,
+            @Param("from") java.time.LocalDateTime from,
+            @Param("to") java.time.LocalDateTime to);
+
+    @Query(value = """
+            SELECT DATE_FORMAT(i.created_date, '%Y-%m') AS label,
+                   0 AS taskCount,
+                   COUNT(*) AS issueCount
+            FROM issues i
+            WHERE i.is_deleted = false
+              AND i.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+              AND i.created_date BETWEEN :from AND :to
+            GROUP BY DATE_FORMAT(i.created_date, '%Y-%m')
+            ORDER BY label ASC
+            """, nativeQuery = true)
+    List<com.uniwork.modules.report.projection.ReportTimeSeriesProjection> getIssueCreationByMonth(
+            @Param("userId") Long userId,
+            @Param("from") java.time.LocalDateTime from,
+            @Param("to") java.time.LocalDateTime to);
+
+    @Query(value = """
+            SELECT DATE_FORMAT(i.created_date, '%Y') AS label,
+                   0 AS taskCount,
+                   COUNT(*) AS issueCount
+            FROM issues i
+            WHERE i.is_deleted = false
+              AND i.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+              AND i.created_date BETWEEN :from AND :to
+            GROUP BY DATE_FORMAT(i.created_date, '%Y')
+            ORDER BY label ASC
+            """, nativeQuery = true)
+    List<com.uniwork.modules.report.projection.ReportTimeSeriesProjection> getIssueCreationByYear(
+            @Param("userId") Long userId,
+            @Param("from") java.time.LocalDateTime from,
+            @Param("to") java.time.LocalDateTime to);
+
+    // --- Status Distribution ---
+
+    @Query(value = """
+            SELECT
+                CASE i.status
+                    WHEN 0 THEN 'OPEN'
+                    WHEN 1 THEN 'IN_PROGRESS'
+                    WHEN 2 THEN 'RESOLVED'
+                    WHEN 3 THEN 'CLOSED'
+                    WHEN 4 THEN 'REOPENED'
+                END AS status,
+                COUNT(*) AS count
+            FROM issues i
+            WHERE i.is_deleted = false
+              AND i.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+            GROUP BY i.status
+            """, nativeQuery = true)
+    List<com.uniwork.modules.report.projection.ReportStatusCountProjection> getIssueStatusDistribution(@Param("userId") Long userId);
+
+    @Query(value = """
+            SELECT
+                CASE i.status
+                    WHEN 0 THEN 'OPEN'
+                    WHEN 1 THEN 'IN_PROGRESS'
+                    WHEN 2 THEN 'RESOLVED'
+                    WHEN 3 THEN 'CLOSED'
+                    WHEN 4 THEN 'REOPENED'
+                END AS status,
+                COUNT(*) AS count
+            FROM issues i
+            WHERE i.is_deleted = false
+              AND i.project_id = :projectId
+            GROUP BY i.status
+            """, nativeQuery = true)
+    List<com.uniwork.modules.report.projection.ReportStatusCountProjection> getIssueStatusDistributionByProject(@Param("projectId") Long projectId);
+
+    // --- Priority Distribution ---
+
+    @Query(value = """
+            SELECT
+                CASE i.priority
+                    WHEN 0 THEN 'LOW'
+                    WHEN 1 THEN 'MEDIUM'
+                    WHEN 2 THEN 'HIGH'
+                    WHEN 3 THEN 'CRITICAL'
+                END AS priority,
+                COUNT(*) AS count
+            FROM issues i
+            WHERE i.is_deleted = false
+              AND i.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+            GROUP BY i.priority
+            """, nativeQuery = true)
+    List<com.uniwork.modules.report.projection.ReportPriorityCountProjection> getIssuePriorityDistribution(@Param("userId") Long userId);
+
+    // --- Average Resolution Time ---
+
+    @Query(value = """
+            SELECT AVG(DATEDIFF(i.updated_date, i.created_date)) AS avgDays
+            FROM issues i
+            WHERE i.status IN (2, 3)
+              AND i.is_deleted = false
+              AND i.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+            """, nativeQuery = true)
+    com.uniwork.modules.report.projection.ReportAvgCompletionProjection getAvgIssueResolutionTime(@Param("userId") Long userId);
+
+    // --- Overdue Count ---
+
+    @Query(value = """
+            SELECT COUNT(*) FROM issues i
+            WHERE i.is_deleted = false
+              AND i.due_date < NOW()
+              AND i.status NOT IN (2, 3)
+              AND i.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+            """, nativeQuery = true)
+    Long countOverdueIssues(@Param("userId") Long userId);
+
+    // --- Project-scoped velocity ---
+
+    @Query(value = """
+            SELECT COUNT(*) FROM issues i
+            WHERE i.status IN (2, 3)
+              AND i.is_deleted = false
+              AND i.project_id = :projectId
+              AND i.updated_date BETWEEN :from AND :to
+            """, nativeQuery = true)
+    Long countResolvedIssuesInPeriod(@Param("projectId") Long projectId,
+                                     @Param("from") java.time.LocalDateTime from,
+                                     @Param("to") java.time.LocalDateTime to);
+
+    // --- Total counts for analytics ---
+
+    @Query(value = """
+            SELECT COUNT(*) FROM issues i
+            WHERE i.is_deleted = false
+              AND i.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+            """, nativeQuery = true)
+    Long countAllByUser(@Param("userId") Long userId);
+
+    @Query(value = """
+            SELECT COUNT(*) FROM issues i
+            WHERE i.is_deleted = false
+              AND i.status IN (2, 3)
+              AND i.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+            """, nativeQuery = true)
+    Long countCompletedByUser(@Param("userId") Long userId);
+}

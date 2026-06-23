@@ -151,7 +151,9 @@ public class TaskServiceImpl implements TaskService {
         Task parentTask = new Task();
         parentTask.setProjectId(project.getProjectId());
         parentTask.setStageId(stageId);
-        parentTask.setAssignedTo(null);
+        if (taskRequest.getAssignedTo() != null && !taskRequest.getAssignedTo().isEmpty()) {
+            parentTask.setAssignedTo(taskRequest.getAssignedTo().get(0));
+        }
         parentTask.setCreatedBy(userId);
         parentTask.setTitle(taskRequest.getTitle());
         parentTask.setDescription(taskRequest.getDescription());
@@ -169,6 +171,7 @@ public class TaskServiceImpl implements TaskService {
         NotificationDTO notificationDTO = NotificationDTO.builder()
                 .type(NotificationType.TASK_ASSIGNED)
                 .entityType(NotificationEntityType.TASK)
+                .entityId(parentTask.getTaskId())
                 .createdAt(LocalDateTime.now())
                 .build();
 
@@ -181,27 +184,27 @@ public class TaskServiceImpl implements TaskService {
                 projectService.assignMember(project.getProjectId(), assignMemberRequest);
             }
 
-            Issue childTask = new Issue();
-            childTask.setProjectId(project.getProjectId());
-            childTask.setStageId(stageId);
-            childTask.setTaskId(savedParentTask.getTaskId());
-            childTask.setAssignedTo(memberId);
-            childTask.setReportedBy(userId);
-            childTask.setTitle(taskRequest.getTitle());
-            childTask.setDescription(taskRequest.getDescription());
-            childTask.setPriority(Priority.fromCode(taskRequest.getPriority()));
-            childTask.setStatus(IssueStatus.OPEN);
-            childTask.setDueDate(taskRequest.getDueDate());
-            childTask.setCreatedDate(LocalDateTime.now().withNano(0));
-//            childTask.set(false);
-//            childTask.setTags(taskRequest.getTags());
-
-            childTasks.add(childTask);
+//            Issue childTask = new Issue();
+//            childTask.setProjectId(project.getProjectId());
+//            childTask.setStageId(stageId);
+//            childTask.setTaskId(savedParentTask.getTaskId());
+//            childTask.setAssignedTo(memberId);
+//            childTask.setReportedBy(userId);
+//            childTask.setTitle(taskRequest.getTitle());
+//            childTask.setDescription(taskRequest.getDescription());
+//            childTask.setPriority(Priority.fromCode(taskRequest.getPriority()));
+//            childTask.setStatus(IssueStatus.OPEN);
+//            childTask.setDueDate(taskRequest.getDueDate());
+//            childTask.setCreatedDate(LocalDateTime.now().withNano(0));
+////            childTask.set(false);
+////            childTask.setTags(taskRequest.getTags());
+//
+//            childTasks.add(childTask);
 
             notificationService.sendNotification(memberId, notificationDTO);
         }
 
-        issueRepository.saveAll(childTasks);
+//        issueRepository.saveAll(childTasks);
 
         return parentTask;
     }

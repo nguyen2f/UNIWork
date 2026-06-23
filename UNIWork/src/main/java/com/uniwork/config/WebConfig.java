@@ -2,7 +2,6 @@ package com.uniwork.config;
 
 import com.uniwork.modules.auth.interceptor.AuthInterceptor;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.Interceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -27,7 +26,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(allowedOrigins, "http://localhost:3000")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH") 
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }

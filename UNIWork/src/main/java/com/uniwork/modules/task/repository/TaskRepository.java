@@ -350,4 +350,220 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             """)
     List<ReportMemberWorkloadProjection> getMemberWorkload(@Param("projectIds") List<Long> projectIds);
 
+    // =====================================================
+    // ANALYTICS QUERIES
+    // =====================================================
+
+    // --- Completion Trends (tasks completed, grouped by date) ---
+
+    @Query(value = """
+            SELECT DATE_FORMAT(t.updated_date, '%Y-%m-%d') AS label,
+                   COUNT(*) AS taskCount,
+                   0 AS issueCount
+            FROM tasks t
+            WHERE t.status = 3
+              AND t.is_deleted = false
+              AND t.assigned_to IN (
+                  SELECT DISTINCT pm.user_id FROM project_members pm
+                  WHERE pm.project_id IN (SELECT pm2.project_id FROM project_members pm2 WHERE pm2.user_id = :userId)
+              )
+              AND t.updated_date BETWEEN :from AND :to
+            GROUP BY DATE_FORMAT(t.updated_date, '%Y-%m-%d')
+            ORDER BY label ASC
+            """, nativeQuery = true)
+    List<ReportTimeSeriesProjection> getTaskCompletionByDay(@Param("userId") Long userId,
+                                                            @Param("from") LocalDateTime from,
+                                                            @Param("to") LocalDateTime to);
+
+    @Query(value = """
+            SELECT DATE_FORMAT(t.updated_date, '%Y-%m') AS label,
+                   COUNT(*) AS taskCount,
+                   0 AS issueCount
+            FROM tasks t
+            WHERE t.status = 3
+              AND t.is_deleted = false
+              AND t.assigned_to IN (
+                  SELECT DISTINCT pm.user_id FROM project_members pm
+                  WHERE pm.project_id IN (SELECT pm2.project_id FROM project_members pm2 WHERE pm2.user_id = :userId)
+              )
+              AND t.updated_date BETWEEN :from AND :to
+            GROUP BY DATE_FORMAT(t.updated_date, '%Y-%m')
+            ORDER BY label ASC
+            """, nativeQuery = true)
+    List<ReportTimeSeriesProjection> getTaskCompletionByMonth(@Param("userId") Long userId,
+                                                              @Param("from") LocalDateTime from,
+                                                              @Param("to") LocalDateTime to);
+
+    @Query(value = """
+            SELECT DATE_FORMAT(t.updated_date, '%Y') AS label,
+                   COUNT(*) AS taskCount,
+                   0 AS issueCount
+            FROM tasks t
+            WHERE t.status = 3
+              AND t.is_deleted = false
+              AND t.assigned_to IN (
+                  SELECT DISTINCT pm.user_id FROM project_members pm
+                  WHERE pm.project_id IN (SELECT pm2.project_id FROM project_members pm2 WHERE pm2.user_id = :userId)
+              )
+              AND t.updated_date BETWEEN :from AND :to
+            GROUP BY DATE_FORMAT(t.updated_date, '%Y')
+            ORDER BY label ASC
+            """, nativeQuery = true)
+    List<ReportTimeSeriesProjection> getTaskCompletionByYear(@Param("userId") Long userId,
+                                                             @Param("from") LocalDateTime from,
+                                                             @Param("to") LocalDateTime to);
+
+    // --- Creation Trends (tasks created, grouped by date) ---
+
+    @Query(value = """
+            SELECT DATE_FORMAT(t.created_date, '%Y-%m-%d') AS label,
+                   COUNT(*) AS taskCount,
+                   0 AS issueCount
+            FROM tasks t
+            WHERE t.is_deleted = false
+              AND t.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+              AND t.created_date BETWEEN :from AND :to
+            GROUP BY DATE_FORMAT(t.created_date, '%Y-%m-%d')
+            ORDER BY label ASC
+            """, nativeQuery = true)
+    List<ReportTimeSeriesProjection> getTaskCreationByDay(@Param("userId") Long userId,
+                                                          @Param("from") LocalDateTime from,
+                                                          @Param("to") LocalDateTime to);
+
+    @Query(value = """
+            SELECT DATE_FORMAT(t.created_date, '%Y-%m') AS label,
+                   COUNT(*) AS taskCount,
+                   0 AS issueCount
+            FROM tasks t
+            WHERE t.is_deleted = false
+              AND t.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+              AND t.created_date BETWEEN :from AND :to
+            GROUP BY DATE_FORMAT(t.created_date, '%Y-%m')
+            ORDER BY label ASC
+            """, nativeQuery = true)
+    List<ReportTimeSeriesProjection> getTaskCreationByMonth(@Param("userId") Long userId,
+                                                            @Param("from") LocalDateTime from,
+                                                            @Param("to") LocalDateTime to);
+
+    @Query(value = """
+            SELECT DATE_FORMAT(t.created_date, '%Y') AS label,
+                   COUNT(*) AS taskCount,
+                   0 AS issueCount
+            FROM tasks t
+            WHERE t.is_deleted = false
+              AND t.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+              AND t.created_date BETWEEN :from AND :to
+            GROUP BY DATE_FORMAT(t.created_date, '%Y')
+            ORDER BY label ASC
+            """, nativeQuery = true)
+    List<ReportTimeSeriesProjection> getTaskCreationByYear(@Param("userId") Long userId,
+                                                           @Param("from") LocalDateTime from,
+                                                           @Param("to") LocalDateTime to);
+
+    // --- Status Distribution ---
+
+    @Query(value = """
+            SELECT
+                CASE t.status
+                    WHEN 0 THEN 'PENDING'
+                    WHEN 1 THEN 'DOING'
+                    WHEN 2 THEN 'REVIEWING'
+                    WHEN 3 THEN 'COMPLETED'
+                    WHEN 4 THEN 'CANCELLED'
+                END AS status,
+                COUNT(*) AS count
+            FROM tasks t
+            WHERE t.is_deleted = false
+              AND t.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+            GROUP BY t.status
+            """, nativeQuery = true)
+    List<ReportStatusCountProjection> getTaskStatusDistribution(@Param("userId") Long userId);
+
+    @Query(value = """
+            SELECT
+                CASE t.status
+                    WHEN 0 THEN 'PENDING'
+                    WHEN 1 THEN 'DOING'
+                    WHEN 2 THEN 'REVIEWING'
+                    WHEN 3 THEN 'COMPLETED'
+                    WHEN 4 THEN 'CANCELLED'
+                END AS status,
+                COUNT(*) AS count
+            FROM tasks t
+            WHERE t.is_deleted = false
+              AND t.project_id = :projectId
+            GROUP BY t.status
+            """, nativeQuery = true)
+    List<ReportStatusCountProjection> getTaskStatusDistributionByProject(@Param("projectId") Long projectId);
+
+    // --- Priority Distribution ---
+
+    @Query(value = """
+            SELECT
+                CASE t.priority
+                    WHEN 0 THEN 'LOW'
+                    WHEN 1 THEN 'MEDIUM'
+                    WHEN 2 THEN 'HIGH'
+                    WHEN 3 THEN 'CRITICAL'
+                END AS priority,
+                COUNT(*) AS count
+            FROM tasks t
+            WHERE t.is_deleted = false
+              AND t.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+            GROUP BY t.priority
+            """, nativeQuery = true)
+    List<ReportPriorityCountProjection> getTaskPriorityDistribution(@Param("userId") Long userId);
+
+    // --- Average Completion Time ---
+
+    @Query(value = """
+            SELECT AVG(DATEDIFF(t.updated_date, t.created_date)) AS avgDays
+            FROM tasks t
+            WHERE t.status = 3
+              AND t.is_deleted = false
+              AND t.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+            """, nativeQuery = true)
+    ReportAvgCompletionProjection getAvgTaskCompletionTime(@Param("userId") Long userId);
+
+    // --- Overdue Count ---
+
+    @Query(value = """
+            SELECT COUNT(*) FROM tasks t
+            WHERE t.is_deleted = false
+              AND t.due_date < NOW()
+              AND t.status NOT IN (3, 4)
+              AND t.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+            """, nativeQuery = true)
+    Long countOverdueTasks(@Param("userId") Long userId);
+
+    // --- Project-scoped velocity ---
+
+    @Query(value = """
+            SELECT COUNT(*) FROM tasks t
+            WHERE t.status = 3
+              AND t.is_deleted = false
+              AND t.project_id = :projectId
+              AND t.updated_date BETWEEN :from AND :to
+            """, nativeQuery = true)
+    Long countCompletedTasksInPeriod(@Param("projectId") Long projectId,
+                                     @Param("from") LocalDateTime from,
+                                     @Param("to") LocalDateTime to);
+
+    // --- Total counts for analytics ---
+
+    @Query(value = """
+            SELECT COUNT(*) FROM tasks t
+            WHERE t.is_deleted = false
+              AND t.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+            """, nativeQuery = true)
+    Long countAllByUser(@Param("userId") Long userId);
+
+    @Query(value = """
+            SELECT COUNT(*) FROM tasks t
+            WHERE t.is_deleted = false
+              AND t.status = 3
+              AND t.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
+            """, nativeQuery = true)
+    Long countCompletedByUser(@Param("userId") Long userId);
+
 }

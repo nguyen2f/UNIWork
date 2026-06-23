@@ -9,6 +9,7 @@ import com.uniwork.modules.issue.projection.IssueDetailProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ReportService {
@@ -35,4 +36,21 @@ public interface ReportService {
     List<OverdueItemDTO> getOverdueItems(Long userId);
 
     List<StageReportDTO> getStageReport(Long userId, Long projectId);
+
+    // Analytics APIs
+    CompletionTrendDTO getCompletionTrend(Long userId, String granularity, LocalDateTime from, LocalDateTime to);
+
+    CreationTrendDTO getCreationTrend(Long userId, String granularity, LocalDateTime from, LocalDateTime to);
+
+    AnalyticsSummaryDTO getAnalyticsSummary(Long userId);
+
+    ProjectAnalyticsDTO getProjectAnalytics(Long userId, Long projectId);
+
+    List<StatusDistributionDTO> getTaskStatusDistribution(Long userId, Long projectId);
+
+    List<StatusDistributionDTO> getIssueStatusDistribution(Long userId, Long projectId);
+
+    List<PriorityDistributionDTO> getTaskPriorityDistribution(Long userId);
+
+    List<PriorityDistributionDTO> getIssuePriorityDistribution(Long userId);
 }

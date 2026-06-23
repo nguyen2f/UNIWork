@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @PreAuthorize("hasAuthority('PERM_MANAGE_REPORTS')")
@@ -142,6 +143,138 @@ public class ReportController {
         log.info("Getting stage report for project ID: {}", projectId);
         List<StageReportDTO> stageReport = reportService.getStageReport(payload.getUserId(), projectId);
         return ResponseFactory.success(stageReport);
+    }
+
+    // =====================================================
+    // ANALYTICS ENDPOINTS
+    // =====================================================
+
+    /**
+     * Get completion trend of tasks/issues over time.
+     * Granularity: DAILY, MONTHLY, YEARLY (default: DAILY)
+     * from/to: epoch millis (default: last 30 days for DAILY, last 12 months for MONTHLY, last 5 years for YEARLY)
+     */
+    @GetMapping("/analytics/completion-trend")
+    public ResponseEntity<?> getCompletionTrend(
+            @RequestAttribute Payload payload,
+            @RequestParam(defaultValue = "DAILY") String granularity,
+            @RequestParam(required = false) Long from,
+            @RequestParam(required = false) Long to) {
+
+        LocalDateTime[] range = resolveTimeRange(granularity, from, to);
+        CompletionTrendDTO trend = reportService.getCompletionTrend(
+                payload.getUserId(), granularity, range[0], range[1]);
+        return ResponseFactory.success(trend);
+    }
+
+    /**
+     * Get creation trend of tasks/issues over time.
+     * Granularity: DAILY, MONTHLY, YEARLY (default: DAILY)
+     */
+    @GetMapping("/analytics/creation-trend")
+    public ResponseEntity<?> getCreationTrend(
+            @RequestAttribute Payload payload,
+            @RequestParam(defaultValue = "DAILY") String granularity,
+            @RequestParam(required = false) Long from,
+            @RequestParam(required = false) Long to) {
+
+        LocalDateTime[] range = resolveTimeRange(granularity, from, to);
+        CreationTrendDTO trend = reportService.getCreationTrend(
+                payload.getUserId(), granularity, range[0], range[1]);
+        return ResponseFactory.success(trend);
+    }
+
+    /**
+     * Get comprehensive analytics summary (totals, rates, distributions).
+     */
+    @GetMapping("/analytics/summary")
+    public ResponseEntity<?> getAnalyticsSummary(@RequestAttribute Payload payload) {
+        log.info("Getting analytics summary for user ID: {}", payload.getUserId());
+        AnalyticsSummaryDTO summary = reportService.getAnalyticsSummary(payload.getUserId());
+        return ResponseFactory.success(summary);
+    }
+
+    /**
+     * Get detailed analytics for a specific project.
+     */
+    @GetMapping("/analytics/project/{projectId}")
+    public ResponseEntity<?> getProjectAnalytics(
+            @PathVariable Long projectId,
+            @RequestAttribute Payload payload) {
+        log.info("Getting project analytics for project ID: {}", projectId);
+        ProjectAnalyticsDTO analytics = reportService.getProjectAnalytics(payload.getUserId(), projectId);
+        return ResponseFactory.success(analytics);
+    }
+
+    /**
+     * Get task status distribution (optionally scoped to a project).
+     */
+    @GetMapping("/analytics/task-status-distribution")
+    public ResponseEntity<?> getTaskStatusDistribution(
+            @RequestAttribute Payload payload,
+            @RequestParam(required = false) Long projectId) {
+        List<StatusDistributionDTO> dist = reportService.getTaskStatusDistribution(payload.getUserId(), projectId);
+        return ResponseFactory.success(dist);
+    }
+
+    /**
+     * Get issue status distribution (optionally scoped to a project).
+     */
+    @GetMapping("/analytics/issue-status-distribution")
+    public ResponseEntity<?> getIssueStatusDistribution(
+            @RequestAttribute Payload payload,
+            @RequestParam(required = false) Long projectId) {
+        List<StatusDistributionDTO> dist = reportService.getIssueStatusDistribution(payload.getUserId(), projectId);
+        return ResponseFactory.success(dist);
+    }
+
+    /**
+     * Get task priority distribution across all user's projects.
+     */
+    @GetMapping("/analytics/task-priority-distribution")
+    public ResponseEntity<?> getTaskPriorityDistribution(@RequestAttribute Payload payload) {
+        List<PriorityDistributionDTO> dist = reportService.getTaskPriorityDistribution(payload.getUserId());
+        return ResponseFactory.success(dist);
+    }
+
+    /**
+     * Get issue priority distribution across all user's projects.
+     */
+    @GetMapping("/analytics/issue-priority-distribution")
+    public ResponseEntity<?> getIssuePriorityDistribution(@RequestAttribute Payload payload) {
+        List<PriorityDistributionDTO> dist = reportService.getIssuePriorityDistribution(payload.getUserId());
+        return ResponseFactory.success(dist);
+    }
+
+    // =====================================================
+    // PRIVATE HELPERS
+    // =====================================================
+
+    private LocalDateTime[] resolveTimeRange(String granularity, Long fromEpoch, Long toEpoch) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime fromDate;
+        LocalDateTime toDate;
+
+        if (toEpoch != null) {
+            toDate = LocalDateTime.ofInstant(
+                    java.time.Instant.ofEpochMilli(toEpoch), java.time.ZoneId.systemDefault());
+        } else {
+            toDate = now;
+        }
+
+        if (fromEpoch != null) {
+            fromDate = LocalDateTime.ofInstant(
+                    java.time.Instant.ofEpochMilli(fromEpoch), java.time.ZoneId.systemDefault());
+        } else {
+            // Default range based on granularity
+            fromDate = switch (granularity.toUpperCase()) {
+                case "MONTHLY" -> now.minusMonths(12);
+                case "YEARLY" -> now.minusYears(5);
+                default -> now.minusDays(30); // DAILY
+            };
+        }
+
+        return new LocalDateTime[]{fromDate, toDate};
     }
 
 }
