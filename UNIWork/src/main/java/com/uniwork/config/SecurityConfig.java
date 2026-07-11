@@ -67,7 +67,8 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/auth/login"
+                                "/auth/login",
+                                "/auth/ping"
                         ).permitAll()
                         .requestMatchers(
                                 "/ws-chat/**",

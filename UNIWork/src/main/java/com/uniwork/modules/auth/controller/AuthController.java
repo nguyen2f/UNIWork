@@ -53,4 +53,12 @@ public class AuthController {
         response.put("message", "Logged out successfully");
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/ping")
+    public ResponseEntity<Map<String, String>> ping() {
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "UP");
+        response.put("message", "Service is running");
+        return ResponseEntity.ok(response);
+    }
 }
