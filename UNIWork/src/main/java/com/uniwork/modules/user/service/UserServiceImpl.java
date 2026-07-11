@@ -198,6 +198,8 @@ public class UserServiceImpl implements UserService {
         }
         user.setSystemRole(role.name());
         user.setActive(true);
+
+        mailService.sendRegisterMail(request.getEmail(), request.getName());
         
         return userRepository.save(user);
     }
