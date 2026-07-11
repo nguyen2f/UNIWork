@@ -50,8 +50,10 @@ public class TaskServiceImpl implements TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new CoreException(ErrorCode.TASK_NOT_FOUND, "Task not found"));
 
-        if (!checkIssuesDone(taskId)) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Not all issue have been done, so you cannot change the status");
+        if (taskRequest.getStatus() != null && taskRequest.getStatus() == TaskStatus.COMPLETED.getCode()) {
+            if (!checkIssuesDone(taskId)) {
+                throw new CoreException(ErrorCode.INTERNAL_ERROR, "Not all issues have been done, so you cannot change the status to Completed");
+            }
         }
         if (taskRequest.getStatus() != null &&
                 (taskRequest.getStatus() == TaskStatus.COMPLETED.getCode() || taskRequest.getStatus() == TaskStatus.REVIEWING.getCode())) {
@@ -155,6 +157,7 @@ public class TaskServiceImpl implements TaskService {
             parentTask.setAssignedTo(taskRequest.getAssignedTo().get(0));
         }
         parentTask.setCreatedBy(userId);
+        parentTask.setManagedBy(userId);
         parentTask.setTitle(taskRequest.getTitle());
         parentTask.setDescription(taskRequest.getDescription());
         parentTask.setPriority(Priority.fromCode(taskRequest.getPriority()));
@@ -213,8 +216,11 @@ public class TaskServiceImpl implements TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new CoreException(ErrorCode.TASK_NOT_FOUND, "Task not found"));
 
-        if (!checkIssuesDone(taskId) && taskRequest.getStatus() != task.getStatus().getCode()) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Not all issues have been done, so you cannot change the status");
+        if (taskRequest.getStatus() != null && taskRequest.getStatus() == TaskStatus.COMPLETED.getCode()
+                && task.getStatus() != TaskStatus.COMPLETED) {
+            if (!checkIssuesDone(taskId)) {
+                throw new CoreException(ErrorCode.INTERNAL_ERROR, "Not all issues have been done, so you cannot change the status to Completed");
+            }
         }
         if (taskRequest.getStatus() != null &&
                 (taskRequest.getStatus() == TaskStatus.COMPLETED.getCode() || taskRequest.getStatus() == TaskStatus.REVIEWING.getCode())) {
