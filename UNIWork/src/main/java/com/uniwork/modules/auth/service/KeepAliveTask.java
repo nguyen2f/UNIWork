@@ -19,7 +19,7 @@ public class KeepAliveTask {
     @Scheduled(fixedRate = 600000)
     public void pingSelf() {
         if (appUrl == null || appUrl.trim().isEmpty()) {
-            log.debug("KeepAliveTask: app.url is not configured. Self-ping is disabled.");
+            log.info("KeepAliveTask: app.url is not configured. Self-ping is disabled.");
             return;
         }
 
