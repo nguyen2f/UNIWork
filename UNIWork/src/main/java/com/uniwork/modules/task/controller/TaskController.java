@@ -11,13 +11,19 @@ import com.uniwork.modules.file.service.FileAttachmentServiceImpl;
 import com.uniwork.modules.task.service.TaskService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Slf4j
@@ -125,28 +131,59 @@ public class TaskController {
         return ResponseFactory.success(files);
     }
 
+
     @GetMapping("/files/{fileId}/download")
-    public ResponseEntity<?> downloadFile(@PathVariable Long fileId) {
-        FileAttachment file = fileAttachmentService.findById(fileId);
-
-        String downloadUrl = file.getFileUrl();
-        if (downloadUrl != null) {
-            if (downloadUrl.contains("/image/upload/")) {
-                downloadUrl = downloadUrl.replaceFirst("/image/upload/", "/image/upload/fl_attachment/");
-            } else if (downloadUrl.contains("/video/upload/")) {
-                downloadUrl = downloadUrl.replaceFirst("/video/upload/", "/video/upload/fl_attachment/");
-            }
-            // raw files (like PDF) download automatically from Cloudinary, no fl_attachment needed (and it causes 400 errors)
-        }
-
-        return ResponseFactory.success(java.util.Map.of("url", downloadUrl));
+    public ResponseEntity<InputStreamResource> downloadFile(@PathVariable Long fileId) {
+        return serveFile(fileId, false);
     }
 
     @GetMapping("/files/{fileId}/preview")
-    public ResponseEntity<?> previewFile(@PathVariable Long fileId) {
+    public ResponseEntity<InputStreamResource> previewFile(@PathVariable Long fileId) {
+        return serveFile(fileId, true);
+    }
+
+    private ResponseEntity<InputStreamResource> serveFile(Long fileId, boolean inline) {
         FileAttachment file = fileAttachmentService.findById(fileId);
 
-        return ResponseFactory.success(java.util.Map.of("url", file.getFileUrl()));
+        try {
+            URL url = new URL(file.getFileUrl());
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(15000);
+
+            int status = conn.getResponseCode();
+            if (status != HttpURLConnection.HTTP_OK) {
+                throw new RuntimeException("Không tải được file từ Cloudinary, status = " + status);
+            }
+
+            long contentLength = conn.getContentLengthLong();
+            InputStreamResource resource = new InputStreamResource(conn.getInputStream());
+
+            String encodedFileName = URLEncoder.encode(file.getOriginalFileName(), StandardCharsets.UTF_8)
+                    .replace("+", "%20");
+
+            String disposition = (inline ? "inline" : "attachment")
+                    + "; filename=\"" + file.getOriginalFileName() + "\""
+                    + "; filename*=UTF-8''" + encodedFileName;
+
+            MediaType mediaType = file.getContentType() != null
+                    ? MediaType.parseMediaType(file.getContentType())
+                    : MediaType.APPLICATION_PDF;
+
+            ResponseEntity.BodyBuilder builder = ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, disposition)
+                    .contentType(mediaType);
+
+            if (contentLength >= 0) {
+                builder.contentLength(contentLength);
+            }
+
+            return builder.body(resource);
+
+        } catch (Exception e) {
+            throw new RuntimeException("Không thể lấy file (id=" + fileId + "): " + e.getMessage(), e);
+        }
     }
 
     @PostMapping("/{taskId}/status")

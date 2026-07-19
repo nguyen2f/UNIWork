@@ -78,19 +78,26 @@ public class FileAttachmentServiceImpl implements FileAttachmentService {
     }
 
 
-    // Upload FILE (pdf, doc, docx)
-    public Map uploadFile(MultipartFile file, String publicId) {
-        try {
-            Map<String, Object> options = ObjectUtils.asMap(
-                    "public_id", publicId,
-                    "resource_type", "auto"
-            );
+   public Map uploadFile(MultipartFile file, String publicId) {
+    try {
+        Map<String, Object> options = ObjectUtils.asMap(
+                "public_id", publicId,
+                "resource_type", "raw",
+                "type", "upload"
+        );
+        return cloudinary.uploader().upload(file.getBytes(), options);
+    } catch (IOException e) {
+        throw new RuntimeException("Upload file failed", e);
+    }
+}
 
-            return cloudinary.uploader().upload(file.getBytes(), options);
-
-        } catch (IOException e) {
-            throw new RuntimeException("Upload file failed", e);
-        }
+        // Dùng khi cần URL có chữ ký (an toàn hơn, không cần bật public delivery)
+        public String generateSignedUrl(String publicId) {
+            return cloudinary.url()
+                    .resourceType("raw")
+                    .type("authenticated") // upload với type "authenticated" nếu muốn private
+                    .signed(true)
+                    .generate(publicId);
     }
 
     public List<FileAttachment> findByTaskId(Long taskId) {
