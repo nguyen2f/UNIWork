@@ -1,5 +1,6 @@
 package com.uniwork.modules.task.dto;
 
+import com.uniwork.enums.TaskType;
 import com.uniwork.modules.task.projection.TaskDetailProjection;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,7 +29,7 @@ public class TaskDTO {
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 
-    private String tags;
+    private TaskType type;
     private String assigneeName;
     private String createdByName;
     private String managedByName;
@@ -59,7 +60,7 @@ public class TaskDTO {
         this.dueDate = p.getDueDate();
         this.createdDate = p.getCreatedDate();
         this.updatedDate = p.getUpdatedDate();
-        this.tags = p.getTags();
+        this.type = p.getType() != null ? TaskType.valueOf(p.getType()) : null;
         this.assigneeName = p.getAssigneeName();
         this.createdByName = p.getCreatedByName();
         this.managedByName = p.getManagedByName();

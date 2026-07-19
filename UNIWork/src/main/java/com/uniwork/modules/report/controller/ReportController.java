@@ -145,6 +145,17 @@ public class ReportController {
         return ResponseFactory.success(stageReport);
     }
 
+    @GetMapping("/member-kpi-cost/{projectId}")
+    public ResponseEntity getMemberKpiCostReport(
+            @PathVariable Long projectId,
+            @RequestAttribute Payload payload,
+            @RequestParam(required = false) Long begin,
+            @RequestParam(required = false) Long end) {
+        log.info("Getting Member KPI and Cost for project: {}, user: {}", projectId, payload.getUserId());
+        List<MemberKpiDTO> report = reportService.getMemberKpiReport(payload.getUserId(), projectId, begin, end);
+        return ResponseFactory.success(report);
+    }
+
     // =====================================================
     // ANALYTICS ENDPOINTS
     // =====================================================

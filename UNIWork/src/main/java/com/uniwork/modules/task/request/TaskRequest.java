@@ -1,6 +1,7 @@
 package com.uniwork.modules.task.request;
 
 
+import com.uniwork.enums.TaskType;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -16,5 +17,5 @@ public class TaskRequest {
     private Integer priority;
     private Integer status;
     private LocalDateTime dueDate;
-    private String tags;
+    private TaskType type;
 }

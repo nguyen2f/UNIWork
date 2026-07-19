@@ -83,7 +83,7 @@ public class FileAttachmentServiceImpl implements FileAttachmentService {
         try {
             Map<String, Object> options = ObjectUtils.asMap(
                     "public_id", publicId,
-                    "resource_type", "raw"
+                    "resource_type", "auto"
             );
 
             return cloudinary.uploader().upload(file.getBytes(), options);

@@ -9,4 +9,7 @@ public interface MailService {
 
     @Async
     void sendRegisterMail(String toEmail, String userName);
+
+    @Async
+    void sendNewTaskMail(String toEmail, String taskTitle, String taskDescription);
 }

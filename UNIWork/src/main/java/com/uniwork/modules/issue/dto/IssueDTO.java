@@ -31,6 +31,7 @@ public class IssueDTO {
     private String reporterName;
     private String assigneeName;
     private String taskTitle;
+    private String projectName;
 
     public IssueDTO(IssueDetailProjection p) {
         this.issueId = p.getIssueId();
@@ -49,5 +50,6 @@ public class IssueDTO {
         this.reporterName = p.getReporterName();
         this.assigneeName = p.getAssigneeName();
         this.taskTitle = p.getTaskTitle();
+        this.projectName = p.getProjectName();
     }
 }

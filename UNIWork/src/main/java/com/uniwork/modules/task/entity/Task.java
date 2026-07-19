@@ -3,6 +3,7 @@ package com.uniwork.modules.task.entity;
 
 import com.uniwork.enums.Priority;
 import com.uniwork.enums.TaskStatus;
+import com.uniwork.enums.TaskType;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.SQLRestriction;
@@ -39,7 +40,9 @@ public class Task {
 
     private Long updatedBy;
     private Boolean completed;
-    private String tags;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tags")
+    private TaskType type;
 
     @Column(name = "is_deleted", columnDefinition = "TINYINT(1)")
     private Boolean isDeleted = false;

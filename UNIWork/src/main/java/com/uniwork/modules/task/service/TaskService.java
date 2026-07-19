@@ -25,4 +25,5 @@ public interface TaskService {
 
     Task updateTaskStatus(Long userId, Long taskId, TaskRequest taskRequest);
 
+    String exportTasksToCsv(Long projectId);
 }

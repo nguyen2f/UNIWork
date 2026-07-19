@@ -129,9 +129,24 @@ public class TaskController {
     public ResponseEntity<?> downloadFile(@PathVariable Long fileId) {
         FileAttachment file = fileAttachmentService.findById(fileId);
 
-        return ResponseEntity.status(HttpStatus.FOUND)
-                .header(HttpHeaders.LOCATION, file.getFileUrl())
-                .build();
+        String downloadUrl = file.getFileUrl();
+        if (downloadUrl != null) {
+            if (downloadUrl.contains("/image/upload/")) {
+                downloadUrl = downloadUrl.replaceFirst("/image/upload/", "/image/upload/fl_attachment/");
+            } else if (downloadUrl.contains("/video/upload/")) {
+                downloadUrl = downloadUrl.replaceFirst("/video/upload/", "/video/upload/fl_attachment/");
+            }
+            // raw files (like PDF) download automatically from Cloudinary, no fl_attachment needed (and it causes 400 errors)
+        }
+
+        return ResponseFactory.success(java.util.Map.of("url", downloadUrl));
+    }
+
+    @GetMapping("/files/{fileId}/preview")
+    public ResponseEntity<?> previewFile(@PathVariable Long fileId) {
+        FileAttachment file = fileAttachmentService.findById(fileId);
+
+        return ResponseFactory.success(java.util.Map.of("url", file.getFileUrl()));
     }
 
     @PostMapping("/{taskId}/status")
@@ -141,5 +156,24 @@ public class TaskController {
         log.info("Updating task ID: {}", taskId);
         Task task = taskService.updateTaskStatus(payload.getUserId(), taskId, taskRequest);
         return ResponseFactory.success(task);
+    }
+
+    @GetMapping("/project/{projectId}/export")
+    public ResponseEntity<byte[]> exportTasksToCsv(@PathVariable Long projectId) {
+        log.info("Exporting tasks for project ID: {}", projectId);
+        String csvContent = taskService.exportTasksToCsv(projectId);
+        byte[] csvBytes = csvContent.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        
+        // Add BOM for Excel UTF-8 encoding
+        byte[] bom = new byte[]{(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
+        byte[] finalCsvBytes = new byte[bom.length + csvBytes.length];
+        System.arraycopy(bom, 0, finalCsvBytes, 0, bom.length);
+        System.arraycopy(csvBytes, 0, finalCsvBytes, bom.length, csvBytes.length);
+
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.set(org.springframework.http.HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=tasks_project_" + projectId + ".csv");
+        headers.set(org.springframework.http.HttpHeaders.CONTENT_TYPE, "text/csv; charset=UTF-8");
+
+        return new ResponseEntity<>(finalCsvBytes, headers, HttpStatus.OK);
     }
 }

@@ -188,8 +188,12 @@ public class StageServiceImpl implements StageService {
     public List<StageSummaryDTO> getStagesSummary(Long projectId) {
         List<Stage> stages = stageRepository.findByProjectIdOrderByOrderIndexAsc(projectId);
         return stages.stream().map(stage -> {
-            Long totalTasks = taskRepository.countByStageId(stage.getStageId());
+            Long rawTotalTasks = taskRepository.countByStageId(stage.getStageId());
+            Long cancelledTasks = taskRepository.countByStageIdAndStatus(stage.getStageId(), TaskStatus.CANCELLED);
+            Long totalTasks = rawTotalTasks - cancelledTasks;
+
             Long completedTasks = taskRepository.countByStageIdAndStatus(stage.getStageId(), TaskStatus.COMPLETED);
+
             double progress = totalTasks > 0 ? (double) completedTasks / totalTasks * 100 : 0;
 
             Long totalIssues = issueRepository.countByStageId(stage.getStageId());
@@ -223,8 +227,12 @@ public class StageServiceImpl implements StageService {
         StageDetailDTO dto = new StageDetailDTO(stage);
 
         // Task stats
-        Long totalTasks = taskRepository.countByStageId(stageId);
+        Long rawTotalTasks = taskRepository.countByStageId(stageId);
+        Long cancelledTasks = taskRepository.countByStageIdAndStatus(stageId, TaskStatus.CANCELLED);
+        Long totalTasks = rawTotalTasks - cancelledTasks;
+
         Long completedTasks = taskRepository.countByStageIdAndStatus(stageId, TaskStatus.COMPLETED);
+
         Long pendingTasks = taskRepository.countByStageIdAndStatus(stageId, TaskStatus.PENDING);
         Long doingTasks = taskRepository.countByStageIdAndStatus(stageId, TaskStatus.DOING);
 

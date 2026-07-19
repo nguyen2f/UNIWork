@@ -61,22 +61,23 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     Long countByAssignedToAndUpdatedDateBetweenAndStatus(Long assignedTo, LocalDateTime startDate, LocalDateTime endDate, TaskStatus status);
 
+    @Query("SELECT t FROM Task t WHERE t.isDeleted = false AND t.dueDate < CURRENT_TIMESTAMP AND t.status NOT IN (com.uniwork.enums.TaskStatus.COMPLETED, com.uniwork.enums.TaskStatus.CANCELLED)")
+    List<Task> findAllOverdueTasks();
+
+
     @Query("""
             SELECT
                 p.projectId AS projectId,
                 p.name AS name,
-                COUNT(DISTINCT pm.userId) AS totalMembers,
-                COUNT(t.taskId) AS totalTasks,
-                SUM(CASE WHEN t.status = 3 THEN 1 ELSE 0 END) AS completedTasks,
-                SUM(CASE WHEN t.status = 2 THEN 1 ELSE 0 END) AS reviewingTasks,
-                SUM(CASE WHEN t.status = 4 THEN 1 ELSE 0 END) AS cancelledTasks,
-                SUM(CASE WHEN t.status = 0 THEN 1 ELSE 0 END) AS pendingTasks,
-                SUM(CASE WHEN t.status = 1 THEN 1 ELSE 0 END) AS doingTasks
+                (SELECT COUNT(pm.pmId) FROM ProjectMember pm WHERE pm.projectId = p.projectId) AS totalMembers,
+                (SELECT COUNT(t.taskId) FROM Task t WHERE t.projectId = p.projectId AND t.isDeleted = false) AS totalTasks,
+                (SELECT COUNT(t.taskId) FROM Task t WHERE t.projectId = p.projectId AND t.status = com.uniwork.enums.TaskStatus.COMPLETED AND t.isDeleted = false) AS completedTasks,
+                (SELECT COUNT(t.taskId) FROM Task t WHERE t.projectId = p.projectId AND t.status = com.uniwork.enums.TaskStatus.REVIEWING AND t.isDeleted = false) AS reviewingTasks,
+                (SELECT COUNT(t.taskId) FROM Task t WHERE t.projectId = p.projectId AND t.status = com.uniwork.enums.TaskStatus.CANCELLED AND t.isDeleted = false) AS cancelledTasks,
+                (SELECT COUNT(t.taskId) FROM Task t WHERE t.projectId = p.projectId AND t.status = com.uniwork.enums.TaskStatus.PENDING AND t.isDeleted = false) AS pendingTasks,
+                (SELECT COUNT(t.taskId) FROM Task t WHERE t.projectId = p.projectId AND t.status = com.uniwork.enums.TaskStatus.DOING AND t.isDeleted = false) AS doingTasks
             FROM Project p
-            JOIN ProjectMember pm ON p.projectId = pm.projectId
-            LEFT JOIN Task t ON p.projectId = t.projectId
             WHERE p.projectId IN :projectIds
-            GROUP BY p.projectId, p.name
             """)
     List<ReportProjectProjection> reportProjects(@Param("projectIds") List<Long> projectIds);
 
@@ -95,15 +96,17 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                 WHEN t.status = com.uniwork.enums.TaskStatus.DOING THEN 1 ELSE 0 END), 0) AS doingTasks
         FROM Task t
         WHERE t.assignedTo = :userId
+          AND (CAST(:startDate AS timestamp) IS NULL OR t.createdDate >= :startDate)
+          AND (CAST(:endDate AS timestamp) IS NULL OR t.createdDate <= :endDate)
     """)
-    ReportTaskProjection getTaskReport(@Param("userId") Long userId);
+    ReportTaskProjection getTaskReport(@Param("userId") Long userId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
     @Query("""
                 SELECT
                     COUNT(t.taskId) AS totalTasks,
                     COALESCE(SUM(
                         CASE WHEN 
-                            t.status = 3 AND t.updatedDate <= t.dueDate
+                            t.status = com.uniwork.enums.TaskStatus.COMPLETED AND t.updatedDate <= t.dueDate
                         THEN 1 ELSE 0 END
                     ), 0) AS completedBeforeDeadline
                 FROM Task t
@@ -113,10 +116,10 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 
     @Query("""
                 SELECT
-                    COUNT(t.taskId) FILTER (WHERE t.assignedTo = :userId AND t.status = 3) AS completedTasks,
-                    COUNT(t.taskId) FILTER (WHERE t.assignedTo = :userId AND t.status = 3 AND t.updatedDate BETWEEN :startOfWeek AND :now) AS newTasksThisWeek,
-                    COUNT(t.taskId) FILTER (WHERE t.assignedTo = :userId AND t.status = 0) AS pendingTasks,
-                    COUNT(t.taskId) FILTER (WHERE t.assignedTo = :userId AND t.status = 0 AND t.updatedDate BETWEEN :startOfLastWeek AND :endOfLastWeek) AS pendingTasksLastWeek
+                    COUNT(t.taskId) FILTER (WHERE t.assignedTo = :userId AND t.status = com.uniwork.enums.TaskStatus.COMPLETED) AS completedTasks,
+                    COUNT(t.taskId) FILTER (WHERE t.assignedTo = :userId AND t.status = com.uniwork.enums.TaskStatus.COMPLETED AND t.updatedDate BETWEEN :startOfWeek AND :now) AS newTasksThisWeek,
+                    COUNT(t.taskId) FILTER (WHERE t.assignedTo = :userId AND t.status = com.uniwork.enums.TaskStatus.PENDING) AS pendingTasks,
+                    COUNT(t.taskId) FILTER (WHERE t.assignedTo = :userId AND t.status = com.uniwork.enums.TaskStatus.PENDING AND t.updatedDate BETWEEN :startOfLastWeek AND :endOfLastWeek) AS pendingTasksLastWeek
                 FROM Task t
             """)
     ReportTaskStatsProjection getTaskStats(@Param("userId") Long userId,
@@ -141,7 +144,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                 t.createdDate   AS createdDate,
                 t.updatedDate   AS updatedDate,
                 t.completed     AS completed,
-                t.tags          AS tags,
+                t.type          AS type,
                 t.stageId       AS stageId,
                 u.name          AS assigneeName,
                 creator.name    AS createdByName,
@@ -174,7 +177,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                 t.createdDate   AS createdDate,
                 t.updatedDate   AS updatedDate,
                 t.completed     AS completed,
-                t.tags          AS tags,
+                t.type          AS type,
                 t.stageId       AS stageId,
                 u.name          AS assigneeName,
                 creator.name    AS createdByName,
@@ -207,7 +210,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 //                t.createdDate   AS createdDate,
 //                t.updatedDate   AS updatedDate,
 //                t.completed     AS completed,
-//                t.tags          AS tags,
+//                t.type          AS type,
 //                t.stageId       AS stageId,
 //                u.name          AS assigneeName,
 //                creator.name    AS createdByName,
@@ -254,7 +257,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                 t.createdDate   AS createdDate,
                 t.updatedDate   AS updatedDate,
                 t.completed     AS completed,
-                t.tags          AS tags,
+                t.type          AS type,
                 t.stageId       AS stageId,
                 u.name          AS assigneeName,
                 creator.name    AS createdByName,
@@ -287,7 +290,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                 t.createdDate   AS createdDate,
                 t.updatedDate   AS updatedDate,
                 t.completed     AS completed,
-                t.tags          AS tags,
+                t.type          AS type,
                 t.stageId       AS stageId,
                 u.name          AS assigneeName,
                 creator.name    AS createdByName,
@@ -339,9 +342,9 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
                 t.assignedTo AS userId,
                 u.name AS userName,
                 COUNT(t.taskId) AS totalTasks,
-                SUM(CASE WHEN t.status = 3 THEN 1 ELSE 0 END) AS completedTasks,
-                SUM(CASE WHEN t.status = 0 THEN 1 ELSE 0 END) AS pendingTasks,
-                SUM(CASE WHEN t.status = 1 THEN 1 ELSE 0 END) AS doingTasks
+                SUM(CASE WHEN t.status = com.uniwork.enums.TaskStatus.COMPLETED THEN 1 ELSE 0 END) AS completedTasks,
+                SUM(CASE WHEN t.status = com.uniwork.enums.TaskStatus.PENDING THEN 1 ELSE 0 END) AS pendingTasks,
+                SUM(CASE WHEN t.status = com.uniwork.enums.TaskStatus.DOING THEN 1 ELSE 0 END) AS doingTasks
             FROM Task t
             LEFT JOIN User u ON t.assignedTo = u.userId
             WHERE t.projectId IN :projectIds
@@ -554,6 +557,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Query(value = """
             SELECT COUNT(*) FROM tasks t
             WHERE t.is_deleted = false
+              AND t.status != 4
               AND t.project_id IN (SELECT pm.project_id FROM project_members pm WHERE pm.user_id = :userId)
             """, nativeQuery = true)
     Long countAllByUser(@Param("userId") Long userId);

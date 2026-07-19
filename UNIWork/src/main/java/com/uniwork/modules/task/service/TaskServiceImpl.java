@@ -25,6 +25,9 @@ import com.uniwork.modules.comment.service.CommentService;
 import com.uniwork.modules.issue.service.IssueService;
 import com.uniwork.modules.issue.dto.IssueDTO;
 import com.uniwork.common.utils.BeanCopyUtils;
+import com.uniwork.modules.mail.service.MailService;
+import com.uniwork.modules.user.repository.UserRepository;
+import com.uniwork.modules.user.entity.User;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -56,10 +59,12 @@ public class TaskServiceImpl implements TaskService {
             }
         }
         if (taskRequest.getStatus() != null &&
-                (taskRequest.getStatus() == TaskStatus.COMPLETED.getCode() || taskRequest.getStatus() == TaskStatus.REVIEWING.getCode())) {
+                (taskRequest.getStatus() == TaskStatus.COMPLETED.getCode())) {
             task.setCompleted(true);
         }
-        task.setUpdatedDate(LocalDateTime.now());
+        if (task.getCompleted() != null && task.getCompleted() && taskRequest.getStatus() != null && taskRequest.getStatus() == TaskStatus.COMPLETED.getCode()) {
+            task.setUpdatedDate(LocalDateTime.now());
+        }
         task.setUpdatedBy(userId);
 
         if (taskRequest.getStatus() != null) {
@@ -88,6 +93,10 @@ public class TaskServiceImpl implements TaskService {
     private IssueService issueService;
     @Autowired
     private IssueRepository issueRepository;
+    @Autowired
+    private MailService mailService;
+    @Autowired
+    private UserRepository userRepository;
 
     public List<TaskDTO> getAllTasksByProjectId(Long projectId) {
         Project project = projectService.getProjectById(projectId);
@@ -165,7 +174,7 @@ public class TaskServiceImpl implements TaskService {
         parentTask.setDueDate(taskRequest.getDueDate());
         parentTask.setCreatedDate(LocalDateTime.now().withNano(0));
         parentTask.setCompleted(false);
-        parentTask.setTags(taskRequest.getTags());
+        parentTask.setType(taskRequest.getType());
 
         Task savedParentTask = taskRepository.save(parentTask);
 
@@ -200,11 +209,16 @@ public class TaskServiceImpl implements TaskService {
 //            childTask.setDueDate(taskRequest.getDueDate());
 //            childTask.setCreatedDate(LocalDateTime.now().withNano(0));
 ////            childTask.set(false);
-////            childTask.setTags(taskRequest.getTags());
+////            childTask.setType(taskRequest.getType());
 //
 //            childTasks.add(childTask);
 
             notificationService.sendNotification(memberId, notificationDTO);
+            
+            User user = userRepository.findByUserId(memberId);
+            if (user != null && user.getEmail() != null) {
+                mailService.sendNewTaskMail(user.getEmail(), parentTask.getTitle(), parentTask.getDescription());
+            }
         }
 
 //        issueRepository.saveAll(childTasks);
@@ -223,10 +237,12 @@ public class TaskServiceImpl implements TaskService {
             }
         }
         if (taskRequest.getStatus() != null &&
-                (taskRequest.getStatus() == TaskStatus.COMPLETED.getCode() || taskRequest.getStatus() == TaskStatus.REVIEWING.getCode())) {
+                (taskRequest.getStatus() == TaskStatus.COMPLETED.getCode())) {
             task.setCompleted(true);
         }
-        task.setUpdatedDate(LocalDateTime.now());
+        if (task.getCompleted() != null && task.getCompleted() && taskRequest.getStatus() != null && taskRequest.getStatus() == TaskStatus.COMPLETED.getCode()) {
+            task.setUpdatedDate(LocalDateTime.now());
+        }
         task.setUpdatedBy(userId);
         if (taskRequest.getAssignedTo() != null && !taskRequest.getAssignedTo().isEmpty()) {
             task.setAssignedTo(taskRequest.getAssignedTo().get(0));
@@ -249,7 +265,7 @@ public class TaskServiceImpl implements TaskService {
 
         // Soft delete — set isDeleted = true instead of removing from DB
         task.setIsDeleted(true);
-        task.setUpdatedDate(LocalDateTime.now());
+//        task.setUpdatedDate(LocalDateTime.now());
         task.setUpdatedBy(userId);
         taskRepository.save(task);
 
@@ -313,5 +329,31 @@ public class TaskServiceImpl implements TaskService {
         return stageRepository.findByProjectIdAndStatus(project.getProjectId(), StageStatus.ACTIVE)
                 .map(Stage::getStageId)
                 .orElseThrow(() -> new CoreException(ErrorCode.STAGE_NOT_FOUND, "No active stage found for this project"));
+    }
+
+    @Override
+    public String exportTasksToCsv(Long projectId) {
+        List<TaskDTO> tasks = getAllTasksByProjectId(projectId);
+        StringBuilder csvBuilder = new StringBuilder();
+        // Header
+        csvBuilder.append("Task ID,Title,Status,Priority,Assignee,Due Date,Created Date\n");
+        // Data
+        for (TaskDTO task : tasks) {
+            String title = task.getTitle() != null ? task.getTitle().replace("\"", "\"\"") : "";
+            String assignee = task.getAssigneeName() != null ? task.getAssigneeName() : "";
+            String status = task.getStatus() != null ? task.getStatus().toString() : "";
+            String priority = task.getPriority() != null ? task.getPriority().toString() : "";
+            String dueDate = task.getDueDate() != null ? task.getDueDate().toString() : "";
+            String createdDate = task.getCreatedDate() != null ? task.getCreatedDate().toString() : "";
+
+            csvBuilder.append(task.getTaskId()).append(",")
+                      .append("\"").append(title).append("\",")
+                      .append(status).append(",")
+                      .append(priority).append(",")
+                      .append("\"").append(assignee).append("\",")
+                      .append(dueDate).append(",")
+                      .append(createdDate).append("\n");
+        }
+        return csvBuilder.toString();
     }
 }

@@ -28,6 +28,8 @@ import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -91,12 +93,14 @@ public class ReportServiceImpl implements ReportService {
         return pagedProjectIds.stream().map(id -> {
             Project project = projectMap.get(id);
             ReportProjectProjection projection = reportProjectionMap.get(id);
-            Long total = projection != null ? projection.getTotalTasks() - projection.getCancelledTasks() : 0L;
-            Long completed = projection != null ? projection.getCompletedTasks() + projection.getReviewingTasks() : 0L;
-            Long pending = projection != null ? projection.getPendingTasks() : 0L;
-            Long doing = projection != null ? projection.getDoingTasks() : 0L;
-            Double completedPercent = total == 0 ? 0.0 : (completed * 100) / total;
-            Long count = projection != null ? projection.getTotalMembers() : 0L;
+            Long rawTotal = projection != null && projection.getTotalTasks() != null ? projection.getTotalTasks() : 0L;
+            Long cancelled = projection != null && projection.getCancelledTasks() != null ? projection.getCancelledTasks() : 0L;
+            Long total = rawTotal - cancelled;
+            Long completed = projection != null && projection.getCompletedTasks() != null ? projection.getCompletedTasks() : 0L;
+            Long pending = projection != null && projection.getPendingTasks() != null ? projection.getPendingTasks() : 0L;
+            Long doing = projection != null && projection.getDoingTasks() != null ? projection.getDoingTasks() : 0L;
+            Double completedPercent = total == 0 ? 0.0 : (completed * 100.0) / total;
+            Long count = projection != null && projection.getTotalMembers() != null ? projection.getTotalMembers() : 0L;
             return new ProjectReportDTO(project, total, completed, pending, doing, completedPercent, count);
         }).toList();
     }
@@ -143,22 +147,22 @@ public class ReportServiceImpl implements ReportService {
                     Project project = projectMap.get(id);
                     ReportProjectProjection projection = reportMap.get(id);
 
-                    Long total = projection != null
-                            ? projection.getTotalTasks() - projection.getCancelledTasks()
+                    Long rawTotal = projection != null && projection.getTotalTasks() != null ? projection.getTotalTasks() : 0L;
+                    Long cancelled = projection != null && projection.getCancelledTasks() != null ? projection.getCancelledTasks() : 0L;
+                    Long total = rawTotal - cancelled;
+
+                    Long completed = projection != null && projection.getCompletedTasks() != null
+                            ? projection.getCompletedTasks()
                             : 0L;
 
-                    Long completed = projection != null
-                            ? projection.getCompletedTasks() + projection.getReviewingTasks()
-                            : 0L;
-
-                    Long pending = projection != null ? projection.getPendingTasks() : 0L;
-                    Long doing = projection != null ? projection.getDoingTasks() : 0L;
+                    Long pending = projection != null && projection.getPendingTasks() != null ? projection.getPendingTasks() : 0L;
+                    Long doing = projection != null && projection.getDoingTasks() != null ? projection.getDoingTasks() : 0L;
 
                     double completedPercent =
                             total == 0 ? 0.0 : Math.round((completed * 100.0) / total);
 
                     Long memberCount =
-                            projection != null ? projection.getTotalMembers() : 0L;
+                            projection != null && projection.getTotalMembers() != null ? projection.getTotalMembers() : 0L;
 
                     // Tính status động
                     ProjectStatus status = ProjectStatus.fromProgress(completedPercent, total, pending, doing);
@@ -191,19 +195,27 @@ public class ReportServiceImpl implements ReportService {
 
 
     public TaskReportDTO getTaskReport(Long userId, Long begin, Long end) {
-        ReportTaskProjection p = taskRepository.getTaskReport(userId);
-        ReportIssueProjection ip = issueRepository.getIssueReport(userId);
+        LocalDateTime startDate = begin != null ?
+                LocalDateTime.ofInstant(Instant.ofEpochMilli(begin), ZoneId.systemDefault()) : null;
+        LocalDateTime endDate = end != null ?
+                LocalDateTime.ofInstant(Instant.ofEpochMilli(end), ZoneId.systemDefault()) : null;
 
-        long total = p != null ? p.getTotalTasks() - p.getCancelledTasks() : 0;
-        long completed = p != null ? p.getCompletedTasks() + p.getReviewingTasks(): 0;
-        long pending = p != null ? p.getPendingTasks() : 0;
-        long doing = p != null ? p.getDoingTasks() : 0;
+        ReportTaskProjection p = taskRepository.getTaskReport(userId, startDate, endDate);
+        ReportIssueProjection ip = issueRepository.getIssueReport(userId, startDate, endDate);
+
+        long totalTasksRaw = p != null && p.getTotalTasks() != null ? p.getTotalTasks() : 0;
+        long cancelledTasksRaw = p != null && p.getCancelledTasks() != null ? p.getCancelledTasks() : 0;
+        long total = totalTasksRaw - cancelledTasksRaw;
+        
+        long completed = p != null && p.getCompletedTasks() != null ? p.getCompletedTasks() : 0;
+        long pending = p != null && p.getPendingTasks() != null ? p.getPendingTasks() : 0;
+        long doing = p != null && p.getDoingTasks() != null ? p.getDoingTasks() : 0;
         double completedPercent = total == 0 ? 0 : (completed * 100.0) / total;
 
-        long totalIssues = ip != null ? ip.getTotalIssues() : 0;
-        long completedIssues = ip != null ? ip.getCompletedIssues() : 0;
-        long pendingIssues = ip != null ? ip.getPendingIssues() : 0;
-        long doingIssues = ip != null ? ip.getDoingIssues() : 0;
+        long totalIssues = ip != null && ip.getTotalIssues() != null ? ip.getTotalIssues() : 0;
+        long completedIssues = ip != null && ip.getCompletedIssues() != null ? ip.getCompletedIssues() : 0;
+        long pendingIssues = ip != null && ip.getPendingIssues() != null ? ip.getPendingIssues() : 0;
+        long doingIssues = ip != null && ip.getDoingIssues() != null ? ip.getDoingIssues() : 0;
         double issuesCompletedPercent = totalIssues == 0 ? 0 : (completedIssues * 100.0) / totalIssues;
 
         return new TaskReportDTO(
@@ -464,8 +476,12 @@ public class ReportServiceImpl implements ReportService {
         List<Stage> stages = stageRepository.findByProjectIdOrderByOrderIndexAsc(projectId);
 
         return stages.stream().map(stage -> {
-            Long totalTasks = taskRepository.countByStageId(stage.getStageId());
+            Long rawTotalTasks = taskRepository.countByStageId(stage.getStageId());
+            Long cancelledTasks = taskRepository.countByStageIdAndStatus(stage.getStageId(), TaskStatus.CANCELLED);
+            Long totalTasks = rawTotalTasks - cancelledTasks;
+
             Long completedTasks = taskRepository.countByStageIdAndStatus(stage.getStageId(), TaskStatus.COMPLETED);
+
             Long pendingTasks = taskRepository.countByStageIdAndStatus(stage.getStageId(), TaskStatus.PENDING);
             Long doingTasks = taskRepository.countByStageIdAndStatus(stage.getStageId(), TaskStatus.DOING);
             double progress = totalTasks > 0 ? Math.round((double) completedTasks / totalTasks * 10000.0) / 100.0 : 0.0;
@@ -492,6 +508,82 @@ public class ReportServiceImpl implements ReportService {
                     .resolvedIssues(resolvedIssues)
                     .build();
         }).toList();
+    }
+
+    @Override
+    public List<MemberKpiDTO> getMemberKpiReport(Long userId, Long projectId, Long begin, Long end) {
+        List<com.uniwork.modules.task.projection.TaskDetailProjection> tasks = taskRepository.findByProjectIdWithUser(projectId);
+        
+        java.util.Map<Long, MemberKpiDTO> kpiMap = new java.util.HashMap<>();
+        
+        LocalDateTime beginDate = begin != null ? LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(begin), java.time.ZoneId.systemDefault()) : null;
+        LocalDateTime endDate = end != null ? LocalDateTime.ofInstant(java.time.Instant.ofEpochMilli(end), java.time.ZoneId.systemDefault()) : null;
+
+        for (com.uniwork.modules.task.projection.TaskDetailProjection task : tasks) {
+            if (!"COMPLETED".equals(task.getStatus())) continue;
+            
+            // Time filter
+            if (beginDate != null && task.getUpdatedDate() != null && task.getUpdatedDate().isBefore(beginDate)) continue;
+            if (endDate != null && task.getUpdatedDate() != null && task.getUpdatedDate().isAfter(endDate)) continue;
+            
+            Long assigneeId = task.getAssignedTo();
+            if (assigneeId == null) continue;
+            
+            MemberKpiDTO dto = kpiMap.getOrDefault(assigneeId, MemberKpiDTO.builder()
+                    .userId(assigneeId)
+                    .userName(task.getAssigneeName())
+                    .totalCompletedTasks(0)
+                    .totalHoursSpent(0.0)
+                    .kpiScore(0.0)
+                    .build());
+            
+            dto.setTotalCompletedTasks(dto.getTotalCompletedTasks() + 1);
+            
+            // Calculate hours spent
+            double hours = 0;
+            if (task.getCreatedDate() != null && task.getUpdatedDate() != null) {
+                long minutes = java.time.temporal.ChronoUnit.MINUTES.between(task.getCreatedDate(), task.getUpdatedDate());
+                hours = Math.max(1.0, minutes / 60.0); // Minimum 1 hour
+            } else {
+                hours = 1.0;
+            }
+            // Round to 1 decimal
+            hours = Math.round(hours * 10.0) / 10.0;
+            dto.setTotalHoursSpent(dto.getTotalHoursSpent() + hours);
+            
+            // Priority weight
+            double priorityWeight = 1.0;
+            if ("LOW".equals(task.getPriority())) priorityWeight = 1.0;
+            else if ("MEDIUM".equals(task.getPriority())) priorityWeight = 1.2;
+            else if ("HIGH".equals(task.getPriority())) priorityWeight = 1.5;
+            else if ("CRITICAL".equals(task.getPriority())) priorityWeight = 2.0;
+            
+            // Deadline multiplier
+            double deadlineMulti = 1.0;
+            if (task.getDueDate() != null && task.getUpdatedDate() != null) {
+                if (task.getUpdatedDate().isAfter(task.getDueDate())) {
+                    deadlineMulti = 0.8; // Penalty for late
+                } else if (task.getUpdatedDate().isBefore(task.getDueDate().minusDays(1))) {
+                    deadlineMulti = 1.2; // Bonus for early
+                }
+            }
+            
+            // Base points per task = 10
+            double taskKpi = 10.0 * priorityWeight * deadlineMulti;
+            dto.setKpiScore(dto.getKpiScore() + taskKpi);
+            
+            kpiMap.put(assigneeId, dto);
+        }
+        
+        // Round final values
+        for (MemberKpiDTO dto : kpiMap.values()) {
+            dto.setTotalHoursSpent(Math.round(dto.getTotalHoursSpent() * 10.0) / 10.0);
+            dto.setKpiScore(Math.round(dto.getKpiScore() * 10.0) / 10.0);
+        }
+        
+        List<MemberKpiDTO> result = new java.util.ArrayList<>(kpiMap.values());
+        result.sort((a, b) -> Double.compare(b.getKpiScore(), a.getKpiScore()));
+        return result;
     }
 
     // =====================================================
@@ -567,6 +659,7 @@ public class ReportServiceImpl implements ReportService {
     }
 
     @Override
+    @Cacheable(value = "uniwork:analytics:summary", key = "'user:' + #userId", unless = "#result == null")
     public AnalyticsSummaryDTO getAnalyticsSummary(Long userId) {
         // Counts
         CompletableFuture<Long> totalTasksFuture = CompletableFuture.supplyAsync(() -> taskRepository.countAllByUser(userId));
@@ -650,7 +743,10 @@ public class ReportServiceImpl implements ReportService {
         ReportProjectProjection taskStats = taskRepository.reportProjects(List.of(projectId))
                 .stream().findFirst().orElse(null);
 
-        long totalTasks = taskStats != null ? taskStats.getTotalTasks() : 0;
+        long rawTotalTasks = taskStats != null ? taskStats.getTotalTasks() : 0;
+        long cancelledTasks = taskStats != null ? taskStats.getCancelledTasks() : 0;
+        long totalTasks = rawTotalTasks - cancelledTasks;
+        
         long completedTasks = taskStats != null ? taskStats.getCompletedTasks() : 0;
         double taskCompletionRate = totalTasks > 0 ? Math.round((completedTasks * 100.0) / totalTasks * 100.0) / 100.0 : 0;
 

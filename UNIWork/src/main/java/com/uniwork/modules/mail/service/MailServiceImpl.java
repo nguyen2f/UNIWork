@@ -19,12 +19,12 @@ public class MailServiceImpl implements MailService {
     public void sendAssignMail(String toEmail, String projectName, String role) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
-        message.setSubject("Bạn đã được thêm vào dự án");
+        message.setSubject("You have been added to a project");
         message.setText(
-                "Xin chào,\n\n" +
-                        "Bạn đã được assign vào dự án: " + projectName + "\n" +
-                        "Vai trò: " + seperateRoleString(role) + "\n\n" +
-                        "Vui lòng đăng nhập hệ thống để xem chi tiết: https://v0-uniwork.vercel.app/"
+                "Hello,\n\n" +
+                        "You have been assigned to the project: " + projectName + "\n" +
+                        "Role: " + seperateRoleString(role) + "\n\n" +
+                        "Please log in to the system to view details: https://v0-uniwork.vercel.app/"
         );
 
         mailSender.send(message);
@@ -34,15 +34,33 @@ public class MailServiceImpl implements MailService {
     public void sendRegisterMail(String toEmail, String userName) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(toEmail);
-        message.setSubject("Chào mừng bạn đến với UNIWork!");
-        message.setText("Xin chào " + userName + ",\n\n" +
-                "Cảm ơn bạn đã đăng ký tài khoản tại UNIWork. Chúng tôi rất vui được chào đón bạn đến với cộng đồng của chúng tôi.\n\n" +
-                "Truy cập vào hệ thống để khám phá các tính năng và bắt đầu làm việc cùng chúng tôi: https://v0-uniwork.vercel.app/\n\n" +
-                "Nếu bạn có bất kỳ câu hỏi hoặc cần hỗ trợ, đừng ngần ngại liên hệ với chúng tôi.\n\n" +
-                "Chúc bạn một ngày làm việc hiệu quả!\n\n" +
-                "Trân trọng,\n" +
-                "Đội ngũ UNIWork"
+        message.setSubject("Welcome to UNIWork!");
+        message.setText("Hello " + userName + ",\n\n" +
+                "Thank you for registering an account with UNIWork. We are excited to have you in our community.\n\n" +
+                "Access the system to explore features and start working with us: https://v0-uniwork.vercel.app/\n\n" +
+                "If you have any questions or need support, feel free to contact us.\n\n" +
+                "Have a productive day!\n\n" +
+                "Best regards,\n" +
+                "UNIWork Team"
         );
+    }
+
+    @Override
+    @Async
+    public void sendNewTaskMail(String toEmail, String taskTitle, String taskDescription) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(toEmail);
+        message.setSubject("You have a new task: " + taskTitle);
+        message.setText("Hello,\n\n" +
+                "You have been assigned a new task with the following details:\n\n" +
+                "Title: " + taskTitle + "\n" +
+                "Description: " + taskDescription + "\n\n" +
+                "Please log in to the system to view details: https://v0-uniwork.vercel.app/\n\n" +
+                "Best regards,\n" +
+                "UNIWork Team"
+        );
+
+        mailSender.send(message);
     }
 
     private String seperateRoleString(String role) {

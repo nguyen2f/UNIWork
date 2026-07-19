@@ -53,4 +53,6 @@ public interface ReportService {
     List<PriorityDistributionDTO> getTaskPriorityDistribution(Long userId);
 
     List<PriorityDistributionDTO> getIssuePriorityDistribution(Long userId);
+
+    List<MemberKpiDTO> getMemberKpiReport(Long userId, Long projectId, Long begin, Long end);
 }

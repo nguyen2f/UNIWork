@@ -21,7 +21,7 @@ public interface TaskDetailProjection {
     LocalDateTime getUpdatedDate();
 
     Boolean getCompleted();
-    String getTags();
+    String getType();
 
     // parent task
     Long getTaskParentId();

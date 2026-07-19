@@ -19,4 +19,5 @@ public interface IssueDetailProjection {
     String getReporterName();
     String getAssigneeName();
     String getTaskTitle();
+    String getProjectName();
 }
