@@ -38,6 +38,18 @@ public class TaskController {
     private TaskService taskService;
 
     // =====================================================
+    // GET TASKS BY PROJECT
+    // =====================================================
+
+    @GetMapping("/project/{projectId}")
+    public ResponseEntity getTasksByProjectId(@PathVariable Long projectId,
+                                               @RequestAttribute(required = false) Payload payload) {
+        log.info("Fetching all tasks for project ID: {}", projectId);
+        List<TaskDTO> tasks = taskService.getAllTasksByProjectId(projectId);
+        return ResponseFactory.success(tasks);
+    }
+
+    // =====================================================
     // GET TASKS BY STAGE
     // =====================================================
 

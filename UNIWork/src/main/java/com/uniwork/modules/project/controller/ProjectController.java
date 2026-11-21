@@ -26,6 +26,9 @@ public class ProjectController {
     @Autowired
     private ProjectService projectService;
 
+    @Autowired
+    private com.uniwork.modules.task.service.TaskService taskService;
+
     @GetMapping
     public ResponseEntity getAllProjects(@RequestAttribute(required = false) Payload payload,
                                          @RequestParam(required = false) Integer priority,
@@ -81,5 +84,12 @@ public class ProjectController {
         log.info("Getting members for projectId: {} and userId: {}", projectId, payload.getUserId());
         List<ProjectMemberDTO> members = projectService.getProjectMembers(projectId);
         return ResponseFactory.success(members);
+    }
+
+    @GetMapping("/{projectId}/tasks")
+    public ResponseEntity getProjectTasks(@PathVariable Long projectId, @RequestAttribute(required = false) Payload payload) {
+        log.info("Getting tasks for projectId: {} and userId: {}", projectId, payload.getUserId());
+        List<com.uniwork.modules.task.dto.TaskDTO> tasks = taskService.getAllTasksByProjectId(projectId);
+        return ResponseFactory.success(tasks);
     }
 }
