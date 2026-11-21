@@ -1,0 +1,57 @@
+# Secrets & Credentials
+.env
+.env.*
+!.env.example
+uniwork.docker.env
+*.pem
+*.key
+*.cert
+*.crt
+*.pfx
+*.p12
+id_rsa*
+id_ed25519*
+*credentials*.json
+*serviceAccount*.json
+secrets/
+
+# Build & Compilations
+target/
+build/
+dist/
+out/
+bin/
+*.class
+!.mvn/wrapper/maven-wrapper.jar
+
+# Logs & Cache
+*.log
+.cache/
+.sts4-cache/
+
+# IDE & Editor Artifacts
+.idea/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+.factorypath
+.springBeans
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+
+# Heavy Binaries & Archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
+*.exe
+*.dll
+*.iso
+*.db
+*.sqlite3

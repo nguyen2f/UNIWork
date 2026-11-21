@@ -6,14 +6,24 @@ services:
     container_name: mysql-container-local
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root1234}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-uniwork}
+      MYSQL_USER: ${MYSQL_USER:-uniwork_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-uniwork_pass}
     ports:
       - "3308:3306"
     volumes:
       - mysql_data:/var/lib/mysql
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis-container-local
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
 volumes:
   mysql_data:
+  redis_data:

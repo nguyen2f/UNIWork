@@ -11,7 +11,8 @@ public enum NotificationType {
     PROJECT_UPDATED("The project has been updated."),
     PROJECT_MEMBER_ADDED("You have been added to a project."),
     STAGE_COMPLETED("A stage has been completed."),
-    STAGE_ACTIVATED("A stage has been activated.");
+    STAGE_ACTIVATED("A stage has been activated."),
+    SYSTEM_ALERT("System alert notification.");
 
     private final String defaultMessage;
 

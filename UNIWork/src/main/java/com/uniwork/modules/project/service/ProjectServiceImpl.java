@@ -28,10 +28,10 @@ import com.uniwork.common.utils.BeanCopyUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -55,10 +55,12 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     public ProjectDetailDTO getProjectDetail(Long projectId, Long userId) {
-        checkProjectMember(projectId, userId);
+        if (!checkProjectMember(projectId, userId)) {
+            throw new CoreException(ErrorCode.FORBIDDEN, "You do not have access to this project");
+        }
         Project project = projectRepository.findProjectByProjectId(projectId);
         if (project == null) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Can not find project");
+            throw new CoreException(ErrorCode.PROJECT_NOT_FOUND, "Can not find project");
         }
 
         ProjectDTO projectDTO = buildProjectDTO(project);
@@ -86,18 +88,32 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     public List<ProjectDTO> getAllProjectsByUserId(Long userId, Integer priority, Integer status) {
-        List<ProjectDTO> projects = new ArrayList<>();
-        List<ProjectMember> projectMembers = projectMemberRepository.findAllByUserId(userId);
-        for (ProjectMember pm : projectMembers) {
-            Long projectId = pm.getProjectId();
-            Project project = projectRepository.findProjectByProjectIdAndFilter(projectId, Priority.fromCode(priority), ProjectStatus.fromCode(status));
-            if (project != null) {
-                projects.add(buildProjectDTO(project));
-            }
+        List<Project> projects = projectRepository.findAllByUserIdAndFilter(
+                userId,
+                Priority.fromCode(priority),
+                ProjectStatus.fromCode(status)
+        );
+        if (projects.isEmpty()) {
+            return Collections.emptyList();
         }
-        return projects;
+
+        List<Long> projectIds = projects.stream().map(Project::getProjectId).toList();
+        List<Object[]> memberCounts = projectMemberRepository.countMembersByProjectIds(projectIds);
+        Map<Long, Long> memberCountMap = new HashMap<>();
+        for (Object[] row : memberCounts) {
+            Long pid = (Long) row[0];
+            Long cnt = (Long) row[1];
+            memberCountMap.put(pid, cnt);
+        }
+
+        return projects.stream().map(p -> {
+            ProjectDTO dto = new ProjectDTO(p);
+            dto.setTotalMembers(memberCountMap.getOrDefault(p.getProjectId(), 0L));
+            return dto;
+        }).toList();
     }
 
+    @Transactional
     public ProjectDTO createProject(ProjectRequest projectRequest, Long userId) {
         Project project = new Project();
         project.setName(projectRequest.getName());
@@ -144,33 +160,35 @@ public class ProjectServiceImpl implements ProjectService {
         }
     }
 
+    @Transactional
     public ProjectDTO updateProject(Long projectId, ProjectRequest projectRequest, Long userId) {
         if (!checkProjectOwner(projectId, userId)) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "This member is not in this project");
+            throw new CoreException(ErrorCode.FORBIDDEN, "Only project owner can update project");
         }
 
         Project project = projectRepository.findProjectByProjectId(projectId);
         if (project == null) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Can not find this project");
+            throw new CoreException(ErrorCode.PROJECT_NOT_FOUND, "Can not find this project");
         }
         BeanCopyUtils.copyNonNullProperties(projectRequest, project);
         Project savedProject = projectRepository.save(project);
         return buildProjectDTO(savedProject);
     }
 
+    @Transactional
     public ProjectDTO updateProjectStatus(Long projectId, UpdateProjectStatusRequest request, Long userId) {
         if (!checkProjectOwner(projectId, userId)) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Only project owner can change status");
+            throw new CoreException(ErrorCode.FORBIDDEN, "Only project owner can change status");
         }
 
         Project project = projectRepository.findProjectByProjectId(projectId);
         if (project == null) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Can not find this project");
+            throw new CoreException(ErrorCode.PROJECT_NOT_FOUND, "Can not find this project");
         }
 
         ProjectStatus newStatus = ProjectStatus.fromCode(request.getStatus());
         if (newStatus == null) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Invalid project status");
+            throw new CoreException(ErrorCode.VALIDATION_FAILED, "Invalid project status");
         }
 
         project.setStatus(newStatus);
@@ -179,14 +197,15 @@ public class ProjectServiceImpl implements ProjectService {
         return buildProjectDTO(savedProject);
     }
 
+    @Transactional
     public void deleteProject(Long projectId, Long userId) {
         if (!checkProjectOwner(projectId, userId)) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Only project owner can delete project");
+            throw new CoreException(ErrorCode.FORBIDDEN, "Only project owner can delete project");
         }
 
         Project project = projectRepository.findProjectByProjectId(projectId);
         if (project == null) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Can not find this project");
+            throw new CoreException(ErrorCode.PROJECT_NOT_FOUND, "Can not find this project");
         }
 
         project.setIsDeleted(true);
@@ -228,16 +247,17 @@ public class ProjectServiceImpl implements ProjectService {
         }).collect(Collectors.toList());
     }
 
+    @Transactional
     public ProjectMemberDTO assignMember(Long projectId, AssignMemberRequest request) {
         // Check if already a member
         ProjectMember existing = projectMemberRepository.findByProjectIdAndUserId(projectId, request.getUserId());
         if (existing != null) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "User is already a member of this project");
+            throw new CoreException(ErrorCode.VALIDATION_FAILED, "User is already a member of this project");
         }
 
         // Verify user exists
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new CoreException(ErrorCode.INTERNAL_ERROR, "User not found"));
+                .orElseThrow(() -> new CoreException(ErrorCode.USER_NOT_FOUND, "User not found"));
 
         Role role;
         try {
@@ -262,17 +282,18 @@ public class ProjectServiceImpl implements ProjectService {
                 .build();
     }
 
+    @Transactional
     public void removeMember(Long projectId, Long userId, Long currentUserId) {
         // Cannot remove yourself if you are the owner
         ProjectMember currentMember = projectMemberRepository.findByProjectIdAndUserId(projectId, currentUserId);
         ProjectMember targetMember = projectMemberRepository.findByProjectIdAndUserId(projectId, userId);
 
         if (targetMember == null) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "User is not a member of this project");
+            throw new CoreException(ErrorCode.NOT_FOUND, "User is not a member of this project");
         }
 
         if (targetMember.getRole() == Role.OWNER) {
-            throw new CoreException(ErrorCode.INTERNAL_ERROR, "Cannot remove the project owner");
+            throw new CoreException(ErrorCode.FORBIDDEN, "Cannot remove the project owner");
         }
 
         targetMember.setIsDeleted(true);

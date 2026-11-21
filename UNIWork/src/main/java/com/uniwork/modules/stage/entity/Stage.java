@@ -10,7 +10,10 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "stages")
+@Table(name = "stages", indexes = {
+        @Index(name = "idx_stage_project", columnList = "projectId"),
+        @Index(name = "idx_stage_order", columnList = "orderIndex")
+})
 @SQLRestriction("is_deleted = false")
 public class Stage {
 

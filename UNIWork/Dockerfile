@@ -1,23 +1,25 @@
 # ========== 1️⃣ Stage build ==========
-FROM maven:3.9.6-eclipse-temurin-21 AS build
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 WORKDIR /app
 
-# Copy chỉ subfolder chứa Spring Boot
-COPY . .
+# Cache Maven dependencies layer
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
 
-
-# Build ứng dụng (bỏ qua test để giảm thời gian build)
+# Build application
+COPY src ./src
 RUN mvn clean package -DskipTests
 
 # ========== 2️⃣ Stage run ==========
-FROM eclipse-temurin:21-jdk-jammy
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 
-# Copy file jar đã build từ stage 1
+# Run as non-root user for container security
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
 COPY --from=build /app/target/*.jar app.jar
 
-# Expose port để Render map (không bắt buộc nhưng tốt)
 EXPOSE 8080
 
-# Chạy ứng dụng và dùng biến PORT
-ENTRYPOINT ["java","-jar","app.jar"]
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]

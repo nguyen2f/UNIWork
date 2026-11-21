@@ -13,7 +13,9 @@ import org.hibernate.annotations.SQLRestriction;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "notifications", indexes = {
+        @Index(name = "idx_noti_recipient", columnList = "recipientId, is_read")
+})
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -39,6 +41,7 @@ public class Notification {
     private String message;
 
     @Column(name = "is_read")
+    @Builder.Default
     private boolean isRead = false;
 
     private LocalDateTime createdDate;

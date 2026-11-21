@@ -22,6 +22,14 @@ public interface ProjectMemberRepository extends JpaRepository<ProjectMember, Lo
 
     Long countUserIdByProjectId(Long projectId);
 
+    @Query("""
+        SELECT pm.projectId, COUNT(pm.pmId)
+        FROM ProjectMember pm
+        WHERE pm.projectId IN :projectIds AND pm.isDeleted = false
+        GROUP BY pm.projectId
+    """)
+    List<Object[]> countMembersByProjectIds(@org.springframework.data.repository.query.Param("projectIds") List<Long> projectIds);
+
     Long countByUserId(Long userId);
 
     @Query("""

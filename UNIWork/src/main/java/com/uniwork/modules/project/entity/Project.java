@@ -11,7 +11,12 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "projects")
+@Table(name = "projects", indexes = {
+        @Index(name = "idx_project_owner", columnList = "ownerId"),
+        @Index(name = "idx_project_dept", columnList = "departmentId"),
+        @Index(name = "idx_project_status", columnList = "status"),
+        @Index(name = "idx_project_dates", columnList = "startDate, endDate")
+})
 @SQLRestriction("is_deleted = false")
 public class Project {
 
@@ -22,6 +27,7 @@ public class Project {
     private ProjectMethod method; // AGILE, WATERFALL, or STANDARD
     private String name;
     private String description;
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "priority")
     private Priority priority;
     private String category;
@@ -31,6 +37,7 @@ public class Project {
     private Long ownerId;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "status")
     private ProjectStatus status;
     private LocalDateTime createdDate;

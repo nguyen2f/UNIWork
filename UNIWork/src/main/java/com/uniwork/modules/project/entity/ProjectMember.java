@@ -7,7 +7,15 @@ import org.hibernate.annotations.SQLRestriction;
 
 @Entity
 @Data
-@Table(name = "project_members")
+@Table(name = "project_members",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_project_member", columnNames = {"projectId", "userId"})
+        },
+        indexes = {
+                @Index(name = "idx_pm_user", columnList = "userId"),
+                @Index(name = "idx_pm_project", columnList = "projectId")
+        }
+)
 @SQLRestriction("is_deleted = false")
 public class ProjectMember {
 

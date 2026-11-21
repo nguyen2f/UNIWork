@@ -25,8 +25,10 @@ public class WebSocketAuthInterceptor implements ChannelInterceptor {
             String token = accessor.getFirstNativeHeader("Authorization");
             if (token != null && token.startsWith("Bearer ")) {
                 token = token.substring(7);
-                Long userId = jwtUtil.extractUserId(token);
-                accessor.setUser(new StompPrincipal(userId.toString()));
+                if (jwtUtil.validateToken(token)) {
+                    Long userId = jwtUtil.extractUserId(token);
+                    accessor.setUser(new StompPrincipal(userId.toString()));
+                }
             }
         }
         return message;

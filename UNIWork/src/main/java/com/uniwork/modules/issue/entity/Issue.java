@@ -11,7 +11,12 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "issues")
+@Table(name = "issues", indexes = {
+        @Index(name = "idx_issue_task", columnList = "taskId"),
+        @Index(name = "idx_issue_project", columnList = "projectId"),
+        @Index(name = "idx_issue_assigned", columnList = "assignedTo"),
+        @Index(name = "idx_issue_status", columnList = "status")
+})
 @SQLRestriction("is_deleted = false")
 public class Issue {
 
@@ -29,12 +34,15 @@ public class Issue {
     private String title;
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private IssueType type;       // BUG, IMPROVEMENT, QUESTION, etc.
 
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "priority")
     private Priority priority;    // Reuse existing Priority enum
 
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "status")
     private IssueStatus status;   // OPEN, IN_PROGRESS, RESOLVED, CLOSED, REOPENED
 

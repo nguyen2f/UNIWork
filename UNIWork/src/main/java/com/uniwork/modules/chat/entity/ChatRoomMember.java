@@ -14,6 +14,10 @@ import org.hibernate.annotations.SQLRestriction;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Table(name = "chat_room_members", indexes = {
+        @Index(name = "idx_crm_room", columnList = "roomId"),
+        @Index(name = "idx_crm_user", columnList = "userId")
+})
 @SQLRestriction("is_deleted = false")
 public class ChatRoomMember {
 

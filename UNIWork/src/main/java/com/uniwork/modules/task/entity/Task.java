@@ -12,7 +12,13 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
-@Table(name = "tasks")
+@Table(name = "tasks", indexes = {
+        @Index(name = "idx_task_project", columnList = "projectId"),
+        @Index(name = "idx_task_stage", columnList = "stageId"),
+        @Index(name = "idx_task_assigned", columnList = "assignedTo"),
+        @Index(name = "idx_task_status", columnList = "status"),
+        @Index(name = "idx_task_due_date", columnList = "dueDate")
+})
 @SQLRestriction("is_deleted = false")
 public class Task {
 
@@ -30,8 +36,10 @@ public class Task {
 
     private String title;
     private String description;
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "priority")
     private Priority priority; // e.g., Low, Medium, High
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "status")
     private TaskStatus status;
     private LocalDateTime dueDate;

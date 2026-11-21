@@ -16,6 +16,21 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     Project findProjectByProjectId(Long projectId);
 
     @Query("""
+            SELECT p FROM Project p
+            WHERE p.projectId IN (
+                SELECT pm.projectId FROM ProjectMember pm WHERE pm.userId = :userId AND pm.isDeleted = false
+            )
+              AND (:priority IS NULL OR p.priority = :priority)
+              AND (:status IS NULL OR p.status = :status)
+            ORDER BY p.updatedDate DESC, p.createdDate DESC
+            """)
+    java.util.List<Project> findAllByUserIdAndFilter(
+            @Param("userId") Long userId,
+            @Param("priority") Priority priority,
+            @Param("status") ProjectStatus status
+    );
+
+    @Query("""
                 SELECT p FROM Project p
                 WHERE p.projectId = :projectId
                   AND (:status IS NULL OR p.status = :status)

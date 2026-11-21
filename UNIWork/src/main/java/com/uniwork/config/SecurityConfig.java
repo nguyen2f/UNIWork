@@ -51,7 +51,16 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    config.setAllowedOrigins(List.of("http://localhost:3000", allowedOrigins));
+                    List<String> origins = new java.util.ArrayList<>(List.of("http://localhost:3000"));
+                    if (allowedOrigins != null && !allowedOrigins.isBlank()) {
+                        for (String origin : allowedOrigins.split(",")) {
+                            String trimmed = origin.trim();
+                            if (!trimmed.isEmpty()) {
+                                origins.add(trimmed);
+                            }
+                        }
+                    }
+                    config.setAllowedOrigins(origins);
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));
                     config.setAllowCredentials(true);
@@ -68,7 +77,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/auth/login",
-                                "/auth/ping"
+                                "/auth/ping",
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
                         ).permitAll()
                         .requestMatchers(
                                 "/ws-chat/**",

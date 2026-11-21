@@ -21,6 +21,8 @@ import com.uniwork.modules.user.repository.UserRepository;
 import com.uniwork.modules.file.service.FileAttachmentService;
 import com.uniwork.modules.mail.service.MailService;
 import com.uniwork.common.utils.BeanCopyUtils;
+import com.uniwork.exceptions.CoreException;
+import com.uniwork.exceptions.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -126,17 +128,18 @@ public class UserServiceImpl implements UserService {
         return members;
     }
 
+    @CacheEvict(value = "uniwork:user:profile", key = "#userId")
     public User updateProfile(Long userId, UpdateProfileRequest updateProfileRequest) {
         User user = userRepository.findByUserId(userId);
         if (user == null) {
-            throw new RuntimeException("User not found");
+            throw new CoreException(ErrorCode.USER_NOT_FOUND, "User not found");
         }
         user.setUpdatedDate(LocalDateTime.now());
 
-        if (updateProfileRequest.getPassword() != null && !updateProfileRequest.getPassword().isEmpty()) {
-            user.setPassword(updateProfileRequest.getPassword());
+        if (updateProfileRequest.getPassword() != null && !updateProfileRequest.getPassword().isBlank()) {
+            user.setPassword(passwordEncoder.encode(updateProfileRequest.getPassword()));
         }
-        BeanCopyUtils.copyNonNullProperties(updateProfileRequest, user);
+        BeanCopyUtils.copyNonNullProperties(updateProfileRequest, user, "password");
         return userRepository.save(user);
     }
 
@@ -145,10 +148,11 @@ public class UserServiceImpl implements UserService {
         return userRepository.findAllUserDTO();
     }
 
+    @Cacheable(value = "uniwork:user:profile", key = "#userId")
     public ProfileDTO getUserById(Long userId) {
         UserProfileProjection user = userRepository.getUserProfile(userId);
         if (user == null) {
-            throw new RuntimeException("User not found");
+            throw new CoreException(ErrorCode.USER_NOT_FOUND, "User not found");
         }
         return new ProfileDTO(
                 user.getUserId(),
@@ -166,8 +170,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "uniwork:user:profile", key = "#userId")
     public ProfileDTO updateAvatar(Long userId, MultipartFile file) {
         User user = userRepository.findByUserId(userId);
+        if (user == null) {
+            throw new CoreException(ErrorCode.USER_NOT_FOUND, "User not found");
+        }
         String publicId = "avatars/user_" + userId + "/" + java.util.UUID.randomUUID() + "_" + file.getOriginalFilename();
         Map uploadResult = fileAttachmentService.uploadImage(file, publicId);
         user.setAvatarUrl((String) uploadResult.get("secure_url"));
@@ -181,6 +189,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "uniwork:user:list", key = "'active'")
     public User createUserByAdmin(com.uniwork.modules.admin.request.AdminCreateUserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new RuntimeException("User already exists");
