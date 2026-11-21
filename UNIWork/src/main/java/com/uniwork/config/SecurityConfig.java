@@ -80,7 +80,8 @@ public class SecurityConfig {
                                 "/auth/ping",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+                                "/actuator/**"
                         ).permitAll()
                         .requestMatchers(
                                 "/ws-chat/**",
