@@ -17,3 +17,11 @@ scrape_configs:
   - job_name: "prometheus"
     static_configs:
       - targets: ["localhost:9090"]
+
+# Optional Prometheus Remote Write to Grafana Cloud:
+# To forward local metrics to Grafana Cloud, uncomment and fill in your credentials:
+# remote_write:
+#   - url: "https://prometheus-prod-37-prod-ap-southeast-1.grafana.net/api/prom/push"
+#     basic_auth:
+#       username: "3794076"
+#       password: "<YOUR_GRAFANA_CLOUD_API_TOKEN>"
