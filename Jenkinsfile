@@ -18,7 +18,7 @@ pipeline {
             steps {
                 dir('UNIWork') {
                     echo '=== Stage 2: Running Unit Tests & Generating Reports ==='
-                    sh './mvnw clean test'
+                    sh 'chmod +x mvnw && ./mvnw clean test'
                 }
             }
             post {
@@ -35,7 +35,7 @@ pipeline {
             steps {
                 dir('UNIWork') {
                     echo '=== Stage 3: Packaging Spring Boot JAR ==='
-                    sh './mvnw package -DskipTests'
+                    sh 'chmod +x mvnw && ./mvnw package -DskipTests'
                 }
             }
         }
