@@ -26,3 +26,16 @@ jobs:
       run: |
         chmod +x mvnw
         ./mvnw clean test
+
+    - name: Trigger Render Deploy Hook
+      if: (github.ref == 'refs/heads/develop' || github.ref == 'refs/heads/main') && github.event_name == 'push'
+      env:
+        DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+      run: |
+        if [ -n "$DEPLOY_HOOK" ]; then
+          echo "Triggering Render deployment..."
+          curl -s -X POST "$DEPLOY_HOOK"
+        else
+          echo "RENDER_DEPLOY_HOOK secret is not set, skipping deployment."
+        fi
+
