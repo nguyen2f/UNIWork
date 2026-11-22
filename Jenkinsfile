@@ -57,12 +57,19 @@ pipeline {
         }
 
         stage('Deploy to Render') {
-            when {
-                expression { env.RENDER_DEPLOY_HOOK != null && env.RENDER_DEPLOY_HOOK != '' }
-            }
             steps {
-                echo '=== Stage 6: All tests passed. Triggering Render Production Deployment ==='
-                sh 'curl -X POST "${RENDER_DEPLOY_HOOK}"'
+                script {
+                    try {
+                        withCredentials([string(credentialsId: 'RENDER_DEPLOY_HOOK', variable: 'HOOK_URL')]) {
+                            if (env.HOOK_URL) {
+                                echo '=== Stage 6: All tests passed. Triggering Render Production Deployment ==='
+                                sh 'curl -s -X POST "${HOOK_URL}"'
+                            }
+                        }
+                    } catch (Exception e) {
+                        echo 'RENDER_DEPLOY_HOOK credential not configured in Jenkins, skipping deployment step.'
+                    }
+                }
             }
         }
     }
