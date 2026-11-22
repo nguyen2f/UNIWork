@@ -55,6 +55,16 @@ pipeline {
                 sh 'docker image inspect ${IMAGE_NAME} --format "{{.Id}}: {{.Size}} bytes"'
             }
         }
+
+        stage('Deploy to Render') {
+            when {
+                expression { env.RENDER_DEPLOY_HOOK != null && env.RENDER_DEPLOY_HOOK != '' }
+            }
+            steps {
+                echo '=== Stage 6: All tests passed. Triggering Render Production Deployment ==='
+                sh 'curl -X POST "${RENDER_DEPLOY_HOOK}"'
+            }
+        }
     }
 
     post {
